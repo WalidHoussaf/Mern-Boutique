@@ -1,0 +1,332 @@
+/* Navbar animations */
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes dropIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes goldShimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes rotatePattern {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sparkling {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Utility classes for animations */
+.animate-pulse {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.animate-dropdown {
+  animation: dropIn 0.3s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.5) 50%, 
+    rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.animate-gold-shimmer {
+  background: linear-gradient(90deg, 
+    rgba(184,134,11,0.1) 0%, 
+    rgba(218,165,32,0.3) 25%, 
+    rgba(255,215,0,0.5) 50%,
+    rgba(218,165,32,0.3) 75%,
+    rgba(184,134,11,0.1) 100%);
+  background-size: 200% 100%;
+  animation: goldShimmer 4s infinite linear;
+  opacity: 0.8;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-rotate {
+  animation: rotatePattern 15s linear infinite;
+}
+
+/* Golden gradient styles */
+.gold-gradient {
+  background: linear-gradient(
+    45deg,
+    #BF953F 0%,
+    #FCF6BA 20%,
+    #B38728 40%,
+    #FBF5B7 60%,
+    #AA771C 80%,
+    #FCF6BA 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: goldShimmer 5s linear infinite;
+}
+
+/* Gold heart for wishlist */
+.gold-heart {
+  color: #D4AF37;
+  filter: drop-shadow(0px 0px 1px rgba(218, 165, 32, 0.5));
+  transition: all 0.3s ease;
+}
+
+.gold-heart:hover, 
+a:hover .gold-heart, 
+button:hover .gold-heart,
+div:hover .gold-heart {
+  color: #FFC832;
+  filter: drop-shadow(0px 0px 2px rgba(255, 215, 0, 0.7));
+  transform: scale(1.1);
+}
+
+/* Royal Gold Text */
+.royal-gold {
+  color: #D4AF37;
+  text-shadow: 0px 0px 2px rgba(255, 215, 0, 0.3);
+}
+
+/* Custom scrollbar for dropdowns with long content */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-dark);
+}
+
+/* Glass effect for dropdowns */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient animations */
+.gradient-border {
+  position: relative;
+  z-index: 0;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    to right,
+    var(--color-primary),
+    var(--color-purple),
+    var(--color-primary)
+  );
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* Golden geometric elements */
+.golden-accent-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.golden-accent-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #BF953F,
+    #FCF6BA,
+    #B38728,
+    #FBF5B7,
+    #AA771C,
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: goldShimmer 3s infinite linear;
+}
+
+.gold-diamond-pattern {
+  position: absolute;
+  width: 150px;
+  height: 40px;
+  background-image: 
+    repeating-linear-gradient(45deg, 
+      rgba(218,165,32,0.1) 0, 
+      rgba(218,165,32,0.1) 2px, 
+      transparent 2px, 
+      transparent 8px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.golden-zigzag {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-image: 
+    linear-gradient(-45deg, transparent 33.33%, rgba(218,165,32,0.3) 33.33%, rgba(218,165,32,0.3) 66.66%, transparent 66.66%),
+    linear-gradient(45deg, transparent 33.33%, rgba(218,165,32,0.3) 33.33%, rgba(218,165,32,0.3) 66.66%, transparent 66.66%);
+  background-size: 12px 6px;
+  opacity: 0.7;
+}
+
+.gold-triangle-pattern {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background-image: 
+    linear-gradient(45deg, transparent 50%, rgba(255,215,0,0.1) 50%),
+    linear-gradient(-45deg, transparent 50%, rgba(255,215,0,0.1) 50%);
+  background-size: 10px 10px;
+  animation: rotatePattern 15s linear infinite;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Golden sparkles */
+.gold-sparkles {
+  position: relative;
+}
+
+.gold-sparkles::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background-image: 
+    radial-gradient(circle, #FFD700 1px, transparent 1px),
+    radial-gradient(circle, #FFD700 1px, transparent 1px),
+    radial-gradient(circle, #FFD700 1px, transparent 1px),
+    radial-gradient(circle, #FFD700 1px, transparent 1px),
+    radial-gradient(circle, #FFD700 1px, transparent 1px);
+  background-size: 20% 20%;
+  background-position: 
+    10% 10%,
+    25% 60%,
+    50% 30%,
+    75% 70%,
+    90% 40%;
+  opacity: 0;
+  animation: sparkling 3s infinite ease-in-out;
+  pointer-events: none;
+}
+
+/* Category icon colors */
+.woman-icon {
+  filter: brightness(0) saturate(100%) invert(73%) sepia(42%) saturate(7414%) hue-rotate(300deg) brightness(101%) contrast(98%);
+  transition: transform 0.3s ease;
+}
+
+.man-icon {
+  filter: brightness(0) saturate(100%) invert(39%) sepia(98%) saturate(1906%) hue-rotate(206deg) brightness(96%) contrast(101%);
+  transition: transform 0.3s ease;
+}
+
+.kids-icon {
+  filter: brightness(0) saturate(100%) invert(56%) sepia(75%) saturate(403%) hue-rotate(93deg) brightness(95%) contrast(91%);
+  transition: transform 0.3s ease;
+}
+
+.woman-icon:hover, .man-icon:hover, .kids-icon:hover {
+  transform: scale(1.1);
+} 
