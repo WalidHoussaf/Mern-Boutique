@@ -14,6 +14,23 @@ A full-stack e-commerce application built with the MERN stack (MongoDB, Express.
 - Payment integration
 - Order tracking
 
+## Screenshots
+
+### Home Page
+![Home Page](./screenshots/home.png)
+
+### Product Collection
+![Product Collection](./screenshots/collection.png)
+
+### Product Details
+![Product Details](./screenshots/product-details.png)
+
+### Shopping Cart
+![Shopping Cart](./screenshots/cart.png)
+
+### Admin Dashboard
+![Admin Dashboard](./screenshots/admin-dashboard.png)
+
 ## Technologies Used
 
 - **Frontend:**
@@ -65,6 +82,15 @@ npm run dev
 cd client
 npm start
 ```
+
+## Image Credits
+
+Some images used in this project are sourced from various e-commerce websites for demonstration purposes only. These images are the property of their respective owners and are used here for educational purposes. If you are the owner of any of these images and would like them removed, please create an issue in this repository.
+
+**Image Sources:**
+- Product images: Various e-commerce websites (for demonstration only)
+
+This project is for educational purposes only and is not intended for commercial use.
 
 ## Contributing
 

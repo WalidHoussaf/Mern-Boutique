@@ -82,7 +82,7 @@ const App = () => {
   }, [location.pathname]);
 
   return (
-    <div className='px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'>
+    <div className='min-w-[1024px] px-[9vw]'>
       <ToastContainer
         position="top-right"
         autoClose={3000}

@@ -890,6 +890,32 @@ const Product = () => {
           </div>
         </div>
       </div>
+
+      {/* Similar Products Section */}
+      {similarProducts.length > 0 && (
+        <div className="mt-16">
+          <div className="border-b border-gray-200 mb-8">
+            <h2 className="text-2xl font-prata text-secondary pb-4">You Might Also Like</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {similarProducts.map((similarProduct) => (
+              <ProductItem
+                key={similarProduct._id}
+                id={similarProduct._id}
+                name={similarProduct.name}
+                price={similarProduct.price}
+                originalPrice={similarProduct.originalPrice}
+                image={similarProduct.image}
+                rating={similarProduct.rating}
+                isNew={similarProduct.isNew}
+                category={similarProduct.category}
+                subCategory={similarProduct.subCategory}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

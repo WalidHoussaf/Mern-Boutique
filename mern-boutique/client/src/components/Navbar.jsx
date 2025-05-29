@@ -650,7 +650,7 @@ const Navbar = () => {
               </div>
             
               <div className="bg-gradient-to-b from-white/60 to-primary/10 p-5">
-                <p className="text-sm text-gray-600 text-center">© 2024 Boutique. All rights reserved.</p>
+                <p className="text-sm text-gray-600 text-center">© 2025 Boutique. All rights reserved.</p>
               </div>
             </div>
           </div>
