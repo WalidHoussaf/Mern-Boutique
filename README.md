@@ -2,7 +2,7 @@
 
 A modern, full-stack e-commerce application built with the MERN stack (MongoDB, Express.js, React.js, Node.js). This project implements best practices in web development and provides a seamless shopping experience.
 
-## ✨ Features
+## ✨ Features:
 
 ### User Features
 - 🔐 Secure user authentication and authorization
@@ -41,7 +41,7 @@ A modern, full-stack e-commerce application built with the MERN stack (MongoDB, 
 
 ## 🛠️ Technologies Used
 
-### Frontend
+### Frontend:
 - **React.js** - UI development
 - **TailwindCSS** - Styling and responsive design
 - **React Router** - Client-side routing
@@ -50,7 +50,7 @@ A modern, full-stack e-commerce application built with the MERN stack (MongoDB, 
 - **Framer Motion** - Animations
 - **React Toastify** - Notifications
 
-### Backend
+### Backend:
 - **Node.js** - Runtime environment
 - **Express.js** - Web framework
 - **MongoDB** - Database
@@ -68,13 +68,13 @@ A modern, full-stack e-commerce application built with the MERN stack (MongoDB, 
 
 ### Installation
 
-1. Clone the repository
+1. Clone the repository:
 ```bash
 git clone https://github.com/YourUsername/Mern-Boutique.git
 cd Mern-Boutique
 ```
 
-2. Install dependencies
+2. Install dependencies:
 ```bash
 # Install backend dependencies
 cd server
@@ -85,7 +85,7 @@ cd ../client
 npm install
 ```
 
-3. Environment Setup
+3. Environment Setup:
 Create a `.env` file in the server directory:
 ```env
 MONGODB_URI=your_mongodb_uri
@@ -97,7 +97,7 @@ CLOUDINARY_API_KEY=your_cloudinary_key
 CLOUDINARY_API_SECRET=your_cloudinary_secret
 ```
 
-4. Start Development Servers
+4. Start Development Servers:
 ```bash
 # Start backend server (from server directory)
 npm run dev
@@ -108,7 +108,7 @@ npm start
 
 The application will be available at `http://localhost:3000`
 
-## 📝 Usage
+## 📝 Usage:
 
 ### User Account
 - Create an account or login
@@ -129,7 +129,7 @@ Admin capabilities:
 - View analytics
 - Manage users
 
-## 🤝 Contributing
+## 🤝 Contributing:
 
 We welcome contributions! Please follow these steps:
 
@@ -139,11 +139,11 @@ We welcome contributions! Please follow these steps:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
+## 📄 License:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🙏 Acknowledgments:
 
 - Product images used in this demo are sourced from various e-commerce websites for demonstration purposes only
 
