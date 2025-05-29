@@ -1,101 +1,153 @@
-# MERN E-commerce Boutique
+# MERN E-commerce Boutique 🛍️
 
-A full-stack e-commerce application built with the MERN stack (MongoDB, Express.js, React.js, Node.js).
+A modern, full-stack e-commerce application built with the MERN stack (MongoDB, Express.js, React.js, Node.js). This project implements best practices in web development and provides a seamless shopping experience.
 
-## Features
+## ✨ Features
 
-- User authentication and authorization
-- Product catalog with categories and search
-- Shopping cart functionality
-- Order management system
-- Admin dashboard
-- Responsive design
-- Real-time notifications
-- Payment integration
-- Order tracking
+### User Features
+- 🔐 Secure user authentication and authorization
+- 🔍 Advanced product search and filtering
+- 🛒 Real-time shopping cart updates
+- 💳 Secure payment processing
+- 📱 Fully responsive design
+- ❤️ Wishlist functionality
+- 🔔 Real-time notifications
+- 📦 Order tracking
 
-## Screenshots
+### Admin Features
+- 📊 Comprehensive dashboard
+- 📝 Product management (CRUD operations)
+- 👥 User management
+- 📈 Sales analytics
+- 🗂️ Category management
+- 🏷️ Discount management
+
+## 📸 Screenshots
 
 ### Home Page
-![Home Page](./screenshots/home.png)
+![Home Page](./mern-boutique/screenshots/home.png)
 
 ### Product Collection
-![Product Collection](./screenshots/collection.png)
+![Product Collection](./mern-boutique/screenshots/collection.png)
 
 ### Product Details
-![Product Details](./screenshots/product-details.png)
+![Product Details](./mern-boutique/screenshots/product-details.png)
 
 ### Shopping Cart
-![Shopping Cart](./screenshots/cart.png)
+![Shopping Cart](./mern-boutique/screenshots/cart.png)
 
 ### Admin Dashboard
-![Admin Dashboard](./screenshots/admin-dashboard.png)
+![Admin Dashboard](./mern-boutique/screenshots/admin-dashboard.png)
 
-## Technologies Used
+## 🛠️ Technologies Used
 
-- **Frontend:**
-  - React.js
-  - TailwindCSS
-  - React Router
-  - Context API
-  - Axios
+### Frontend
+- **React.js** - UI development
+- **TailwindCSS** - Styling and responsive design
+- **React Router** - Client-side routing
+- **Context API** - State management
+- **Axios** - HTTP client
+- **Framer Motion** - Animations
+- **React Toastify** - Notifications
 
-- **Backend:**
-  - Node.js
-  - Express.js
-  - MongoDB
-  - JWT Authentication
-  - RESTful API
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **MongoDB** - Database
+- **Mongoose** - ODM
+- **JWT** - Authentication
+- **Bcrypt** - Password hashing
+- **Multer** - File uploads
 
-## Getting Started
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v14 or higher)
+- MongoDB
+- npm or yarn
+
+### Installation
 
 1. Clone the repository
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/YourUsername/Mern-Boutique.git
+cd Mern-Boutique
 ```
 
-2. Install dependencies for both frontend and backend
+2. Install dependencies
 ```bash
 # Install backend dependencies
 cd server
 npm install
 
 # Install frontend dependencies
-cd client
+cd ../client
 npm install
 ```
 
-3. Set up environment variables
-Create a `.env` file in the server directory and add:
-```
+3. Environment Setup
+Create a `.env` file in the server directory:
+```env
 MONGODB_URI=your_mongodb_uri
 JWT_SECRET=your_jwt_secret
+PORT=5000
+NODE_ENV=development
+CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+CLOUDINARY_API_KEY=your_cloudinary_key
+CLOUDINARY_API_SECRET=your_cloudinary_secret
 ```
 
-4. Run the development server
+4. Start Development Servers
 ```bash
-# Run backend
-cd server
+# Start backend server (from server directory)
 npm run dev
 
-# Run frontend
-cd client
+# Start frontend server (from client directory)
 npm start
 ```
 
-## Image Credits
+The application will be available at `http://localhost:3000`
 
-Some images used in this project are sourced from various e-commerce websites for demonstration purposes only. These images are the property of their respective owners and are used here for educational purposes. If you are the owner of any of these images and would like them removed, please create an issue in this repository.
+## 📝 Usage
 
-**Image Sources:**
-- Product images: Various e-commerce websites (for demonstration only)
+### User Account
+- Create an account or login
+- Browse products by category
+- Add items to cart
+- Manage wishlist
+- Place orders
+- Track order status
 
-This project is for educational purposes only and is not intended for commercial use.
+### Admin Account
+Default admin credentials:
+- Email: admin@example.com
+- Password: admin123
 
-## Contributing
+Admin capabilities:
+- Manage products
+- Process orders
+- View analytics
+- Manage users
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+## 🤝 Contributing
 
-## License
+We welcome contributions! Please follow these steps:
 
-[MIT](https://choosealicense.com/licenses/mit/) 
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Product images used in this demo are sourced from various e-commerce websites for demonstration purposes only
+
+Project Link: [https://github.com/YourUsername/Mern-Boutique](https://github.com/YourUsername/Mern-Boutique)
+
+---
+⭐️ Star this repo if you find it helpful! 
