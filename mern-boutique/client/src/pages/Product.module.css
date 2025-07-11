@@ -1,0 +1,14 @@
+.zoomContainer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.zoomIn {
+  cursor: url('../../public/cursors/zoom-in.png') 16 16, zoom-in;
+}
+
+.zoomOut {
+  cursor: url('../../public/cursors/zoom-out.png') 16 16, zoom-out;
+} 

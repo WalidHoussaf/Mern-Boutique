@@ -1,0 +1,36 @@
+/* Admin Dashboard Button Styles */
+
+/* Add cursor pointer to all text links and buttons */
+.text-primary,
+.text-blue-500, .text-blue-600, .text-blue-700,
+.text-green-500, .text-green-600, .text-green-700,
+.text-purple-500, .text-purple-600, .text-purple-700,
+.text-yellow-500, .text-yellow-600, .text-yellow-700,
+.text-indigo-600, .text-indigo-900,
+.text-red-600, .text-red-900,
+.text-gray-600:hover, .text-gray-900:hover,
+button[class*="text-"] {
+  cursor: pointer;
+}
+
+/* Add cursor pointer to all admin navigation tabs */
+nav a {
+  cursor: pointer;
+}
+
+/* Add cursor pointer to all card links */
+.text-sm[class*="text-"] {
+  cursor: pointer;
+}
+
+/* Ensure all buttons have pointer cursor */
+button:not([disabled]) {
+  cursor: pointer;
+}
+
+/* Add pointer cursor to all action links */
+.flex.items-center.space-x-2 > a,
+.flex.items-center.space-x-3 > a,
+.flex.items-center.space-x-3 > button:not([disabled]) {
+  cursor: pointer;
+} 

@@ -1,0 +1,202 @@
+/* Navbar animations */
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes dropIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes goldShimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes navHighlight {
+  0% {
+    width: 0;
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  100% {
+    width: 100%;
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* Utility classes for animations */
+.animate-pulse {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.animate-dropdown {
+  animation: dropIn 0.3s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Active navigation link styles */
+.nav-link-active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    var(--color-primary) 25%,
+    var(--color-primary) 75%,
+    transparent 100%
+  );
+  box-shadow: 0 1px 2px rgba(var(--color-primary-rgb), 0.15);
+  animation: navHighlight 0.3s ease-out forwards;
+  transform-origin: center;
+}
+
+/* Golden gradient styles */
+.gold-gradient {
+  background: linear-gradient(
+    45deg,
+    #BF953F 0%,
+    #FCF6BA 20%,
+    #B38728 40%,
+    #FBF5B7 60%,
+    #AA771C 80%,
+    #FCF6BA 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: goldShimmer 5s linear infinite;
+}
+
+/* Gold heart for wishlist */
+.gold-heart {
+  color: #D4AF37;
+  filter: drop-shadow(0px 0px 1px rgba(218, 165, 32, 0.5));
+  transition: all 0.3s ease;
+}
+
+.gold-heart:hover, 
+a:hover .gold-heart, 
+button:hover .gold-heart,
+div:hover .gold-heart {
+  color: #FFC832;
+  filter: drop-shadow(0px 0px 2px rgba(255, 215, 0, 0.7));
+  transform: scale(1.1);
+}
+
+/* Royal Gold Text */
+.royal-gold {
+  color: #D4AF37;
+  text-shadow: 0px 0px 2px rgba(255, 215, 0, 0.3);
+}
+
+/* Custom scrollbar for dropdowns with long content */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-dark);
+}
+
+/* Glass effect for dropdowns */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient animations */
+.gradient-border {
+  position: relative;
+  z-index: 0;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    to right,
+    var(--color-primary),
+    var(--color-purple),
+    var(--color-primary)
+  );
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* Category icon colors */
+.woman-icon {
+  filter: brightness(0) saturate(100%) invert(73%) sepia(42%) saturate(7414%) hue-rotate(300deg) brightness(101%) contrast(98%);
+  transition: transform 0.3s ease;
+}
+
+.man-icon {
+  filter: brightness(0) saturate(100%) invert(39%) sepia(98%) saturate(1906%) hue-rotate(206deg) brightness(96%) contrast(101%);
+  transition: transform 0.3s ease;
+}
+
+.kids-icon {
+  filter: brightness(0) saturate(100%) invert(56%) sepia(75%) saturate(403%) hue-rotate(93deg) brightness(95%) contrast(91%);
+  transition: transform 0.3s ease;
+}
+
+.woman-icon:hover, .man-icon:hover, .kids-icon:hover {
+  transform: scale(1.1);
+} 
