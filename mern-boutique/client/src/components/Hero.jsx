@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { assets } from '../assets/assets';
+import useTranslation from '../utils/useTranslation';
 
 const Hero = () => {
   const heroImages = [
@@ -10,6 +11,7 @@ const Hero = () => {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Automatically cycle through images every 6 seconds
@@ -75,21 +77,21 @@ const Hero = () => {
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-14 h-[2px] bg-white"></div>
                   <p className="font-medium text-sm uppercase tracking-wider text-white">
-                    Premium Collection
+                    {t('premiumCollection')}
                   </p>
                 </div>
                 
                 {/* Main Heading */}
                 <h1 className="hero-heading text-3xl sm:text-4xl lg:text-6xl font-prata leading-tight mb-6 text-white">
-                  <span className="block">Elegant</span>
-                  <span className="block">Styles</span>
-                  <span className="block">for Every</span>
-                  <span className="block">Occasion</span>
+                  <span className="block">{t('heroHeadingLine1')}</span>
+                  <span className="block">{t('heroHeadingLine2')}</span>
+                  <span className="block">{t('heroHeadingLine3')}</span>
+                  <span className="block">{t('heroHeadingLine4')}</span>
                 </h1>
                 
                 {/* Description Text */}
                 <p className="text-white/90 text-sm lg:text-base mb-8 max-w-md">
-                  Discover our curated collection of timeless pieces designed to elevate your wardrobe with sophistication and style.
+                  {t('heroDescription')}
                 </p>
                 
                 {/* Call to Action Buttons */}
@@ -98,13 +100,13 @@ const Hero = () => {
                     href="/collection"
                     className="text-primary bg-white hover:bg-white/90 px-6 py-3 text-sm font-medium rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                   >
-                    Shop Now
+                    {t('shopNow')}
                   </a>
                   <a
                     href="/about"
                     className="text-white border border-white hover:bg-white/10 px-6 py-3 text-sm font-medium rounded-lg transition-all duration-300 transform hover:-translate-y-0.5"
                   >
-                    Learn More
+                    {t('learnMore')}
                   </a>
                 </div>
               </div>
@@ -113,7 +115,7 @@ const Hero = () => {
             {/* Featured tag */}
             <div className="absolute top-4 right-4 bg-primary text-white px-3 py-1.5 rounded-lg shadow-md z-20 flex items-center space-x-2">
               <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-              <p className="text-xs font-medium">Featured Collection</p>
+              <p className="text-xs font-medium">{t('featuredCollection')}</p>
             </div>
           </div>
         </div>

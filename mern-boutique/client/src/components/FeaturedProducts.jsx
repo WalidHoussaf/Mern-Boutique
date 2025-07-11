@@ -1,9 +1,11 @@
 import { useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import ProductItem from './ProductItem';
+import useTranslation from '../utils/useTranslation';
 
 const FeaturedProducts = () => {
   const { allProducts, navigate } = useContext(ShopContext);
+  const { t } = useTranslation();
   
   // Get featured products from API
   const products = allProducts.filter(product => product.featured).slice(0, 4);
@@ -26,13 +28,15 @@ const FeaturedProducts = () => {
             <div className="flex justify-center mb-2">
               <span className="flex items-center px-6 py-1.5 rounded-full bg-blue-50 border border-blue-100">
                 <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
-                <span className="text-xs font-medium tracking-wide text-primary uppercase">Top Selection</span>
+                <span className="text-xs font-medium tracking-wide text-primary uppercase">
+                  {t('topSelection')}
+                </span>
               </span>
             </div>
             
             {/* Main heading */}
             <h2 className="text-4xl md:text-5xl font-prata text-secondary mb-3">
-              Featured Products
+              {t('featuredProducts')}
             </h2>
             
             {/* Divider */}
@@ -60,8 +64,7 @@ const FeaturedProducts = () => {
             
             {/* Description */}
             <p className="text-gray-600 max-w-2xl mx-auto text-base leading-relaxed">
-              Discover our handpicked selection of exceptional pieces that combine style, quality, and comfort.
-              Each item is carefully selected to ensure the highest standards.
+              {t('featuredProductsDescription')}
             </p>
           </div>
           
@@ -148,7 +151,7 @@ const FeaturedProducts = () => {
               onClick={() => navigate('/collection')}
               className="group relative inline-flex items-center justify-center px-8 py-4 font-medium tracking-wide text-white transition-all duration-300 ease-in-out bg-primary rounded-lg overflow-hidden shadow-md hover:shadow-xl"
             >
-              <span className="relative z-10">View All Products</span>
+              <span className="relative z-10">{t('viewAllProducts')}</span>
               <span className="absolute inset-0 h-full w-full bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out origin-left opacity-10"></span>
             </button>
           </div>

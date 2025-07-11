@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import useTranslation from '../utils/useTranslation';
 
 // Enhanced testimonials with more detailed information and actual product names
 const testimonials = [
@@ -76,7 +77,7 @@ const testimonials = [
   }
 ];
 
-const TestimonialCard = ({ testimonial }) => {
+const TestimonialCard = ({ testimonial, t }) => {
   // Render stars based on rating
   const renderStars = (rating) => {
     const stars = [];
@@ -105,7 +106,7 @@ const TestimonialCard = ({ testimonial }) => {
             <svg className="w-3 h-3 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
             </svg>
-            <span className="text-xs font-medium text-green-700">Verified</span>
+            <span className="text-xs font-medium text-green-700">{t('verified')}</span>
           </div>
         </div>
       )}
@@ -143,7 +144,7 @@ const TestimonialCard = ({ testimonial }) => {
       
       {/* Product info in a clearer format */}
       <div className="text-left text-sm border-t border-gray-100 pt-3 mt-auto">
-        <span className="text-gray-600 font-medium">Purchased: </span>
+        <span className="text-gray-600 font-medium">{t('purchased')}</span>
         <span className="font-medium text-primary">{testimonial.productPurchased}</span>
         <div className="text-xs text-gray-500 mt-1">{testimonial.date}</div>
       </div>
@@ -152,6 +153,7 @@ const TestimonialCard = ({ testimonial }) => {
 };
 
 const Testimonials = () => {
+  const { t } = useTranslation();
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [visiblePage, setVisiblePage] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -213,13 +215,13 @@ const Testimonials = () => {
           <div className="flex justify-center mb-2">
             <span className="flex items-center px-3 py-0.5 rounded-full bg-blue-50 border border-blue-100">
               <span className="w-1.5 h-1.5 bg-primary rounded-full mr-1.5"></span>
-              <span className="text-xs font-medium tracking-wide text-primary uppercase">Customer Stories</span>
+              <span className="text-xs font-medium tracking-wide text-primary uppercase">{t('customerStories')}</span>
             </span>
           </div>
           
           {/* Heading */}
           <h2 className="text-4xl md:text-5xl font-prata text-secondary mb-3">
-            What Our Customers Say
+            {t('whatCustomersSay')}
           </h2>
           
           {/* Simpler divider */}
@@ -257,7 +259,7 @@ const Testimonials = () => {
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              All Reviews
+              {t('allReviews')}
             </button>
             <button 
               onClick={() => handleFilterChange('5')}
@@ -267,7 +269,7 @@ const Testimonials = () => {
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              5 Stars
+              {t('fiveStars')}
             </button>
             <button 
               onClick={() => handleFilterChange('4')}
@@ -277,7 +279,7 @@ const Testimonials = () => {
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              4+ Stars
+              {t('fourPlusStars')}
             </button>
           </div>
         </div>
@@ -297,6 +299,7 @@ const Testimonials = () => {
               <TestimonialCard 
                 key={testimonial.id} 
                 testimonial={testimonial} 
+                t={t}
               />
             ))}
           </div>
@@ -304,7 +307,7 @@ const Testimonials = () => {
           {/* Improved navigation */}
           <div className="flex justify-center items-center mt-8 space-x-4">
             {/* Previous button */}
-        <button 
+            <button 
               onClick={() => setVisiblePage((prev) => (prev === 0 ? totalPages - 1 : prev - 1))}
               className="flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-sm border border-gray-200 text-gray-600 hover:text-primary hover:border-primary/30 transition-colors focus:outline-none"
               aria-label="Previous page"
@@ -312,12 +315,12 @@ const Testimonials = () => {
               onMouseLeave={() => setIsPaused(false)}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
             {/* Pause/Play button */}
-        <button 
+            <button 
               onClick={() => setIsPaused(!isPaused)}
               className="flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-sm border border-gray-200 text-gray-600 hover:text-primary hover:border-primary/30 transition-colors focus:outline-none"
               aria-label={isPaused ? "Resume automatic slideshow" : "Pause automatic slideshow"}
@@ -329,10 +332,10 @@ const Testimonials = () => {
               ) : (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+                </svg>
               )}
-        </button>
-        
+            </button>
+            
             {/* Dots Indicators */}
             <div className="flex space-x-1.5">
               {Array.from({ length: totalPages }).map((_, index) => (
@@ -349,8 +352,8 @@ const Testimonials = () => {
                   onMouseLeave={() => setIsPaused(false)}
                 />
               ))}
-                  </div>
-                  
+            </div>
+            
             {/* Next button */}
             <button
               onClick={() => setVisiblePage((prev) => (prev + 1) % totalPages)}
@@ -361,7 +364,7 @@ const Testimonials = () => {
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+              </svg>
             </button>
           </div>
         </div>
@@ -372,7 +375,7 @@ const Testimonials = () => {
             href="/reviews" 
             className="group inline-flex items-center text-sm text-primary hover:text-primary-dark font-medium transition-colors"
           >
-            Read more customer stories
+            {t('readMoreCustomerStories')}
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               className="h-4 w-4 ml-1 transform transition-transform duration-300 group-hover:translate-x-1" 

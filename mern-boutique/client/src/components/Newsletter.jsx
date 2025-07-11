@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
+import useTranslation from '../utils/useTranslation';
 
 const Newsletter = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -10,13 +12,13 @@ const Newsletter = () => {
     e.preventDefault();
     
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      toast.error('Please enter a valid email address');
+      toast.error(t('invalidEmail'));
       return;
     }
     
     setSubmitting(true);
     setTimeout(() => {
-      toast.success('Thanks for subscribing to our newsletter!');
+      toast.success(t('thanksForSubscribing'));
       setEmail('');
       setSubmitting(false);
     }, 1000);
@@ -59,27 +61,25 @@ const Newsletter = () => {
               >
                 <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 mb-6">
                   <span className="animate-ping w-2 h-2 bg-primary rounded-full mr-2"></span>
-                  <span className="text-xs font-semibold tracking-wider text-primary uppercase">Stay Connected</span>
+                  <span className="text-xs font-semibold tracking-wider text-primary uppercase">{t('stayConnected')}</span>
                 </div>
                 
                 <h2 className="text-4xl md:text-5xl font-prata text-secondary mb-4 leading-tight">
-                  Stay in <span className="text-primary">Style</span>
+                  {t('stayInStyle')}
                 </h2>
                 
                 <div className="w-20 h-1 bg-gradient-to-r from-primary to-secondary rounded-full mb-6"></div>
                 
                 <p className="text-gray-600 text-lg mb-8 leading-relaxed text-justify">
-                  Join our fashion-forward community and receive{' '}
-                  <span className="font-semibold text-primary">exclusive updates</span> on new arrivals,
-                  trending styles, and special offers.
+                  {t('newsletterDescription')}
                 </p>
                 
                 <div className="space-y-4 mb-8">
                   {[
-                    'Early access to seasonal sales',
-                    'Exclusive subscriber-only discounts',
-                    'Style guides and trend forecasts',
-                    'Free shipping on your first order'
+                    t('benefit1'),
+                    t('benefit2'),
+                    t('benefit3'),
+                    t('benefit4')
                   ].map((benefit, index) => (
                     <motion.div 
                       key={index}
@@ -111,19 +111,19 @@ const Newsletter = () => {
                 viewport={{ once: true }}
               >
                 <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50">
-                  <h3 className="text-2xl font-semibold text-primary mb-2">Subscribe Today</h3>
-                  <p className="text-gray-600 mb-6">Join over 5,000 fashion enthusiasts</p>
+                  <h3 className="text-2xl font-semibold text-primary mb-2">{t('subscribeToday')}</h3>
+                  <p className="text-gray-600 mb-6">{t('joinFashionEnthusiasts')}</p>
                   
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">{t('emailAddress')}</label>
                       <div className="relative">
                         <input
                           id="email"
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="you@example.com"
+                          placeholder={t('emailPlaceholder')}
                           className="w-full px-5 py-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300 pl-12"
                           required
                         />
@@ -146,11 +146,11 @@ const Newsletter = () => {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Subscribing...
+                          {t('subscribing')}
                         </div>
                       ) : (
                         <div className="flex items-center justify-center group">
-                          <span>Subscribe Now</span>
+                          <span>{t('subscribeNow')}</span>
                           <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                           </svg>
@@ -184,7 +184,7 @@ const Newsletter = () => {
                       </div>
                     </div>
                     <p className="text-xs text-gray-500 mt-4 text-center">
-                      We respect your privacy. Unsubscribe at any time.
+                      {t('privacyNotice')}
                     </p>
                   </div>
                 </div>

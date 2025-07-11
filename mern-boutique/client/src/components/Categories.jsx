@@ -2,6 +2,7 @@ import { useContext, useMemo } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import { motion } from 'framer-motion';
+import useTranslation from '../utils/useTranslation';
 
 const categoryData = [
   {
@@ -23,6 +24,7 @@ const categoryData = [
 
 const Categories = () => {
   const { navigate, allProducts } = useContext(ShopContext);
+  const { t } = useTranslation();
 
   // Dynamically calculate product counts by category
   const categoriesWithCounts = useMemo(() => {
@@ -86,13 +88,15 @@ const Categories = () => {
           <div className="flex justify-center mb-2">
             <span className="flex items-center px-6 py-1.5 rounded-full bg-blue-50 border border-blue-100">
               <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
-              <span className="text-xs font-medium tracking-wide text-primary uppercase">Curated Collections</span>
+              <span className="text-xs font-medium tracking-wide text-primary uppercase">
+                {t('curatedCollections')}
+              </span>
             </span>
           </div>
           
           {/* Main heading */}
           <h2 className="text-4xl md:text-5xl font-prata text-secondary mb-3">
-            Shop by Category
+            {t('shopByCategory')}
           </h2>
           
           {/* Divider */}
@@ -120,7 +124,7 @@ const Categories = () => {
           
           {/* Description */}
           <p className="text-gray-600 max-w-2xl mx-auto text-base leading-relaxed">
-            Browse our collections by category to find exactly what you're looking for.
+            {t('shopByCategoryDescription')}
           </p>
         </motion.div>
 
@@ -161,14 +165,14 @@ const Categories = () => {
                 <h3 className="text-3xl font-medium mb-2 font-prata">{category.name}</h3>
                 <div className="flex items-center mb-4">
                   <span className="text-sm font-medium bg-primary/80 rounded-full px-4 py-1.5">
-                    {category.count} Products
+                    {category.count} {t('products')}
                   </span>
                 </div>
                 
                 {/* Animated CTA button */}
                 <div className="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out">
                   <button className="bg-white text-primary font-medium py-2.5 px-6 rounded-md shadow-md hover:bg-gray-100 transition-colors flex items-center">
-                    <span>Browse Collection</span>
+                    <span>{t('browseCollection')}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>

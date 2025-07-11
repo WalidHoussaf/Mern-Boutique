@@ -1,7 +1,9 @@
 import { assets } from '../assets/assets';
 import { Link } from 'react-router-dom';
+import useTranslation from '../utils/useTranslation';
 
 const Footer = () => {
+  const { t } = useTranslation();
   const year = new Date().getFullYear();
 
   return (
@@ -9,18 +11,18 @@ const Footer = () => {
       {/* Decorative background elements */}
       <div className="absolute inset-0 opacity-30 pointer-events-none">
         <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary opacity-5"></div>
-        <div className="absolute bottom-0 left-1/4 w-72 h-72 rounded-full bg-secondary opacity-5"></div>
+        <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-secondary opacity-5"></div>
       </div>
       
       {/* Newsletter highlight banner */}
       <div className="bg-gradient-to-r from-primary/10 to-secondary/10 py-6 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
-            <h3 className="text-xl font-prata text-secondary mb-1">Stay Updated</h3>
-            <p className="text-gray-600 text-sm max-w-md">Get exclusive offers and fashion updates delivered to your inbox</p>
+            <h3 className="text-xl font-prata text-secondary mb-1">{t('stay_updated')}</h3>
+            <p className="text-gray-600 text-sm max-w-md">{t('get_exclusive_offers')}</p>
           </div>
           <Link to="/newsletter" className="px-6 py-3 text-sm bg-white text-primary font-medium rounded-md shadow-sm border border-primary/20 hover:bg-primary hover:text-white transition-colors flex items-center">
-            Subscribe to Newsletter
+            {t('subscribe_to_newsletter')}
             <svg className="ml-2 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
@@ -34,10 +36,10 @@ const Footer = () => {
           <div className="mb-8 md:mb-0">
             <div className="flex items-center mb-4">
               <img src={assets.logo} alt="Boutique Logo" className="h-8 mr-2" />
-              <span className="text-xl font-prata text-secondary">Boutique</span>
+              <span className="text-xl font-prata text-secondary">{t('boutique')}</span>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed mb-4">
-              Offering curated premium fashion and accessories for discerning customers who value style, quality, and sustainability.
+              {t('about_description')}
             </p>
             <div className="flex space-x-3">
               <a 
@@ -81,29 +83,29 @@ const Footer = () => {
 
           {/* Shop Categories */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4 pb-1 border-b border-gray-200">Categories</h3>
+            <h3 className="font-semibold text-gray-900 mb-4 pb-1 border-b border-gray-200">{t('categories')}</h3>
             <ul className="space-y-2">
-              <li><Link to="/collection?category=Women" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>Women</Link></li>
-              <li><Link to="/collection?category=Men" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>Men</Link></li>
-              <li><Link to="/collection?category=Kids" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>Kids</Link></li>
+              <li><Link to="/collection?category=Women" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('women')}</Link></li>
+              <li><Link to="/collection?category=Men" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('men')}</Link></li>
+              <li><Link to="/collection?category=Kids" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('kids')}</Link></li>
             </ul>
           </div>
 
           {/* Company & Policy */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4 pb-1 border-b border-gray-200">Company</h3>
+            <h3 className="font-semibold text-gray-900 mb-4 pb-1 border-b border-gray-200">{t('company')}</h3>
             <ul className="space-y-2">
-              <li><Link to="/about" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>About Us</Link></li>
-              <li><Link to="/contact" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>Contact Us</Link></li>
-              <li><Link to="/faq" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>FAQs</Link></li>
-              <li><Link to="/privacy" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>Privacy Policy</Link></li>
-              <li><Link to="/terms" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>Terms & Conditions</Link></li>
+              <li><Link to="/about" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('about_us')}</Link></li>
+              <li><Link to="/contact" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('contact_us')}</Link></li>
+              <li><Link to="/faq" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('faqs')}</Link></li>
+              <li><Link to="/privacy" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('privacy_policy')}</Link></li>
+              <li><Link to="/terms" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('terms_conditions')}</Link></li>
             </ul>
           </div>
 
           {/* Contact Info */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4 pb-1 border-b border-gray-200">Contact Us</h3>
+            <h3 className="font-semibold text-gray-900 mb-4 pb-1 border-b border-gray-200">{t('contact')}</h3>
             <ul className="space-y-3">
               <li className="text-gray-600 text-sm flex items-start">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,23 +118,23 @@ const Footer = () => {
                   rel="noopener noreferrer"
                   className="hover:text-primary transition-colors"
                 >
-                  52 Boulevard Zerktouni,<br />Casablanca 20100, Morocco
+                  {t('address')}
                 </a>
               </li>
               <li className="text-gray-600 text-sm flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <a href="mailto:info@boutique.com" className="hover:text-primary">voguevault@boutique.com</a>
+                <a href="mailto:voguevault@boutique.com" className="hover:text-primary">{t('email')}</a>
               </li>
               <li className="text-gray-600 text-sm flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                <a href="tel:+15551234567" className="hover:text-primary">+212 (555) 123-4567</a>
+                <a href="tel:+15551234567" className="hover:text-primary">{t('phone')}</a>
               </li>
               <li className="text-gray-600 text-sm flex items-center mt-4">
-                <span className="text-xs text-gray-500">We Accept</span>
+                <span className="text-xs text-gray-500">{t('we_accept')}</span>
               </li>
               <li className="flex space-x-2">
                 <img src="https://cdn-icons-png.flaticon.com/64/196/196578.png" alt="Visa" className="h-8 w-auto object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
@@ -147,14 +149,14 @@ const Footer = () => {
         {/* Bottom Section with Copyright and Links */}
         <div className="mt-12 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-500 text-sm mb-4 md:mb-0">
-            &copy; {year} Vogue Vault Boutique. All rights reserved.
+            &copy; {year} {t('copyright', year)}.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/shipping" className="text-gray-500 hover:text-primary text-sm transition-colors">Shipping</Link>
+            <Link to="/shipping" className="text-gray-500 hover:text-primary text-sm transition-colors">{t('shipping_policy')}</Link>
             <span className="text-gray-300">|</span>
-            <Link to="/returns" className="text-gray-500 hover:text-primary text-sm transition-colors">Returns</Link>
+            <Link to="/returns" className="text-gray-500 hover:text-primary text-sm transition-colors">{t('return_policy')}</Link>
             <span className="text-gray-300">|</span>
-            <Link to="/sitemap" className="text-gray-500 hover:text-primary text-sm transition-colors">Sitemap</Link>
+            <Link to="/sitemap" className="text-gray-500 hover:text-primary text-sm transition-colors">{t('sitemap')}</Link>
           </div>
         </div>
       </div>
@@ -162,4 +164,4 @@ const Footer = () => {
   );
 };
 
-export default Footer; 
+export default Footer;
