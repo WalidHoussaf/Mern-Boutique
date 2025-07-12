@@ -2,6 +2,7 @@ import { useContext, useState } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
+import useTranslation from '../utils/useTranslation';
 
 const Cart = () => {
   const { 
@@ -16,7 +17,7 @@ const Cart = () => {
     currency = '$',
     convertPrice
   } = useContext(ShopContext);
-
+  const { t } = useTranslation();
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(null);
 
   // Filter products in cart and create a mapping of products with their cart info
@@ -100,11 +101,11 @@ const Cart = () => {
         >
           <div className="w-24 h-24 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
           </div>
-          <h2 className="text-2xl font-prata text-secondary mb-4">Your cart is empty</h2>
-          <p className="text-gray-500 mb-8">Looks like you haven't added any items to your cart yet.</p>
+          <h2 className="text-2xl font-prata text-secondary mb-4">{t('cart_empty')}</h2>
+          <p className="text-gray-500 mb-8">{t('cart_empty_desc')}</p>
           <motion.button 
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
@@ -114,7 +115,7 @@ const Cart = () => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Continue Shopping
+            {t('continue_shopping')}
           </motion.button>
         </motion.div>
       </div>
@@ -129,8 +130,10 @@ const Cart = () => {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12"
       >
-        <h1 className="text-3xl md:text-4xl font-prata text-secondary mb-3">Your Shopping Cart</h1>
-        <p className="text-gray-500">{getCartCount()} {getCartCount() === 1 ? 'item' : 'items'} in your cart</p>
+        <h1 className="text-3xl md:text-4xl font-prata text-secondary mb-3">{t('your_cart')}</h1>
+        <p className="text-gray-500">
+          {getCartCount()} {getCartCount() === 1 ? t('item') : t('items')} {t('in_your_cart')}
+        </p>
       </motion.div>
       
       <div className="flex flex-col lg:flex-row gap-8">
@@ -146,16 +149,16 @@ const Cart = () => {
             <div className="hidden md:block">
               <div className="bg-gray-50 py-4 px-6 text-left text-gray-600 grid grid-cols-12 gap-4">
                 <div className="col-span-6">
-                  <span className="font-medium">Product</span>
+                  <span className="font-medium">{t('product')}</span>
                 </div>
                 <div className="col-span-2">
-                  <span className="font-medium">Price</span>
+                  <span className="font-medium">{t('price')}</span>
                 </div>
                 <div className="col-span-2">
-                  <span className="font-medium">Quantity</span>
+                  <span className="font-medium">{t('quantity')}</span>
                 </div>
                 <div className="col-span-2">
-                  <span className="font-medium">Total</span>
+                  <span className="font-medium">{t('total')}</span>
                 </div>
               </div>
             </div>
@@ -260,7 +263,7 @@ const Cart = () => {
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
-                          Remove
+                          {t('remove')}
                         </button>
                       </div>
                     </div>
@@ -280,7 +283,7 @@ const Cart = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Continue Shopping
+              {t('continue_shopping')}
             </motion.button>
           </div>
         </motion.div>
@@ -293,12 +296,12 @@ const Cart = () => {
           className="lg:w-1/3"
         >
           <div className="bg-white rounded-xl shadow-md p-6 md:p-8 border border-gray-100 sticky top-20">
-            <h2 className="text-xl font-prata text-secondary mb-6">Order Summary</h2>
+            <h2 className="text-xl font-prata text-secondary mb-6">{t('order_summary')}</h2>
             
             {/* Shipping progress bar */}
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2 text-sm">
-                <span className="text-gray-600">Free shipping progress:</span>
+                <span className="text-gray-600">{t('free_shipping_progress')}:</span>
                 <span className="font-medium">{shippingProgressPercent.toFixed(0)}%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2.5">
@@ -309,12 +312,12 @@ const Cart = () => {
               </div>
               {getCartTotal() < 100 && (
                 <p className="text-xs text-gray-500 mt-2">
-                  Add {formatPrice(100 - getCartTotal())} more to your cart for free shipping!
+                  {t('add_more_free_shipping').replace('{amount}', formatPrice(100 - getCartTotal()))}
                 </p>
               )}
               {getCartTotal() >= 100 && (
                 <p className="text-xs text-primary mt-2">
-                  ✓ You've qualified for free shipping!
+                  {t('qualified_free_shipping')}
                 </p>
               )}
             </div>
@@ -322,24 +325,24 @@ const Cart = () => {
             {/* Order details */}
             <div className="space-y-3 text-gray-700 mb-6">
               <div className="flex justify-between">
-                <span>Subtotal:</span>
+                <span>{t('subtotal')}:</span>
                 <span className="font-medium">{formatPrice(getCartTotal())}</span>
               </div>
               <div className="flex justify-between">
-                <span>Tax (5%):</span>
+                <span>{t('tax')}:</span>
                 <span>{formatPrice(tax)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Shipping:</span>
-                <span>{shipping === 0 ? 'Free' : formatPrice(shipping)}</span>
+                <span>{t('shipping')}:</span>
+                <span>{shipping === 0 ? t('free') : formatPrice(shipping)}</span>
               </div>
               <div className="border-t border-gray-100 pt-3 mt-2">
                 <div className="flex justify-between text-lg">
-                  <span className="font-medium text-secondary">Total:</span>
+                  <span className="font-medium text-secondary">{t('total_amount')}:</span>
                   <span className="font-bold text-primary">{formatPrice(grandTotal)}</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  * Prices are shown in {currency} and include applicable taxes
+                  {t('prices_in_currency').replace('{currency}', currency)}
                 </p>
               </div>
             </div>
@@ -354,12 +357,12 @@ const Cart = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
-              Proceed to Checkout
+              {t('proceed_to_checkout')}
             </motion.button>
             
             {/* Payment methods accepted */}
             <div className="mt-6">
-              <p className="text-xs text-gray-500 mb-2 text-center">We Accept</p>
+              <p className="text-xs text-gray-500 mb-2 text-center">{t('we_accept')}</p>
               <div className="flex justify-center space-x-3">
                 {/* Payment icons - updated to match footer */}
                 <img src="https://cdn-icons-png.flaticon.com/64/196/196578.png" alt="Visa" className="h-8 w-auto object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
@@ -374,7 +377,7 @@ const Cart = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              Secure checkout
+              {t('secure_checkout')}
             </div>
           </div>
         </motion.div>
@@ -395,22 +398,20 @@ const Cart = () => {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl"
             >
-              <h3 className="text-lg font-medium text-gray-900 mb-3">Remove item from cart?</h3>
-              <p className="text-gray-500 mb-6">
-                Are you sure you want to remove this item from your cart?
-              </p>
+              <h3 className="text-lg font-medium text-gray-900 mb-3">{t('remove_confirm')}</h3>
+              <p className="text-gray-500 mb-6">{t('remove_confirm_desc')}</p>
               <div className="flex space-x-3">
                 <button
                   onClick={cancelRemove}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   onClick={() => confirmRemove(showRemoveConfirm)}
                   className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                 >
-                  Remove
+                  {t('remove')}
                 </button>
               </div>
             </motion.div>

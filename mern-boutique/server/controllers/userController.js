@@ -3,6 +3,7 @@ import generateToken from '../utils/generateToken.js';
 import User from '../models/userModel.js';
 import Order from '../models/orderModel.js';
 import UserSettings from '../models/userSettingsModel.js';
+import Wishlist from '../models/wishlistModel.js';
 
 // @desc    Auth user & get token
 // @route   POST /api/users/login
@@ -19,6 +20,7 @@ const authUser = asyncHandler(async (req, res) => {
       email: user.email,
       isAdmin: user.isAdmin,
       profileImage: user.profileImage,
+      createdAt: user.createdAt,
       token: generateToken(user._id),
     });
   } else {
@@ -53,6 +55,7 @@ const registerUser = asyncHandler(async (req, res) => {
       email: user.email,
       isAdmin: user.isAdmin,
       profileImage: user.profileImage,
+      createdAt: user.createdAt,
       token: generateToken(user._id),
     });
   } else {
@@ -294,6 +297,53 @@ const updateUserSettings = asyncHandler(async (req, res) => {
   res.json(updatedSettings);
 });
 
+// @desc    Delete own user account
+// @route   DELETE /api/users/profile
+// @access  Private
+const deleteOwnAccount = asyncHandler(async (req, res) => {
+  try {
+    // Get user from request (set by auth middleware)
+    const user = await User.findById(req.user._id);
+    
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    // Prevent admin from deleting their account
+    if (user.isAdmin) {
+      res.status(400);
+      throw new Error('Admin accounts cannot be deleted. Please contact the system administrator.');
+    }
+    
+    // Check if user has orders
+    const userOrders = await Order.find({ user: req.user._id });
+    
+    if (userOrders.length > 0) {
+      res.status(400);
+      throw new Error('Cannot delete account with associated orders. Please contact support for assistance.');
+    }
+    
+    // Delete user settings if they exist
+    await UserSettings.findOneAndDelete({ user: req.user._id });
+    
+    // Delete user's wishlist if it exists
+    await Wishlist.findOneAndDelete({ user: req.user._id });
+    
+    // Delete the user
+    await User.findByIdAndDelete(req.user._id);
+    
+    res.json({ message: 'Account deleted successfully' });
+    
+  } catch (error) {
+    // If this is a mongoose error not already handled
+    if (!res.statusCode || res.statusCode === 200) {
+      res.status(500);
+    }
+    throw error;
+  }
+});
+
 export {
   authUser,
   registerUser,
@@ -305,4 +355,5 @@ export {
   updateUser,
   getUserSettings,
   updateUserSettings,
+  deleteOwnAccount,
 }; 

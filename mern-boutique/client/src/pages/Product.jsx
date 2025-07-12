@@ -4,11 +4,13 @@ import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductItem from '../components/ProductItem';
+import useTranslation from '../utils/useTranslation';
 import axios from 'axios';
 
 const Product = () => {
   const { productId } = useParams();
   const { allProducts, loading, addToCart, addToWishlist, isInWishlist, currency, convertPrice, navigate, refreshProducts } = useContext(ShopContext);
+  const { t } = useTranslation();
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
@@ -235,7 +237,7 @@ const Product = () => {
     return (
       <div className="min-h-[60vh] flex flex-col justify-center items-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary mb-4"></div>
-        <p className="text-gray-500 animate-pulse">Loading product details...</p>
+        <p className="text-gray-500 animate-pulse">{t('loading_product')}</p>
       </div>
     );
   }
@@ -248,8 +250,8 @@ const Product = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h2 className="text-3xl font-prata text-secondary mb-4">Product Not Found</h2>
-        <p className="max-w-md text-gray-500 mb-8">The product you are looking for does not exist or has been removed.</p>
+        <h2 className="text-3xl font-prata text-secondary mb-4">{t('product_not_found')}</h2>
+        <p className="max-w-md text-gray-500 mb-8">{t('product_not_found_desc')}</p>
         <button 
           onClick={() => window.history.back()} 
           className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center"
@@ -257,7 +259,7 @@ const Product = () => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Go Back
+          {t('go_back')}
         </button>
       </div>
     );
@@ -270,13 +272,19 @@ const Product = () => {
     <div className="max-w-screen-xl mx-auto px-4 py-8">
       {/* Breadcrumb navigation */}
       <nav className="flex text-sm text-gray-500 mb-6">
-        <a href="/" className="hover:text-primary">Home</a>
+        <a href="/" className="hover:text-primary">{t('home')}</a>
         <span className="mx-2">/</span>
-        <a href="/collection" className="hover:text-primary">Collection</a>
+        <a href="/collection" className="hover:text-primary">{t('collection')}</a>
         <span className="mx-2">/</span>
         <span className="text-gray-800">{product?.name}</span>
       </nav>
-      
+
+      {/* Save percentage */}
+      {product?.originalPrice && (
+        <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">
+          {t('save')} {Math.round((1 - product.price / product.originalPrice) * 100)}%
+        </span>
+      )}
       <div className="flex flex-col lg:flex-row gap-8 xl:gap-12">
         {/* Product Images */}
         <div className="lg:w-1/2">
@@ -305,7 +313,6 @@ const Product = () => {
                 </button>
               </>
             )}
-            
             {/* Main image */}
             <AnimatePresence mode="wait">
               <motion.div 
@@ -338,7 +345,6 @@ const Product = () => {
                       transition: { duration: 0.3 }
                     }}
                   />
-
                   {/* Custom cursor */}
                   <div 
                     ref={cursorRef}
@@ -359,7 +365,6 @@ const Product = () => {
                 </div>
               </motion.div>
             </AnimatePresence>
-            
             {/* Wishlist button */}
             <button
               onClick={toggleWishlist}
@@ -381,7 +386,6 @@ const Product = () => {
               )}
             </button>
           </div>
-          
           {/* Thumbnail images */}
           {product?.image && product.image.length > 1 && (
             <div className="flex gap-4 overflow-x-auto justify-center py-4 px-2">
@@ -442,9 +446,6 @@ const Product = () => {
                   </svg>
                 ))}
               </div>
-              <span className="ml-2 text-gray-600 text-sm">
-                {product?.rating?.toFixed(1)} ({product?.numReviews || 0} reviews)
-              </span>
             </div>
             
             {/* Product description */}
@@ -456,16 +457,16 @@ const Product = () => {
             <div className="mb-8 border-t border-gray-100 pt-6">
               {/* Availability Status */}
               <div className="flex items-center mb-4">
-                <span className="text-sm font-medium text-gray-700 w-24">Status:</span>
+                <span className="text-sm font-medium text-gray-700 w-24">{t('status')}:</span>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   product?.countInStock > 0 
                     ? 'bg-green-100 text-green-800' 
                     : 'bg-red-100 text-red-800'
                 }`}>
-                  {product?.countInStock > 0 ? 'In Stock' : 'Out of Stock'}
+                  {product?.countInStock > 0 ? t('in_stock') : t('out_of_stock')}
                   {product?.countInStock > 0 && (
                     <span className="ml-1 text-gray-500">
-                      ({product.countInStock} units)
+                      ({product.countInStock} {t('units')})
                     </span>
                   )}
                 </span>
@@ -473,13 +474,13 @@ const Product = () => {
 
               {/* SKU */}
               <div className="flex items-center mb-4">
-                <span className="text-sm font-medium text-gray-700 w-24">SKU:</span>
+                <span className="text-sm font-medium text-gray-700 w-24">{t('sku')}:</span>
                 <span className="text-sm text-gray-600">{product?.sku || `SKU-${product?._id?.slice(-6)}`}</span>
               </div>
 
               {/* Category & Subcategory */}
               <div className="flex items-center mb-4">
-                <span className="text-sm font-medium text-gray-700 w-24">Category:</span>
+                <span className="text-sm font-medium text-gray-700 w-24">{t('category')}:</span>
                 <div className="flex items-center">
                   <span 
                     className="text-sm text-primary cursor-pointer hover:underline"
@@ -504,7 +505,7 @@ const Product = () => {
               {/* Tags */}
               {product?.tags && product.tags.length > 0 && (
                 <div className="flex items-center mb-4">
-                  <span className="text-sm font-medium text-gray-700 w-24">Tags:</span>
+                  <span className="text-sm font-medium text-gray-700 w-24">{t('tags')}:</span>
                   <div className="flex flex-wrap gap-2">
                     {product.tags.map((tag, index) => (
                       <span
@@ -566,7 +567,7 @@ const Product = () => {
             {/* Size selection */}
             <div className="mb-6 size-selection">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Size
+                {t('select_size')}
               </label>
               <div className="grid grid-cols-5 gap-2">
                 {['S', 'M', 'L', 'XL', 'XXL'].map((size) => (
@@ -588,7 +589,7 @@ const Product = () => {
             {/* Quantity selector */}
             <div className="mb-8">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Quantity
+                {t('quantity')}
               </label>
               <div className="flex items-center">
                 <button
@@ -629,21 +630,21 @@ const Product = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  Added to Cart
+                  {t('added_to_cart')}
                 </>
               ) : (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H5z" />
                   </svg>
-                  Add to Cart
+                  {t('add_to_cart')}
                 </>
               )}
             </motion.button>
             
-            {/* Information accordions */}
-            <div className="mt-8 border-t border-gray-100 pt-6 space-y-6">
-              {/* Shipping info */}
+            {/* Product Details Accordion */}
+            <div className="mt-8 border-t pt-8">
+              {/* Shipping Info */}
               <div className="bg-white rounded-xl p-6 border border-gray-100">
                 <button
                   onClick={() => toggleAccordion('shipping')}
@@ -653,7 +654,7 @@ const Product = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                     </svg>
-                    <span className="font-medium text-gray-900">Shipping Information</span>
+                    <span className="font-medium text-gray-900">{t('shipping_info')}</span>
                   </div>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
@@ -665,40 +666,49 @@ const Product = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                {openAccordion === 'shipping' && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="mt-4 text-gray-600"
-                  >
-                    <div className="space-y-4">
-                      <div className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                        </svg>
-                        <div>
-                          <h4 className="font-medium text-gray-900">Store Pickup</h4>
-                          <p className="text-sm mt-1">Free pickup available at our stores</p>
-                          <span className="inline-block mt-2 text-green-600 text-sm font-medium">FREE</span>
+                <AnimatePresence>
+                  {openAccordion === 'shipping' && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-4 space-y-4">
+                        {/* Store Pickup */}
+                        <div className="flex items-start p-4 bg-gray-50 rounded-lg">
+                          <div className="flex-shrink-0 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                          </div>
+                          <div className="flex-grow">
+                            <h4 className="font-medium text-gray-900">{t('store_pickup')}</h4>
+                            <p className="mt-1 text-sm text-gray-600">{t('store_pickup_desc')}</p>
+                            <span className="inline-block mt-2 text-sm text-green-600 font-medium">{t('free')}</span>
+                          </div>
+                        </div>
+
+                        {/* Home Delivery */}
+                        <div className="flex items-start p-4 bg-gray-50 rounded-lg">
+                          <div className="flex-shrink-0 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                          </div>
+                          <div className="flex-grow">
+                            <h4 className="font-medium text-gray-900">{t('home_delivery')}</h4>
+                            <p className="mt-1 text-sm text-gray-600">{t('home_delivery_desc')}</p>
+                            <span className="inline-block mt-2 text-sm text-green-600 font-medium">{t('free')}</span>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                        <div>
-                          <h4 className="font-medium text-gray-900">Home Delivery</h4>
-                          <p className="text-sm mt-1">For orders over {formatPrice(590)}</p>
-                          <span className="inline-block mt-2 text-green-600 text-sm font-medium">FREE</span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              
+
               {/* Material & Care */}
               <div className="bg-white rounded-xl p-6 border border-gray-100">
                 <button
@@ -709,7 +719,7 @@ const Product = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                     </svg>
-                    <span className="font-medium text-gray-900">Material & Care</span>
+                    <span className="font-medium text-gray-900">{t('material_care')}</span>
                   </div>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
@@ -721,109 +731,112 @@ const Product = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                {openAccordion === 'materials' && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="mt-4 text-gray-600"
-                  >
-                    <div className="space-y-6">
-                      {/* Composition */}
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-3">Composition</h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Polyester</span>
-                            <span className="font-medium">53%</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Cotton (Organic)</span>
-                            <span className="font-medium">42%</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Elastane</span>
-                            <span className="font-medium">5%</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Certified Materials */}
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-3">Certified Materials</h4>
-                        <div className="space-y-3 text-sm">
-                          <div className="flex items-start space-x-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>42% ORGANIC COTTON CERTIFIED OCS</span>
-                          </div>
-                          <div className="flex items-start space-x-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>53% RECYCLED POLYESTER CERTIFIED RCS</span>
-                          </div>
-                        </div>
-                        <p className="mt-4 text-sm">
-                          This fiber is produced without artificial fertilizers or pesticides and is grown from seeds that have not been genetically modified. We currently work with the Organic Content Standard (OCS) which supervises the process from origin to final product.
-                        </p>
-                        <p className="mt-2 text-sm text-gray-500">
-                          Certified by Intertek 193341.
-                        </p>
-                      </div>
-
-                      {/* Care Instructions */}
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-3">Care Instructions</h4>
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-3 text-sm">
-                            <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M6 6L18 6L18 18L6 18L6 6Z" stroke="currentColor" strokeWidth="1.5"/>
-                              <path d="M8 12C8 10.3431 9.34315 9 11 9H13C14.6569 9 16 10.3431 16 12" stroke="currentColor" strokeWidth="1.5"/>
-                              <path d="M9 15H15" stroke="currentColor" strokeWidth="1.5"/>
-                            </svg>
-                            <span>Hand wash max. 30°C</span>
-                          </div>
-
-                          <div className="flex items-center space-x-3 text-sm">
-                            <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M6 6L18 6L18 18L6 18L6 6Z" stroke="currentColor" strokeWidth="1.5"/>
-                              <path d="M8 8L16 16M16 8L8 16" stroke="currentColor" strokeWidth="1.5"/>
-                            </svg>
-                            <span>Do not bleach</span>
-                          </div>
-
-                          <div className="flex items-center space-x-3 text-sm">
-                            <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M6 6L18 6L18 18L6 18L6 6Z" stroke="currentColor" strokeWidth="1.5"/>
-                              <path d="M9 14L12 8L15 14" stroke="currentColor" strokeWidth="1.5"/>
-                            </svg>
-                            <span>Iron at max. 150°C</span>
-                          </div>
-
-                          <div className="flex items-center space-x-3 text-sm">
-                            <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5"/>
-                              <path d="M8 8L16 16" stroke="currentColor" strokeWidth="1.5"/>
-                            </svg>
-                            <span>Do not dry clean</span>
+                <AnimatePresence>
+                  {openAccordion === 'materials' && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-4 space-y-6">
+                        {/* Composition */}
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-3">{t('composition')}</h4>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span>{t('polyester')}</span>
+                              <span className="font-medium">{t('polyester_percentage')}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>{t('cotton')}</span>
+                              <span className="font-medium">{t('cotton_percentage')}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>{t('elastane')}</span>
+                              <span className="font-medium">{t('elastane_percentage')}</span>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Additional Care Note */}
-                        <p className="mt-4 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary inline mr-2 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          To preserve the quality of this garment, please follow the care instructions carefully. This will help maintain the fabric's integrity and extend the life of your garment.
-                        </p>
+                        {/* Certified Materials */}
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-3">{t('certified_materials')}</h4>
+                          <div className="space-y-3 text-sm">
+                            <div className="flex items-start space-x-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>{t('organic_cotton_cert')}</span>
+                            </div>
+                            <div className="flex items-start space-x-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>{t('recycled_polyester_cert')}</span>
+                            </div>
+                          </div>
+                          <p className="mt-4 text-sm">
+                            {t('certified_note')}
+                          </p>
+                          <p className="mt-2 text-sm text-gray-500">
+                            {t('certified_by')}
+                          </p>
+                        </div>
+
+                        {/* Care Instructions */}
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-3">{t('care_instructions')}</h4>
+                          <div className="space-y-3">
+                            <div className="flex items-center space-x-3 text-sm">
+                              <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 6L18 6L18 18L6 18L6 6Z" stroke="currentColor" strokeWidth="1.5"/>
+                                <path d="M8 12C8 10.3431 9.34315 9 11 9H13C14.6569 9 16 10.3431 16 12" stroke="currentColor" strokeWidth="1.5"/>
+                                <path d="M9 15H15" stroke="currentColor" strokeWidth="1.5"/>
+                              </svg>
+                              <span>{t('hand_wash')}</span>
+                            </div>
+
+                            <div className="flex items-center space-x-3 text-sm">
+                              <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 6L18 6L18 18L6 18L6 6Z" stroke="currentColor" strokeWidth="1.5"/>
+                                <path d="M8 8L16 16M16 8L8 16" stroke="currentColor" strokeWidth="1.5"/>
+                              </svg>
+                              <span>{t('do_not_bleach')}</span>
+                            </div>
+
+                            <div className="flex items-center space-x-3 text-sm">
+                              <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 6L18 6L18 18L6 18L6 6Z" stroke="currentColor" strokeWidth="1.5"/>
+                                <path d="M9 14L12 8L15 14" stroke="currentColor" strokeWidth="1.5"/>
+                              </svg>
+                              <span>{t('iron_at')}</span>
+                            </div>
+
+                            <div className="flex items-center space-x-3 text-sm">
+                              <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5"/>
+                                <path d="M8 8L16 16" stroke="currentColor" strokeWidth="1.5"/>
+                              </svg>
+                              <span>{t('do_not_dry_clean')}</span>
+                            </div>
+                          </div>
+
+                          {/* Additional Care Note */}
+                          <p className="mt-4 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary inline mr-2 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {t('care_instructions_note')}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              
+
               {/* Returns & Exchanges */}
               <div className="bg-white rounded-xl p-6 border border-gray-100">
                 <button
@@ -834,7 +847,7 @@ const Product = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
                     </svg>
-                    <span className="font-medium text-gray-900">Returns & Exchanges</span>
+                    <span className="font-medium text-gray-900">{t('returns_exchanges')}</span>
                   </div>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
@@ -846,44 +859,53 @@ const Product = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                {openAccordion === 'returns' && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="mt-4 text-gray-600"
-                  >
-                    <div className="space-y-4">
-                      <div className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
-                        <div>
-                          <h4 className="font-medium text-gray-900">Free Returns</h4>
-                          <ul className="mt-2 text-sm space-y-1">
-                            <li>• Return within 30 days of delivery</li>
-                            <li>• Free returns at any of our stores</li>
-                            <li>• Items must be unworn with original tags</li>
-                          </ul>
+                <AnimatePresence>
+                  {openAccordion === 'returns' && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-4 space-y-4">
+                        {/* Free Returns */}
+                        <div className="flex items-start p-4 bg-gray-50 rounded-lg">
+                          <div className="flex-shrink-0 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                          <div className="flex-grow">
+                            <h4 className="font-medium text-gray-900">{t('free_returns')}</h4>
+                            <ul className="mt-2 space-y-1 text-sm text-gray-600">
+                              <li>• {t('return_within_days')}</li>
+                              <li>• {t('free_returns_stores')}</li>
+                              <li>• {t('items_must_be_unworn')}</li>
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Exchanges */}
+                        <div className="flex items-start p-4 bg-gray-50 rounded-lg">
+                          <div className="flex-shrink-0 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          </div>
+                          <div className="flex-grow">
+                            <h4 className="font-medium text-gray-900">{t('exchanges')}</h4>
+                            <ul className="mt-2 space-y-1 text-sm text-gray-600">
+                              <li>• {t('exchange_size_color')}</li>
+                              <li>• {t('subject_to_stock')}</li>
+                              <li>• {t('visit_any_store_or_request_online')}</li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <div>
-                          <h4 className="font-medium text-gray-900">Exchanges</h4>
-                          <ul className="mt-2 text-sm space-y-1">
-                            <li>• Exchange for different size/color</li>
-                            <li>• Subject to stock availability</li>
-                            <li>• Visit any store or request online</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>
@@ -894,7 +916,7 @@ const Product = () => {
       {similarProducts.length > 0 && (
         <div className="mt-16">
           <div className="border-b border-gray-200 mb-8">
-            <h2 className="text-2xl font-prata text-secondary pb-4">You Might Also Like</h2>
+            <h2 className="text-2xl font-prata text-secondary pb-4">{t('you_might_also_like')}</h2>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

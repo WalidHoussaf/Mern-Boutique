@@ -26,6 +26,38 @@ const Categories = () => {
   const { navigate, allProducts } = useContext(ShopContext);
   const { t } = useTranslation();
 
+  // Get display name for a category
+  const getCategoryDisplayName = (category) => {
+    switch(category) {
+      case 'All':
+        return t('all_collections');
+      case 'Women':
+        return t('femme_edit');
+      case 'Men':
+        return t('gents_showcase');
+      case 'Kids':
+        return t('little_trendsetters');
+      default:
+        return category;
+    }
+  };
+  
+  // Get display name for a subcategory
+  const getSubCategoryDisplayName = (subCategory) => {
+    switch(subCategory) {
+      case 'All':
+        return t('all_styles');
+      case 'Topwear':
+        return t('statement_tops');
+      case 'Bottomwear':
+        return t('signature_bottoms');
+      case 'Winterwear':
+        return t('seasonal_layers');
+      default:
+        return subCategory;
+    }
+  };
+
   // Dynamically calculate product counts by category
   const categoriesWithCounts = useMemo(() => {
     // Create a map to count products in each category
@@ -151,7 +183,7 @@ const Categories = () => {
               <div className="aspect-[3/4] overflow-hidden">
                 <img 
                   src={category.image} 
-                  alt={category.name} 
+                  alt={getCategoryDisplayName(category.name)} 
                   className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
                   loading="lazy"
                 />
@@ -162,7 +194,7 @@ const Categories = () => {
               
               {/* Category Info */}
               <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform transition-transform duration-300">
-                <h3 className="text-3xl font-medium mb-2 font-prata">{category.name}</h3>
+                <h3 className="text-3xl font-medium mb-2 font-prata">{getCategoryDisplayName(category.name)}</h3>
                 <div className="flex items-center mb-4">
                   <span className="text-sm font-medium bg-primary/80 rounded-full px-4 py-1.5">
                     {category.count} {t('products')}

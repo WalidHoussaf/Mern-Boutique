@@ -3,6 +3,7 @@ import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
+import useTranslation from '../utils/useTranslation';
 
 const Orders = () => {
   const { id: orderIdParam } = useParams();
@@ -19,6 +20,7 @@ const Orders = () => {
     expirationDate: '',
     cvv: ''
   });
+  const { t } = useTranslation();
 
   // First effect: Check authentication and load orders
   useEffect(() => {
@@ -35,10 +37,12 @@ const Orders = () => {
     const loadOrders = async () => {
       try {
         const data = await fetchUserOrders();
-        setOrders(data);
-        setError(null);
+        if (data) {  // Only update if we got data back
+          setOrders(data);
+          setError(null);
+        }
       } catch (err) {
-        setError('Failed to load your orders. Please try again later.');
+        setError(t('update_failed'));
         console.error('Error fetching orders:', err);
       } finally {
         setLoading(false);
@@ -48,38 +52,55 @@ const Orders = () => {
     // Call the function
     loadOrders();
     
-    // Remove fetchUserOrders from dependency array to prevent infinite loops
-  }, [user, navigate, orderIdParam]);
+    // Cleanup function to handle component unmount
+    return () => {
+      setLoading(false);
+      setOrders([]);
+    };
+  }, [user, navigate, orderIdParam]); // Removed t from dependencies
 
   // Second effect: Load specific order if ID is in URL
   useEffect(() => {
+    let isSubscribed = true; // For cleanup
+
     const loadOrderFromUrl = async () => {
       if (!orderIdParam || !user) return;
       
       setOrderDetailsLoading(true);
       try {
         const data = await getOrderById(orderIdParam);
-        setSelectedOrder(data);
+        if (isSubscribed) { // Only update state if component is still mounted
+          setSelectedOrder(data);
+        }
       } catch (err) {
-        toast.error('Failed to load order details');
-        console.error('Error fetching order details:', err);
-        // Navigate to orders list if order not found
-        navigate('/orders');
+        if (isSubscribed) {
+          toast.error(t('update_failed'));
+          console.error('Error fetching order details:', err);
+          // Navigate to orders list if order not found
+          navigate('/orders');
+        }
       } finally {
-        setOrderDetailsLoading(false);
+        if (isSubscribed) {
+          setOrderDetailsLoading(false);
+        }
       }
     };
 
     loadOrderFromUrl();
-    // Remove getOrderById from dependency array to prevent infinite loops
-  }, [orderIdParam, user, navigate]);
+
+    // Cleanup function
+    return () => {
+      isSubscribed = false;
+      setOrderDetailsLoading(false);
+    };
+  }, [orderIdParam, user, navigate]); // Removed t from dependencies
 
   // Use effect to update orders when context orders change
   useEffect(() => {
-    if (contextOrders && contextOrders.length > 0 && !loading) {
+    if (!loading && contextOrders?.length > 0) {
       setOrders(contextOrders);
     }
-  }, [contextOrders, loading]);
+  }, [contextOrders]); // Removed loading from dependencies
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -99,8 +120,6 @@ const Orders = () => {
     
     // Update URL without full page reload
     navigate(`/order/${orderId}`);
-    
-    // No need to fetch the order here as the useEffect will handle it when orderIdParam changes
   };
 
   const handleBackClick = () => {
@@ -117,9 +136,9 @@ const Orders = () => {
     };
 
     const getStatusText = () => {
-      if (isPaid && isDelivered) return 'Completed';
-      if (isPaid) return 'Paid & Processing';
-      return 'Payment Pending';
+      if (isPaid && isDelivered) return t('completed');
+      if (isPaid) return t('paid_processing');
+      return t('payment_pending');
     };
 
     return (
@@ -151,14 +170,14 @@ const Orders = () => {
       // Update the selected order in the UI
       setSelectedOrder(updatedOrder);
       
-      // Display success message
-      toast.success('Order confirmed for cash payment on delivery!');
+      // Show translated success notification for cash payment
+      toast.success(t('payment_update_success'));
       
       // Refresh orders list
       await refreshOrdersList();
     } catch (error) {
       console.error('Error processing cash payment:', error);
-      let errorMessage = 'Failed to confirm cash payment. Please try again.';
+      let errorMessage = t('payment_update_failed');
       
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
@@ -227,11 +246,19 @@ const Orders = () => {
     let formattedValue = value;
 
     if (name === 'cardNumber') {
-      formattedValue = formatCardNumber(value);
+      // Only allow digits and format with spaces
+      formattedValue = value.replace(/\D/g, '')
+        .replace(/(\d{4})/g, '$1 ')
+        .trim()
+        .slice(0, 19); // 16 digits + 3 spaces
     } else if (name === 'expirationDate') {
-      formattedValue = formatExpirationDate(value);
+      // Only allow digits and format as MM/YY
+      formattedValue = value.replace(/\D/g, '')
+        .replace(/^(\d{2})/, '$1/')
+        .slice(0, 5);
     } else if (name === 'cvv') {
-      formattedValue = value.replace(/\D/g, '').slice(0, 3);
+      // Only allow digits and limit to 4 characters
+      formattedValue = value.replace(/\D/g, '').slice(0, 4);
     }
 
     setPaymentInfo(prev => ({
@@ -252,39 +279,33 @@ const Orders = () => {
       }
     } catch (error) {
       console.error('Error refreshing orders:', error);
-      // Don't set error state or show toast here, as this might be called in the background
+      toast.error(t('update_failed'));
     } finally {
       setLoading(false);
     }
   };
 
-  // Update the handlePaymentSubmit function to use this local function
-  const handlePaymentSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Basic validation
-    if (!paymentInfo.cardNumber.trim() || !paymentInfo.expirationDate.trim() || !paymentInfo.cvv.trim()) {
-      toast.error('Please fill in all payment fields');
-      return;
-    }
+  const handleProcessPayment = async () => {
+    if (paymentProcessing) return;
 
-    // Check if we have a selected order
-    if (!selectedOrder || !selectedOrder._id) {
-      toast.error('No order selected');
-      setShowPaymentModal(false);
+    // Validate payment info before processing
+    const validationErrors = validatePaymentInfo();
+    if (validationErrors.length > 0) {
+      validationErrors.forEach(error => toast.error(error));
       return;
     }
     
     setPaymentProcessing(true);
     
     try {
-      // Create a payment result object (in a real app, this would come from a payment processor like PayPal or Stripe)
+      // Create payment result object
       const paymentResult = {
-        id: 'PAY-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+        id: paymentInfo.cardNumber.replace(/\s/g, '').slice(-4), // Last 4 digits
         status: 'COMPLETED',
         update_time: new Date().toISOString(),
+        payment_method: 'credit',
         payer: {
-          email_address: user?.email || 'customer@example.com'
+          email_address: user?.email || ''
         }
       };
       
@@ -294,24 +315,19 @@ const Orders = () => {
       // Update the selected order in the UI
       setSelectedOrder(updatedOrder);
       
-      // Close the payment modal
-      setShowPaymentModal(false);
+      // Close payment modal
+      handleClosePaymentModal();
       
-      // Display success message
-      toast.success('Payment processed successfully!');
+      // Show translated success notification for card payment
+      toast.success(t('payment_success'));
       
-      // Manually fetch user orders again to refresh the list
-      try {
-        await refreshOrdersList();
-      } catch (refreshError) {
-        console.error('Failed to refresh orders after payment:', refreshError);
-        // Don't throw this error as the payment itself was successful
-      }
+      // Refresh orders list
+      await refreshOrdersList();
     } catch (error) {
-      console.error('Payment processing error:', error);
-      let errorMessage = 'Payment failed. Please try again.';
+      console.error('Error processing payment:', error);
+      let errorMessage = t('payment_failed');
       
-      if (error.response && error.response.data && error.response.data.message) {
+      if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
       
@@ -321,390 +337,258 @@ const Orders = () => {
     }
   };
 
-  if (loading) {
+  // Validate payment info
+  const validatePaymentInfo = () => {
+    const errors = [];
+    
+    // Card number validation (Luhn algorithm)
+    const cardNumberDigits = paymentInfo.cardNumber.replace(/\s/g, '');
+    if (!isValidCreditCard(cardNumberDigits)) {
+      errors.push(t('invalid_card_number'));
+    }
+    
+    // Expiration date validation (MM/YY format)
+    const expirationDate = paymentInfo.expirationDate;
+    if (!isValidExpirationDate(expirationDate)) {
+      errors.push(t('invalid_expiration_date'));
+    }
+    
+    // CVV validation (3 or 4 digits)
+    if (!isValidCVV(paymentInfo.cvv)) {
+      errors.push(t('invalid_cvv'));
+    }
+    
+    return errors;
+  };
+
+  // Credit card number validation - simple 16 digit check
+  const isValidCreditCard = (number) => {
+    return /^\d{16}$/.test(number);
+  };
+
+  // Expiration date validation
+  const isValidExpirationDate = (expDate) => {
+    // Check format
+    if (!/^\d{2}\/\d{2}$/.test(expDate)) return false;
+    
+    const [month, year] = expDate.split('/').map(num => parseInt(num, 10));
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear() % 100;
+    const currentMonth = currentDate.getMonth() + 1;
+    
+    // Validate month
+    if (month < 1 || month > 12) return false;
+    
+    // Validate year
+    if (year < currentYear) return false;
+    
+    // If it's the current year, make sure the month hasn't passed
+    if (year === currentYear && month < currentMonth) return false;
+    
+    return true;
+  };
+
+  // CVV validation
+  const isValidCVV = (cvv) => {
+    // CVV should be 3 or 4 digits
+    return /^\d{3,4}$/.test(cvv);
+  };
+
+  // If loading, show loading state
+  if (loading || ordersLoading) {
     return (
-      <div className="flex flex-col justify-center items-center h-80 bg-white rounded-lg shadow-sm p-8">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary mb-4"></div>
-        <p className="text-gray-600 font-medium">Loading your orders...</p>
+      <div className="min-h-screen flex justify-center items-center">
+        <div className="animate-pulse text-center">
+          <div className="h-16 w-16 mx-auto bg-gray-200 rounded-full mb-4"></div>
+          <div className="h-4 w-32 mx-auto bg-gray-200 rounded mb-2"></div>
+          <div className="h-3 w-24 mx-auto bg-gray-200 rounded"></div>
+        </div>
       </div>
     );
   }
 
-  if (error) {
+  // If no orders, show empty state
+  if (!loading && orders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 bg-white rounded-lg shadow-sm p-8">
-        <div className="text-red-500 mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-        </div>
-        <p className="text-gray-700 font-medium text-center mb-3">{error}</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition"
+      <div className="min-h-screen flex flex-col justify-center items-center p-4">
+        <h2 className="text-2xl font-semibold mb-2">{t('no_orders')}</h2>
+        <p className="text-gray-600 mb-4">{t('no_orders_desc')}</p>
+        <Link
+          to="/collection"
+          className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition-colors"
         >
-          Try Again
-        </button>
-      </div>
-    );
-  }
-
-  if (orders.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-80 bg-white rounded-lg shadow-sm p-8">
-        <div className="text-gray-400 mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
-        </div>
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">No Orders Found</h2>
-        <p className="text-gray-500 text-center mb-6">You haven't placed any orders yet.</p>
-        <Link 
-          to="/shop" 
-          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition"
-        >
-          Start Shopping
+          {t('start_shopping')}
         </Link>
       </div>
     );
   }
 
-  // If a specific order is selected, show the order detail view
+  // If an order is selected, show order details
   if (selectedOrder) {
+    if (orderDetailsLoading) {
+      return (
+        <div className="min-h-screen flex justify-center items-center">
+          <div className="animate-pulse text-center">
+            <div className="h-16 w-16 mx-auto bg-gray-200 rounded-full mb-4"></div>
+            <div className="h-4 w-48 mx-auto bg-gray-200 rounded mb-2"></div>
+            <div className="h-3 w-32 mx-auto bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className="py-8 max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto p-4">
         <button
           onClick={handleBackClick}
-          className="flex items-center text-primary hover:text-primary/80 mb-6"
+          className="mb-6 text-gray-600 hover:text-gray-800 flex items-center"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Orders
+          {t('back_to_orders')}
         </button>
-        
-        {orderDetailsLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold">{t('order_details')}</h2>
+            <StatusBadge isPaid={selectedOrder.isPaid} isDelivered={selectedOrder.isDelivered} />
           </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="border-b p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                <div>
-                  <h2 className="text-2xl font-semibold text-gray-800">Order #{selectedOrder._id}</h2>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Placed on {formatDate(selectedOrder.createdAt)}
-                  </div>
-                </div>
-                <StatusBadge 
-                  isPaid={selectedOrder.isPaid} 
-                  isDelivered={selectedOrder.isDelivered} 
-                />
-              </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <h3 className="font-semibold mb-2">{t('order_number')}</h3>
+              <p className="text-gray-600">{selectedOrder._id}</p>
             </div>
-            
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {/* Order Status */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-gray-800 mb-3">Order Status</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-gray-600">Payment</span>
-                        <span className={selectedOrder.isPaid ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>
-                          {selectedOrder.isPaid ? 'Paid' : 'Not Paid'}
-                        </span>
-                      </div>
-                      {selectedOrder.isPaid && (
-                        <div className="text-xs text-gray-500">
-                          Paid on {formatDate(selectedOrder.paidAt)}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-gray-600">Delivery</span>
-                        <span className={selectedOrder.isDelivered ? 'text-green-600 font-medium' : 'text-orange-500 font-medium'}>
-                          {selectedOrder.isDelivered ? 'Delivered' : 'In Transit'}
-                        </span>
-                      </div>
-                      {selectedOrder.isDelivered && (
-                        <div className="text-xs text-gray-500">
-                          Delivered on {formatDate(selectedOrder.deliveredAt)}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Payment Method</span>
-                        <span className="font-medium text-gray-800 capitalize">
-                          {selectedOrder.paymentMethod}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Shipping Info */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-gray-800 mb-3">Shipping Information</h3>
-                  <div className="mb-4">
-                    <div className="font-medium text-gray-800 mb-2">Address</div>
-                    <p className="text-gray-600">
-                      {selectedOrder.shippingAddress.address},<br />
-                      {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.postalCode}<br />
-                      {selectedOrder.shippingAddress.country}
-                    </p>
-                  </div>
-                  
-                  {selectedOrder.isDelivered ? (
-                    <div className="flex items-center text-green-600 text-sm">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Delivered
-                    </div>
-                  ) : (
-                    <div className="flex items-center text-orange-500 text-sm">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      In Transit
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Order Items */}
-              <h3 className="font-semibold text-gray-800 mb-4 text-lg">Order Items</h3>
-              <div className="overflow-hidden border rounded-lg mb-8">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr className="text-left text-xs uppercase tracking-wider font-medium text-gray-500">
-                        <th className="py-3 px-4">Product</th>
-                        <th className="py-3 px-4">Price</th>
-                        <th className="py-3 px-4">Quantity</th>
-                        <th className="py-3 px-4">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {selectedOrder.orderItems.map((item, index) => (
-                        <tr key={index} className="hover:bg-gray-50 transition-colors">
-                          <td className="py-4 px-4">
-                            <div className="flex items-center">
-                              <img 
-                                src={item.image} 
-                                alt={item.name} 
-                                className="w-16 h-16 object-cover rounded-md mr-4"
-                                onError={(e) => {
-                                  e.target.onerror = null;
-                                  e.target.src = 'https://via.placeholder.com/70';
-                                }}
-                              />
-                              <div>
-                                <p className="font-medium text-gray-800">{item.name}</p>
-                                <p className="text-xs text-gray-500">ID: {item.product}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 text-gray-600">${item.price.toFixed(2)}</td>
-                          <td className="py-4 px-4 text-gray-600">{item.qty}</td>
-                          <td className="py-4 px-4 font-medium text-primary">
-                            ${(item.price * item.qty).toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              
-              {/* Order Summary */}
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="font-semibold text-gray-800 mb-4 text-lg">Order Summary</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Items Price</span>
-                    <span className="text-gray-800 font-medium">${Number(selectedOrder.totalPrice - selectedOrder.taxPrice - selectedOrder.shippingPrice).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tax</span>
-                    <span className="text-gray-800 font-medium">${Number(selectedOrder.taxPrice).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Shipping</span>
-                    <span className="text-gray-800 font-medium">${Number(selectedOrder.shippingPrice).toFixed(2)}</span>
-                  </div>
-                  <div className="border-t border-gray-200 mt-2 pt-2">
-                    <div className="flex justify-between text-lg">
-                      <span className="font-semibold text-gray-800">Total</span>
-                      <span className="font-bold text-primary">${Number(selectedOrder.totalPrice).toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {!selectedOrder.isPaid && (
-                  <div className="mt-6">
-                    {selectedOrder.paymentMethod === 'cash' ? (
-                      <div className="space-y-4">
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <div className="flex items-center text-blue-800">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="font-medium">Cash Payment on Delivery</span>
-                          </div>
-                          <p className="mt-2 text-sm text-blue-600">
-                            You have chosen to pay in cash when your order is delivered.
-                          </p>
-                        </div>
-                        <button 
-                          onClick={handleCashPayment}
-                          className="w-full bg-blue-600 text-white py-3 rounded-md font-medium hover:bg-blue-700 transition"
-                        >
-                          Confirm Cash Payment
-                        </button>
-                      </div>
-                    ) : (
-                      <button 
-                        onClick={handlePayNow}
-                        className="w-full bg-blue-600 text-white py-3 rounded-md font-medium hover:bg-blue-700 transition"
-                      >
-                        Pay Now
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
+            <div>
+              <h3 className="font-semibold mb-2">{t('order_date')}</h3>
+              <p className="text-gray-600">{formatDate(selectedOrder.createdAt)}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">{t('payment_method')}</h3>
+              <p className="text-gray-600">
+                {selectedOrder.paymentMethod === 'cash' ? t('cash_on_delivery') : t('credit_card')}
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">{t('order_total')}</h3>
+              <p className="text-gray-600">${selectedOrder.totalPrice.toFixed(2)}</p>
             </div>
           </div>
-        )}
-        
+
+          <div className="border-t pt-6">
+            <h3 className="font-semibold mb-4">{t('order_items')}</h3>
+            <div className="space-y-4">
+              {selectedOrder.orderItems.map((item) => (
+                <div key={item._id} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                    <div className="ml-4">
+                      <h4 className="font-medium">{item.name}</h4>
+                      <p className="text-gray-600">
+                        {t('quantity')}: {item.qty} × ${item.price}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="font-medium">${(item.qty * item.price).toFixed(2)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {!selectedOrder.isPaid && (
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={handlePayNow}
+                disabled={paymentProcessing}
+                className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition-colors disabled:opacity-50"
+              >
+                {paymentProcessing ? t('processing_payment') : t('pay_now')}
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Payment Modal */}
         {showPaymentModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative">
-              <div className="absolute top-4 right-4">
-                <button 
-                  onClick={() => !paymentProcessing && setShowPaymentModal(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                  disabled={paymentProcessing}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Complete Payment</h2>
-                <p className="text-gray-600 mt-1">Enter your card details to process payment</p>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-600">Amount to Pay</p>
-                  <p className="text-xl font-bold text-blue-600">${selectedOrder?.totalPrice.toFixed(2)}</p>
-                </div>
-              </div>
-
-              <form onSubmit={handlePaymentSubmit} className="space-y-6">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-xl font-semibold mb-4">{t('payment_details')}</h3>
+              <div className="space-y-4">
                 <div>
-                  <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                    Card Number
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('card_number')}
                   </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="cardNumber"
-                      name="cardNumber"
-                      value={paymentInfo.cardNumber}
-                      onChange={handleInputChange}
-                      placeholder="4242 4242 4242 4242"
-                      className="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      maxLength="19"
-                      required
-                      disabled={paymentProcessing}
-                    />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                    </div>
-                  </div>
+                  <input
+                    type="text"
+                    name="cardNumber"
+                    value={paymentInfo.cardNumber}
+                    onChange={handleInputChange}
+                    placeholder="1234 5678 9012 3456"
+                    className="w-full px-3 py-2 border rounded-md"
+                    maxLength="19"
+                  />
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="expirationDate" className="block text-sm font-medium text-gray-700 mb-1">
-                      Expiration Date
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('expiration_date')}
                     </label>
                     <input
                       type="text"
-                      id="expirationDate"
                       name="expirationDate"
                       value={paymentInfo.expirationDate}
                       onChange={handleInputChange}
                       placeholder="MM/YY"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      className="w-full px-3 py-2 border rounded-md"
                       maxLength="5"
-                      required
-                      disabled={paymentProcessing}
                     />
                   </div>
-
                   <div>
-                    <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-1">
-                      CVV
-                      <span className="ml-1 inline-block" title="3-digit security code on the back of your card">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </span>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('cvv')}
                     </label>
                     <input
                       type="text"
-                      id="cvv"
                       name="cvv"
                       value={paymentInfo.cvv}
                       onChange={handleInputChange}
                       placeholder="123"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      maxLength="3"
-                      required
-                      disabled={paymentProcessing}
+                      className="w-full px-3 py-2 border rounded-md"
+                      maxLength="4"
                     />
                   </div>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={paymentProcessing}
-                  className="w-full bg-blue-600 text-white py-4 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
-                >
-                  {paymentProcessing ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Processing Payment...
-                    </div>
-                  ) : (
-                    'Pay Now'
-                  )}
-                </button>
-
-                <div className="mt-4 text-center">
-                  <p className="text-xs text-gray-500">
-                    This is a test payment system. No real payments will be processed.
-                    <br />
-                    You can use any valid card format for testing.
-                  </p>
+                <div className="flex justify-end space-x-4 mt-6">
+                  <button
+                    onClick={handleClosePaymentModal}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  >
+                    {t('cancel')}
+                  </button>
+                  <button
+                    onClick={handleProcessPayment}
+                    disabled={paymentProcessing}
+                    className={`bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition-colors ${
+                      paymentProcessing ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {paymentProcessing ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {t('processing_payment')}
+                      </span>
+                    ) : t('process_payment')}
+                  </button>
                 </div>
-              </form>
+              </div>
             </div>
           </div>
         )}
@@ -712,49 +596,53 @@ const Orders = () => {
     );
   }
 
+  // Show orders list
   return (
-    <div className="py-8 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-800 mb-8">Your Orders</h1>
-      
+    <div className="max-w-6xl mx-auto p-4">
+      <h2 className="text-2xl font-semibold mb-6">{t('order_history')}</h2>
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
-              <tr className="text-left text-xs uppercase tracking-wider font-medium text-gray-500">
-                <th className="py-3 px-6">Order ID</th>
-                <th className="py-3 px-6">Date</th>
-                <th className="py-3 px-6">Total</th>
-                <th className="py-3 px-6">Status</th>
-                <th className="py-3 px-6">Action</th>
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('order_number')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('order_date')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('order_total')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('order_status')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('view_details')}
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-200">
               {orders.map((order) => (
-                <tr 
-                  key={order._id} 
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  <td className="py-4 px-6 font-medium text-gray-900">
-                    #{order._id.substring(order._id.length - 8).toUpperCase()}
+                <tr key={order._id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {order._id}
                   </td>
-                  <td className="py-4 px-6 text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {formatDate(order.createdAt)}
                   </td>
-                  <td className="py-4 px-6 font-medium text-primary">
-                    ${Number(order.totalPrice).toFixed(2)}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${order.totalPrice.toFixed(2)}
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <StatusBadge isPaid={order.isPaid} isDelivered={order.isDelivered} />
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <button
                       onClick={() => handleOrderClick(order._id)}
-                      className="inline-flex items-center px-3 py-1.5 border border-primary text-primary hover:bg-primary hover:text-white rounded text-sm font-medium transition-colors"
+                      className="text-primary hover:text-primary-dark"
                     >
-                      <span>Details</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                      {t('view_details')}
                     </button>
                   </td>
                 </tr>

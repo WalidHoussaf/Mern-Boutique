@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-
-// Configure axios defaults
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
+import { getTranslation } from '../utils/translations';
+import { ShopContext } from '../context/ShopContext';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +13,7 @@ const Contact = () => {
     message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { language } = useContext(ShopContext);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,13 +28,13 @@ const Contact = () => {
     
     // Form validation
     if (!formData.name || !formData.email || !formData.message) {
-      toast.error('Please fill in all required fields');
+      toast.error(getTranslation('required_fields', language));
       return;
     }
 
     // Email validation
     if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-      toast.error('Please enter a valid email address');
+      toast.error(getTranslation('invalid_email', language));
       return;
     }
     
@@ -44,7 +44,7 @@ const Contact = () => {
       const response = await axios.post('/api/contact', formData);
       
       if (response.data.message) {
-        toast.success('Your message has been sent! We\'ll get back to you soon.');
+        toast.success(getTranslation('contact_success', language));
         setFormData({
           name: '',
           email: '',
@@ -56,7 +56,7 @@ const Contact = () => {
       console.error('Error sending message:', error);
       toast.error(
         error.response?.data?.message || 
-        'Failed to send message. Please try again.'
+        getTranslation('contact_error', language)
       );
     } finally {
       setIsSubmitting(false);
@@ -81,10 +81,10 @@ const Contact = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       ),
-      title: "Visit Us",
-      details: "52 Boulevard Zerktouni, Casablanca 20100, Morocco",
+      title: getTranslation('visit_us', language),
+      details: getTranslation('address', language),
       link: "https://maps.google.com",
-      linkText: "Get Directions"
+      linkText: getTranslation('get_directions', language)
     },
     {
       icon: (
@@ -92,10 +92,10 @@ const Contact = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
       ),
-      title: "Email Us",
-      details: "voguevault@boutique.com",
+      title: getTranslation('email_us', language),
+      details: getTranslation('email', language),
       link: "mailto:voguevault@boutique.com",
-      linkText: "Send Email"
+      linkText: getTranslation('send_email', language)
     },
     {
       icon: (
@@ -103,10 +103,10 @@ const Contact = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
         </svg>
       ),
-      title: "Call Us",
-      details: "+212 (555) 123-4567",
+      title: getTranslation('call_us', language),
+      details: getTranslation('phone', language),
       link: "tel:+2125551234567",
-      linkText: "Make Call"
+      linkText: getTranslation('make_call', language)
     },
     {
       icon: (
@@ -114,12 +114,12 @@ const Contact = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      title: "Business Hours",
+      title: getTranslation('business_hours', language),
       details: (
         <>
-          Monday - Friday: 9am - 6pm<br />
-          Saturday: 10am - 4pm<br />
-          Sunday: Closed
+          {getTranslation('business_hours_weekday', language)}<br />
+          {getTranslation('business_hours_saturday', language)}<br />
+          {getTranslation('business_hours_sunday', language)}
         </>
       )
     }
@@ -141,9 +141,9 @@ const Contact = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-4xl md:text-5xl font-prata text-secondary mb-4">Get in Touch</h1>
+          <h1 className="text-4xl md:text-5xl font-prata text-secondary mb-4">{getTranslation('get_in_touch', language)}</h1>
           <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            We'd love to hear from you. Whether you have a question about our products, services, or anything else, our team is ready to answer all your inquiries.
+            {getTranslation('contact_description', language)}
           </p>
           <div className="w-32 h-1 bg-gradient-to-r from-primary to-secondary mx-auto mt-6"></div>
         </motion.div>
@@ -222,11 +222,11 @@ const Contact = () => {
                 
                 <div className="space-y-6 flex-grow">
                   <p className="text-gray-600 text-sm leading-relaxed mb-6 text-justify">
-                    We're more than just a fashion boutique. We're a community of style enthusiasts dedicated to providing exceptional products and experiences.
+                    {getTranslation('about_description', language)}
                   </p>
                   
                   <div className="rounded-xl bg-white p-5 shadow-sm">
-                    <h3 className="font-medium text-gray-800 mb-3">Follow Us on Social Media</h3>
+                    <h3 className="font-medium text-gray-800 mb-3">{getTranslation('follow_social_media', language)}</h3>
                     <div className="flex space-x-3">
                       <a 
                         href="#" 
@@ -267,119 +267,88 @@ const Contact = () => {
                     </div>
                   </div>
                 </div>
-
-                <div className="mt-6">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-gray-500">We Accept</span>
-                    <div className="flex space-x-2">
-                      <img src="https://cdn-icons-png.flaticon.com/64/196/196578.png" alt="Visa" className="h-6 w-auto object-contain grayscale opacity-70" />
-                      <img src="https://cdn-icons-png.flaticon.com/64/196/196561.png" alt="MasterCard" className="h-6 w-auto object-contain grayscale opacity-70" />
-                      <img src="https://cdn-icons-png.flaticon.com/64/196/196565.png" alt="PayPal" className="h-6 w-auto object-contain grayscale opacity-70" />
-                      <img src="https://cdn-icons-png.flaticon.com/64/196/196539.png" alt="American Express" className="h-6 w-auto object-contain grayscale opacity-70" />
-                    </div>
-                  </div>
-                </div>
               </motion.div>
             </div>
-            
-        {/* Contact Form */}
+
+            {/* Contact Form */}
             <div className="md:w-1/2 p-8 lg:p-12">
-              <motion.div
+              <motion.form 
+                onSubmit={handleSubmit}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
                 variants={fadeIn}
+                className="space-y-6"
               >
-                <h2 className="text-2xl font-prata text-secondary mb-6 relative inline-block">
-                  Send Us a Message
-                  <span className="absolute -bottom-2 left-0 w-16 h-1 bg-primary"></span>
-                </h2>
-                
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                      <label htmlFor="name" className="block text-gray-700 mb-2 font-medium">Your Name *</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                  required
-                />
-              </div>
-              <div>
-                      <label htmlFor="email" className="block text-gray-700 mb-2 font-medium">Your Email *</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                  required
-                />
-              </div>
-            </div>
-                  <div>
-                    <label htmlFor="subject" className="block text-gray-700 mb-2 font-medium">Subject</label>
-              <input
-                type="text"
-                id="subject"
-                name="subject"
-                value={formData.subject}
-                onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-              />
-            </div>
-                  <div>
-                    <label htmlFor="message" className="block text-gray-700 mb-2 font-medium">Your Message *</label>
-              <textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                      rows="6"
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors resize-none"
-                required
-              ></textarea>
-            </div>
-                  <motion.button
-              type="submit"
-              disabled={isSubmitting}
-                    className={`px-8 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-all ${
-                isSubmitting ? 'opacity-70 cursor-wait' : ''
-              }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {isSubmitting ? (
-                      <span className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Sending...
-                      </span>
-                    ) : 'Send Message'}
-                  </motion.button>
-          </form>
-                
-                <div className="mt-8 pt-6 border-t border-gray-100">
-                  <h3 className="text-lg font-medium text-gray-800 mb-3">Frequently Asked Questions</h3>
-            <div className="space-y-4">
                 <div>
-                      <h4 className="text-gray-700 font-medium">How long will I wait for a response?</h4>
-                      <p className="text-gray-600 text-sm mt-1 text-justify">We typically respond to all inquiries within 24-48 hours during business days.</p>
-              </div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                    {getTranslation('contact_form_name', language)}
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                    required
+                  />
+                </div>
+
                 <div>
-                      <h4 className="text-gray-700 font-medium">Can I visit your showroom?</h4>
-                      <p className="text-gray-600 text-sm mt-1 text-justify">Yes! Our showroom is open during business hours. We recommend booking an appointment for personalized service.</p>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    {getTranslation('contact_form_email', language)}
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                    required
+                  />
                 </div>
-              </div>
+
+                <div>
+                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
+                    {getTranslation('contact_form_subject', language)}
+                  </label>
+                  <input
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                  />
                 </div>
-              </motion.div>
+
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                    {getTranslation('contact_form_message', language)}
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    rows={4}
+                    value={formData.message}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                    required
+                  ></textarea>
+                </div>
+
+                <motion.button
+                  type="submit"
+                  className="w-full bg-primary text-white py-3 px-6 rounded-md hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isSubmitting}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {isSubmitting ? getTranslation('contact_form_sending', language) : getTranslation('contact_form_submit', language)}
+                </motion.button>
+              </motion.form>
             </div>
           </div>
         </div>

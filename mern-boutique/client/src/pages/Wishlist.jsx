@@ -2,6 +2,7 @@ import { useContext, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ShopContext } from '../context/ShopContext';
 import ProductItem from '../components/ProductItem';
+import useTranslation from '../utils/useTranslation';
 
 const Wishlist = () => {
   const { 
@@ -10,8 +11,9 @@ const Wishlist = () => {
     clearWishlist,
     wishlistLoading,
     isAuthenticated,
-    navigate 
+    navigate
   } = useContext(ShopContext);
+  const { t } = useTranslation();
   const [wishlistProducts, setWishlistProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isClearing, setIsClearing] = useState(false);
@@ -110,7 +112,7 @@ const Wishlist = () => {
   };
 
   const handleClearWishlist = async () => {
-    if (window.confirm('Are you sure you want to clear your entire wishlist?')) {
+    if (window.confirm(t('clear_wishlist_confirm'))) {
       setIsClearing(true);
       await clearWishlist();
       setIsClearing(false);
@@ -159,10 +161,10 @@ const Wishlist = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-4xl font-prata text-secondary mb-4">My Wishlist</h1>
+        <h1 className="text-4xl font-prata text-secondary mb-4">{t('my_wishlist')}</h1>
         <div className="w-24 h-1 bg-primary mx-auto"></div>
         <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
-          Items you've saved for later. Add them to your cart when you're ready to purchase.
+          {t('wishlist_description')}
         </p>
       </motion.div>
 
@@ -182,9 +184,9 @@ const Wishlist = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-medium text-gray-700 mb-3">Your wishlist is empty</h2>
+          <h2 className="text-2xl font-medium text-gray-700 mb-3">{t('wishlist_empty')}</h2>
           <p className="text-gray-500 mb-8 max-w-md mx-auto">
-            Explore our collections and discover items you'll love. Click the heart icon to save them to your wishlist.
+            {t('wishlist_empty_description')}
           </p>
           <motion.button
             onClick={handleContinueShopping}
@@ -192,7 +194,7 @@ const Wishlist = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Start Shopping
+            {t('continue_shopping')}
           </motion.button>
         </motion.div>
       ) : (
@@ -211,14 +213,14 @@ const Wishlist = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Clearing...
+                  {t('clearing')}
                 </span>
               ) : (
                 <span className="flex items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  Clear Wishlist
+                  {t('clear_wishlist')}
                 </span>
               )}
             </motion.button>
@@ -261,7 +263,7 @@ const Wishlist = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Continue Shopping
+              {t('continue_shopping')}
             </motion.button>
           </div>
         </div>

@@ -2,11 +2,13 @@ import { useState, useContext, useEffect } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { useLocation, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import axios from 'axios'; 
+import axios from 'axios';
+import useTranslation from '../utils/useTranslation';
 
 const Login = () => {
   const location = useLocation();
   const { login, user, navigate } = useContext(ShopContext);
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -41,31 +43,31 @@ const Login = () => {
   const validateForm = () => {
     // Basic validation
     if (!formData.email || !formData.password) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('required_fields'));
       return false;
     }
 
     // Email validation
     if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-      toast.error('Please enter a valid email address');
+      toast.error(t('invalid_email'));
       return false;
     }
 
     // Password validation
     if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error(t('password_too_short'));
       return false;
     }
 
     // Registration-specific validation
     if (!isLogin) {
       if (!formData.name) {
-        toast.error('Please enter your name');
+        toast.error(t('enter_name'));
         return false;
       }
       
       if (formData.password !== formData.confirmPassword) {
-        toast.error('Passwords do not match');
+        toast.error(t('passwords_not_match'));
         return false;
       }
     }
@@ -104,12 +106,12 @@ const Login = () => {
       const userData = response.data;
       
       if (!userData || !userData.token) {
-        toast.error('Authentication failed: Missing token');
+        toast.error(t('auth_failed'));
         return;
       }
       
       login(userData);
-      toast.success(isLogin ? 'Login successful!' : 'Registration successful!');
+      toast.success(isLogin ? t('login_success') : t('register_success'));
       
       // Clear form data after successful registration
       if (!isLogin) {
@@ -120,26 +122,22 @@ const Login = () => {
           confirmPassword: ''
         });
       }
+      
+      // Redirect after successful login/register
+      navigate(redirect);
     } catch (error) {
       console.error('Authentication error:', error);
       
-      let errorMessage = 'Authentication failed';
+      let errorMessage = t('auth_failed');
       
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        errorMessage = error.response.data.message || 
-                       `Error ${error.response.status}: ${error.response.statusText}`;
-                       
-        // Special handling for specific error codes
         if (error.response.status === 401) {
-          errorMessage = 'Invalid email or password';
+          errorMessage = t('invalid_credentials');
         } else if (error.response.status === 400 && !isLogin) {
-          errorMessage = 'User already exists with this email';
+          errorMessage = t('user_exists');
         }
       } else if (error.request) {
-        // The request was made but no response was received
-        errorMessage = 'No response from server. Please try again later.';
+        errorMessage = t('server_error');
       }
       
       toast.error(errorMessage);
@@ -199,13 +197,11 @@ const Login = () => {
         {/* Header Section */}
         <div className="text-center mb-10 animate-fadeIn">
           <h1 className="font-prata text-4xl text-secondary mb-2">
-            {isLogin ? 'Welcome Back' : 'Join Us'}
+            {isLogin ? t('welcome_back') : t('join_us')}
           </h1>
           <div className="w-16 h-1 bg-primary mx-auto mb-4"></div>
           <p className="text-gray-600">
-            {isLogin 
-              ? 'Sign in to access your account and continue shopping' 
-              : 'Create an account to start your shopping journey'}
+            {isLogin ? t('sign_in_desc') : t('join_desc')}
           </p>
         </div>
         
@@ -217,7 +213,7 @@ const Login = () => {
           <div className="px-8 py-10">
             {/* Form Title */}
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-              {isLogin ? 'Sign In' : 'Create Account'}
+              {isLogin ? t('sign_in') : t('create_account')}
             </h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -225,7 +221,7 @@ const Login = () => {
               {!isLogin && (
                 <div className="form-field-container">
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name
+                    {t('full_name')}
                   </label>
                   <div className={`relative transition-all duration-300 ${formFocus === 'name' ? 'ring-2 ring-primary ring-opacity-50' : ''}`}>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -237,7 +233,7 @@ const Login = () => {
                       type="text"
                       id="name"
                       name="name"
-                      placeholder="John Doe"
+                      placeholder={t('name_placeholder')}
                       value={formData.name}
                       onChange={handleChange}
                       onFocus={() => handleFocus('name')}
@@ -252,7 +248,7 @@ const Login = () => {
               {/* Email Field */}
               <div className="form-field-container">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
+                  {t('email_address')}
                 </label>
                 <div className={`relative transition-all duration-300 ${formFocus === 'email' ? 'ring-2 ring-primary ring-opacity-50' : ''}`}>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -265,7 +261,7 @@ const Login = () => {
                     type="email"
                     id="email"
                     name="email"
-                    placeholder="your@email.com"
+                    placeholder={t('email_placeholder')}
                     value={formData.email}
                     onChange={handleChange}
                     onFocus={() => handleFocus('email')}
@@ -279,7 +275,7 @@ const Login = () => {
               {/* Password Field */}
               <div className="form-field-container">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
+                  {t('password')}
                 </label>
                 <div className={`relative transition-all duration-300 ${formFocus === 'password' ? 'ring-2 ring-primary ring-opacity-50' : ''}`}>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -291,7 +287,7 @@ const Login = () => {
                     type={showPassword ? "text" : "password"}
                     id="password"
                     name="password"
-                    placeholder="••••••••"
+                    placeholder={t('password_placeholder')}
                     value={formData.password}
                     onChange={handleChange}
                     onFocus={() => handleFocus('password')}
@@ -318,7 +314,7 @@ const Login = () => {
                   </button>
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  {isLogin ? '' : 'Must be at least 6 characters'}
+                  {isLogin ? '' : t('password_min_length')}
                 </p>
               </div>
               
@@ -326,7 +322,7 @@ const Login = () => {
               {!isLogin && (
                 <div className="form-field-container">
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm Password
+                    {t('confirm_password')}
                   </label>
                   <div className={`relative transition-all duration-300 ${formFocus === 'confirmPassword' ? 'ring-2 ring-primary ring-opacity-50' : ''}`}>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -338,7 +334,7 @@ const Login = () => {
                       type={showPassword ? "text" : "password"}
                       id="confirmPassword"
                       name="confirmPassword"
-                      placeholder="••••••••"
+                      placeholder={t('password_placeholder')}
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       onFocus={() => handleFocus('confirmPassword')}
@@ -354,7 +350,7 @@ const Login = () => {
               {isLogin && (
                 <div className="flex items-center justify-end">
                   <Link to="/forgot-password" className="text-sm text-primary hover:text-primary/80 transition-colors">
-                    Forgot your password?
+                    {t('forgot_password')}
                   </Link>
                 </div>
               )}
@@ -373,11 +369,11 @@ const Login = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    {isLogin ? 'Signing in...' : 'Creating account...'}
+                    {isLogin ? t('signing_in') : t('creating_account')}
                   </span>
                 ) : (
                   <span className="flex items-center justify-center">
-                    {isLogin ? 'Sign In' : 'Create Account'} 
+                    {isLogin ? t('sign_in') : t('create_account')} 
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
@@ -385,13 +381,13 @@ const Login = () => {
                 )}
               </button>
               
-              {/* Social Login Options (if implemented in the future) */}
+              {/* Social Login Options */}
               <div className="relative mt-6 mb-4">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">or continue with</span>
+                  <span className="px-4 bg-white text-gray-500">{t('or_continue_with')}</span>
                 </div>
               </div>
               
@@ -429,13 +425,13 @@ const Login = () => {
             {/* Toggle between Login/Register */}
             <div className="mt-8 text-center">
               <p className="text-sm text-gray-600">
-                {isLogin ? "Don't have an account?" : "Already have an account?"}
+                {isLogin ? t('no_account') : t('have_account')}
                 <button
                   type="button"
                   onClick={handleFormToggle}
                   className="ml-2 text-primary font-medium hover:text-primary/80 transition-colors"
                 >
-                  {isLogin ? 'Sign Up' : 'Sign In'}
+                  {isLogin ? t('sign_up') : t('sign_in')}
                 </button>
               </p>
             </div>

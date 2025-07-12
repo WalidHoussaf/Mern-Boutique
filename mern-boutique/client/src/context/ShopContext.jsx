@@ -35,24 +35,36 @@ export const ShopContextProvider = (props) => {
   useEffect(() => {
     axios.defaults.withCredentials = true;
     
+    const setupAuthToken = () => {
+      const userInfo = localStorage.getItem('user');
+      if (userInfo) {
+        try {
+          const parsedUser = JSON.parse(userInfo);
+          if (parsedUser && parsedUser.token) {
+            // Setting the Authorization header for every request
+            axios.defaults.headers.common['Authorization'] = `Bearer ${parsedUser.token}`;
+          } else {
+            console.warn('User info found in localStorage but no token available');
+            // Clear invalid user data
+            localStorage.removeItem('user');
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('Error parsing user info from localStorage:', error);
+          // Clear invalid user data
+          localStorage.removeItem('user');
+          setUser(null);
+        }
+      }
+    };
+
+    // Initial setup
+    setupAuthToken();
+    
     const interceptor = axios.interceptors.request.use(
       (config) => {
-        const userInfo = localStorage.getItem('user');
-        if (userInfo) {
-          try {
-            const parsedUser = JSON.parse(userInfo);
-            if (parsedUser && parsedUser.token) {
-              // Setting the Authorization header for every request
-              config.headers.Authorization = `Bearer ${parsedUser.token}`;
-            } else {
-              console.warn('User info found in localStorage but no token available');
-            }
-          } catch (error) {
-            console.error('Error parsing user info from localStorage:', error);
-          }
-        } else {
-          console.log('No user info in localStorage, request will proceed without auth token');
-        }
+        // Refresh token setup on each request
+        setupAuthToken();
         return config;
       },
       (error) => {
@@ -60,15 +72,10 @@ export const ShopContextProvider = (props) => {
       }
     );
     
-    // Also setting the default Authorization header if user is already in state
-    if (user && user.token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${user.token}`;
-    }
-    
     return () => {
       axios.interceptors.request.eject(interceptor);
     };
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     // Fetch products from API
@@ -183,6 +190,13 @@ export const ShopContextProvider = (props) => {
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
+  
+  // Save language to localStorage whenever it changes
+  useEffect(() => {
+    if (language !== initialLanguage) {
+      localStorage.setItem('language', language);
+    }
+  }, [language, initialLanguage]);
   
   // Helper to generate a cart item key from productId and size
   const getCartItemKey = (productId, size) => {
@@ -486,16 +500,12 @@ export const ShopContextProvider = (props) => {
       }
       
       const response = await axios.post('/api/orders', orderData, config);
-      toast.success('Order placed successfully!');
       return response.data;
     } catch (error) {
       console.error('Error creating order:', error);
       if (error.response) {
         console.error('Server error response:', error.response.data);
-        const errorMessage = error.response.data.message || 'Failed to place order';
-        toast.error(errorMessage);
       } else {
-        toast.error('Failed to place order. Network error or server is down.');
       }
       throw error;
     }
@@ -503,20 +513,23 @@ export const ShopContextProvider = (props) => {
 
   // Fetch user's orders
   const fetchUserOrders = async () => {
-    if (!user) return [];
+    if (!user || !user.token) return [];
     
     try {
       setOrdersLoading(true);
-      const response = await axios.get('/api/orders/myorders');
-      
-      // Set the orders in context state
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`
+        }
+      };
+      const response = await axios.get('/api/orders/myorders', config);
       setOrders(response.data);
-      
-      // Return the data for direct use
       return response.data;
     } catch (error) {
       console.error('Error fetching orders:', error);
-      toast.error('Failed to load orders');
+      if (error.response && error.response.status === 401) {
+        logout();
+      }
       return [];
     } finally {
       setOrdersLoading(false);
@@ -530,7 +543,6 @@ export const ShopContextProvider = (props) => {
       return response.data;
     } catch (error) {
       console.error('Error fetching order details:', error);
-      toast.error('Failed to load order details');
       throw error;
     }
   };
@@ -539,11 +551,9 @@ export const ShopContextProvider = (props) => {
   const updateOrderToPaid = async (orderId, paymentResult) => {
     try {
       const response = await axios.put(`/api/orders/${orderId}/pay`, paymentResult);
-      toast.success('Payment processed successfully!');
       return response.data;
     } catch (error) {
       console.error('Error updating payment status:', error);
-      toast.error('Failed to process payment');
       throw error;
     }
   };

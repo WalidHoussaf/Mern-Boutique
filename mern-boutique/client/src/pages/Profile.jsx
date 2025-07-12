@@ -2,10 +2,10 @@ import { useState, useEffect, useContext, useRef } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import logoutIcon from '../assets/logout.png'; // Import the logout icon
+import useTranslation from '../utils/useTranslation';
 
 const Profile = () => {
-  const { user, login, logout, isAuthenticated, navigate } = useContext(ShopContext);
+  const { user, login, logout, isAuthenticated, navigate, language } = useContext(ShopContext);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +19,14 @@ const Profile = () => {
     password: '',
     confirmPassword: '',
   });
+  const { t } = useTranslation();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [userStats, setUserStats] = useState({
+    orderCount: 0,
+    totalSpent: 0,
+    lastOrderDate: null
+  });
 
   // Redirect if not logged in
   useEffect(() => {
@@ -27,7 +35,57 @@ const Profile = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Load user data
+  // Load user data and stats
+  useEffect(() => {
+    let timeoutId;
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
+
+    const fetchUserData = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch user's orders with timeout
+        const ordersResponse = await axios.get('/api/orders/myorders', {
+          timeout: 10000 // 10 second timeout
+        });
+        const orders = ordersResponse.data;
+
+        // Calculate statistics
+        const stats = {
+          orderCount: orders.length,
+          totalSpent: orders.reduce((sum, order) => sum + (order.isPaid ? order.totalPrice : 0), 0),
+          lastOrderDate: orders.length > 0 ? orders[0].createdAt : null
+        };
+
+        setUserStats(stats);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        
+        // If request was aborted and we haven't exceeded retries, try again
+        if (error.code === 'ECONNABORTED' && retryCount < MAX_RETRIES) {
+          retryCount++;
+          console.log(`Retrying fetch (${retryCount}/${MAX_RETRIES})...`);
+          timeoutId = setTimeout(fetchUserData, 1000 * retryCount); // Exponential backoff
+          return;
+        }
+        
+        toast.error(t('error_loading_data'));
+      }
+    };
+
+    // Add a small delay before first fetch to allow auth to initialize
+    timeoutId = setTimeout(fetchUserData, 100);
+
+    // Cleanup function
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [user, t]);
+
+  // Load user form data
   useEffect(() => {
     if (user) {
       setFormData({
@@ -105,25 +163,25 @@ const Profile = () => {
   const validateForm = () => {
     // Name validation
     if (!formData.name.trim()) {
-      toast.error('Name is required');
+      toast.error(t('enter_name'));
       return false;
     }
 
     // Email validation
     if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-      toast.error('Please enter a valid email address');
+      toast.error(t('invalid_email'));
       return false;
     }
 
     // Password validation - only if trying to change it
     if (formData.password) {
       if (formData.password.length < 6) {
-        toast.error('Password must be at least 6 characters');
+        toast.error(t('password_too_short'));
         return false;
       }
 
       if (formData.password !== formData.confirmPassword) {
-        toast.error('Passwords do not match');
+        toast.error(t('passwords_not_match'));
         return false;
       }
     }
@@ -164,7 +222,7 @@ const Profile = () => {
       if (response.data) {
         // Update user context
         login(response.data);
-        toast.success('Profile updated successfully');
+        toast.success(t('profile_updated'));
         setIsEditing(false);
         
         // Clear password fields
@@ -179,19 +237,73 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('Profile update error:', error);
-      let errorMessage = 'Failed to update profile';
+      let errorMessage = t('update_failed');
 
       if (error.response) {
         errorMessage = error.response.data.message || 
                       `Error ${error.response.status}: ${error.response.statusText}`;
       } else if (error.request) {
-        errorMessage = 'No response from server. Please try again later.';
+        errorMessage = t('server_error');
       }
       
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!showDeleteConfirm) {
+      setShowDeleteConfirm(true);
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      await axios.delete('/api/users/profile');
+      toast.success(t('account_deleted_success'));
+      logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      
+      // Handle specific error cases
+      if (error.response) {
+        if (error.response.status === 400) {
+          if (error.response.data?.message?.includes('orders')) {
+            // User has orders and cannot be deleted
+            toast.error(t('cannot_delete_with_orders'));
+          } else if (error.response.data?.message?.includes('Admin')) {
+            // Admin account cannot be deleted
+            toast.error(t('cannot_delete_admin'));
+          } else {
+            // Other 400 errors
+            toast.error(error.response.data?.message || t('account_deletion_failed'));
+          }
+        } else if (error.response.status === 404) {
+          // User not found
+          toast.error(t('user_not_found'));
+          logout();
+          navigate('/login');
+        } else {
+          // Other error with response
+          toast.error(error.response.data?.message || t('account_deletion_failed'));
+        }
+      } else if (error.request) {
+        // Network error
+        toast.error(t('server_error'));
+      } else {
+        // Other errors
+        toast.error(t('account_deletion_failed'));
+      }
+    } finally {
+      setIsDeletingAccount(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  const cancelDeleteAccount = () => {
+    setShowDeleteConfirm(false);
   };
 
   // Default profile avatar if no image is provided
@@ -201,357 +313,336 @@ const Profile = () => {
     </svg>
   );
 
-  // If user is not loaded yet, show loading state
+  // Loading state UI
   if (!user) {
     return (
-      <div className="min-h-screen flex justify-center items-center">
-        <div className="animate-pulse text-center">
-          <div className="h-16 w-16 mx-auto bg-gray-200 rounded-full mb-4"></div>
-          <div className="h-4 w-32 mx-auto bg-gray-200 rounded mb-2"></div>
-          <div className="h-3 w-24 mx-auto bg-gray-200 rounded"></div>
+      <div className="min-h-screen flex justify-center items-center bg-gray-50">
+        <div className="animate-pulse space-y-6 text-center">
+          <div className="h-24 w-24 mx-auto bg-gray-200 rounded-full"></div>
+          <div className="space-y-3">
+            <div className="h-4 w-48 mx-auto bg-gray-200 rounded"></div>
+            <div className="h-3 w-32 mx-auto bg-gray-200 rounded"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-100 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        {/* Top-right decorative circle */}
-        <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary opacity-5 rounded-full"></div>
-        
-        {/* Bottom-left decorative circle */}
-        <div className="absolute -bottom-16 -left-16 w-80 h-80 bg-secondary opacity-5 rounded-full"></div>
-        
-        {/* Animated dots pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute h-full w-full pattern-dots pattern-gray-500 pattern-size-2 pattern-opacity-20"></div>
-        </div>
-        
-        {/* Small floating elements - only visible on larger screens */}
-        <div className="hidden md:block">
-          <div className="absolute top-[15%] right-[20%] w-6 h-6 bg-primary opacity-20 rounded-full animate-pulse"></div>
-          <div className="absolute top-[30%] left-[15%] w-4 h-4 bg-secondary opacity-20 rounded-full animate-ping" style={{ animationDuration: '3s' }}></div>
-          <div className="absolute bottom-[25%] right-[30%] w-5 h-5 bg-primary opacity-20 rounded-md animate-pulse" style={{ animationDuration: '2.5s' }}></div>
-          <div className="absolute bottom-[15%] left-[25%] w-3 h-3 bg-secondary opacity-20 rounded-full animate-ping" style={{ animationDuration: '4s' }}></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+      {/* Top Navigation Bar */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <h1 className="text-xl font-semibold text-gray-900">{t('my_account')}</h1>
+            <button
+              onClick={logout}
+              className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <span className="mr-2">{t('logout')}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
-      
-      <div className="max-w-3xl mx-auto relative z-10">
-        {/* Header Section */}
-        <div className="text-center mb-10 animate-fadeIn">
-          <h1 className="font-prata text-4xl text-secondary mb-2">My Account</h1>
-          <div className="w-16 h-1 bg-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            View and manage your account details
-          </p>
-        </div>
 
-        {/* Account Navigation */}
-        <div className="flex flex-wrap gap-4 mb-8">
-          <button 
-            onClick={() => navigate('/orders')}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-          >
-            My Orders
-          </button>
-          <button 
-            onClick={() => navigate('/wishlist')}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-          >
-            My Wishlist
-          </button>
-          <button 
-            onClick={() => navigate('/settings')}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-          >
-            Settings
-          </button>
-        </div>
-
-        {/* Profile Card */}
-        <div className="bg-white rounded-2xl overflow-hidden shadow-xl transform transition-all animate-fadeIn">
-          {/* Card Header with Gradient */}
-          <div className="h-2 bg-gradient-to-r from-primary via-primary/70 to-secondary"></div>
-
-          <div className="px-8 py-10">
-            {/* Profile Title */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Personal Information
-              </h2>
-              <button
-                onClick={toggleEditMode}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isEditing
-                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    : 'bg-primary text-white hover:bg-primary-dark'
-                }`}
-              >
-                {isEditing ? 'Cancel Editing' : 'Edit Profile'}
-              </button>
-            </div>
-
-            {isEditing ? (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Profile Image Upload Section */}
-                <div className="flex flex-col items-center mb-6">
-                  <div className="relative group cursor-pointer" onClick={triggerFileInput}>
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 bg-gray-100 flex items-center justify-center">
-                      {previewImage ? (
-                        <img 
-                          src={previewImage} 
-                          alt="Profile Preview" 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        defaultAvatar
-                      )}
-                    </div>
-                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleImageChange} 
-                    accept="image/*" 
-                    className="hidden" 
-                  />
-                  <p className="mt-2 text-sm text-gray-500">Click to change your profile picture</p>
-                </div>
-
-                {/* Name Field */}
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      placeholder="Your full name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="pl-10 w-full py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition-colors"
-                      required
-                      onFocus={() => handleFocus('name')}
-                      onBlur={handleBlur}
-                    />
-                  </div>
-                </div>
-
-                {/* Email Field */}
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                      </svg>
-                    </div>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      placeholder="your@email.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="pl-10 w-full py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition-colors"
-                      required
-                      onFocus={() => handleFocus('email')}
-                      onBlur={handleBlur}
-                    />
-                  </div>
-                </div>
-
-                {/* Password Field */}
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                    New Password
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      id="password"
-                      name="password"
-                      placeholder="Leave blank to keep current password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      className="pl-10 w-full py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition-colors"
-                      onFocus={() => handleFocus('password')}
-                      onBlur={handleBlur}
-                    />
-                    <button
-                      type="button"
-                      onClick={togglePasswordVisibility}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    >
-                      {showPassword ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                          <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
-                          <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Must be at least 6 characters
-                  </p>
-                </div>
-
-                {/* Confirm Password */}
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm New Password
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      placeholder="Confirm new password"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      className="pl-10 w-full py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition-colors"
-                      onFocus={() => handleFocus('confirmPassword')}
-                      onBlur={handleBlur}
-                    />
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full relative py-3 bg-gradient-to-r from-primary to-secondary text-white font-medium rounded-lg hover:opacity-95 transition-all shadow-md ${
-                    isLoading ? 'opacity-80 cursor-wait' : ''
-                  }`}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Updating Profile...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center">
-                      Save Changes
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </span>
-                  )}
-                </button>
-              </form>
-            ) : (
-              <div className="space-y-8">
-                <div className="flex justify-center mb-6">
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 bg-gray-100 flex items-center justify-center">
-                    {user.profileImage ? (
-                      <img 
-                        src={user.profileImage} 
-                        alt="Profile" 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Profile Overview */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
+              <div className="text-center">
+                <div className="relative inline-block group">
+                  <div className="w-32 h-32 mx-auto rounded-full overflow-hidden ring-4 ring-primary/10 transition-all duration-300 group-hover:ring-primary/20">
+                    {previewImage ? (
+                      <img
+                        src={previewImage}
+                        alt={t('profile_image')}
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      defaultAvatar
+                      <div className="w-full h-full bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-primary/40" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                        </svg>
+                      </div>
                     )}
                   </div>
+                  {isEditing && (
+                    <button
+                      onClick={triggerFileInput}
+                      className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg hover:bg-primary-dark transition-colors"
+                      title={t('change_photo')}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  aria-label={t('upload_photo')}
+                />
+                <h2 className="mt-4 text-xl font-semibold text-gray-900">{user.name}</h2>
+                <p className="text-gray-500 text-sm">{user.email}</p>
+              </div>
+
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center text-gray-600 text-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+                  </svg>
+                  {t('member_since')} {user.createdAt ? new Date(user.createdAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }) : t('unknown_date')}
                 </div>
 
+                <div className="flex items-center text-gray-600 text-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+                  </svg>
+                  {t('total_orders')}: {userStats.orderCount}
+                </div>
+
+                <div className="flex items-center text-gray-600 text-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                  </svg>
+                  {t('total_spent')}: ${userStats.totalSpent.toFixed(2)}
+                </div>
+
+                {userStats.lastOrderDate && (
+                  <div className="flex items-center text-gray-600 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                    </svg>
+                    {t('last_order')}: {new Date(userStats.lastOrderDate).toLocaleDateString()}
+                  </div>
+                )}
+              </div>
+
+              {!isEditing && (
+                <button
+                  onClick={toggleEditMode}
+                  className="mt-6 w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                    <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
+                  </svg>
+                  {t('edit_profile')}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Profile Form */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-lg p-8">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <div className="text-sm text-gray-500 mb-1">Full Name</div>
-                    <div className="text-lg font-medium">{user.name}</div>
-                  </div>
-
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <div className="text-sm text-gray-500 mb-1">Email Address</div>
-                    <div className="text-lg font-medium">{user.email}</div>
-                  </div>
-
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <div className="text-sm text-gray-500 mb-1">Account Type</div>
-                    <div className="text-lg font-medium">
-                      {user.isAdmin ? (
-                        <span className="text-red-600">Administrator</span>
-                      ) : (
-                        <span>Customer</span>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('full_name')}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        onFocus={() => handleFocus('name')}
+                        onBlur={handleBlur}
+                        className={`block w-full rounded-lg shadow-sm ${
+                          isEditing
+                            ? 'border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50'
+                            : 'border-transparent bg-gray-50'
+                        } ${formFocus === 'name' ? 'border-primary ring ring-primary ring-opacity-50' : ''}`}
+                      />
+                      {isEditing && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                          </svg>
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <div className="text-sm text-gray-500 mb-1">Member Since</div>
-                    <div className="text-lg font-medium">
-                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('email_address')}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        onFocus={() => handleFocus('email')}
+                        onBlur={handleBlur}
+                        className={`block w-full rounded-lg shadow-sm ${
+                          isEditing
+                            ? 'border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50'
+                            : 'border-transparent bg-gray-50'
+                        } ${formFocus === 'email' ? 'border-primary ring ring-primary ring-opacity-50' : ''}`}
+                      />
+                      {isEditing && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-8 border-t border-gray-100 pt-6">
-                  <h3 className="text-lg font-medium text-gray-800 mb-4">Account Actions</h3>
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => navigate('/orders')}
-                      className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+                {isEditing && (
+                  <div className="bg-gray-50 rounded-lg shadow p-6 mb-6">
+                    <div className="flex items-center mb-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                       </svg>
-                      My Orders
+                      <h3 className="text-lg font-medium text-gray-900">{t('change_password')}</h3>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-4">{t('change_password_description')}</p>
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                          {t('new_password')}
+                        </label>
+                        <div className="mt-1 relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            name="password"
+                            id="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            className="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                          <button
+                            type="button"
+                            onClick={togglePasswordVisibility}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path d={showPassword ? "M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" : "M10 12a2 2 0 100-4 2 2 0 000 4z"} />
+                              <path d={showPassword ? "M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" : "M10 4C5.522 4 1.732 6.943.458 11c1.274 4.057 5.064 7 9.542 7s8.268-2.943 9.542-7c-1.274-4.057-5.064-7-9.542-7zm0 11c-2.761 0-5-2.239-5-5s2.239-5 5-5 5 2.239 5 5-2.239 5-5 5z"} />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                          {t('confirm_new_password')}
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            name="confirmPassword"
+                            id="confirmPassword"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            className="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {isEditing && (
+                  <div className="flex justify-end space-x-4 pt-6">
+                    <button
+                      type="button"
+                      onClick={toggleEditMode}
+                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      disabled={isLoading}
+                    >
+                      {t('cancel')}
                     </button>
                     <button
-                      onClick={() => navigate('/wishlist')}
-                      className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
+                      type="submit"
+                      className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 flex items-center"
+                      disabled={isLoading}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                      </svg>
-                      Wishlist
+                      {isLoading && (
+                        <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      )}
+                      {isLoading ? t('saving_changes') : t('save_changes')}
                     </button>
                   </div>
-                  <button
-                    onClick={logout}
-                    className="mt-4 w-full py-3 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center"
-                  >
-                    <img src={logoutIcon} alt="Logout" className="h-5 w-5 mr-2" />
-                    Sign Out
-                  </button>
+                )}
+              </form>
+            </div>
+
+            {/* Danger Zone */}
+            <div className="mt-8 bg-white rounded-2xl shadow-lg p-8">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-4 flex-grow">
+                  <h3 className="text-lg font-medium text-red-600">{t('delete_account')}</h3>
+                  <p className="mt-2 text-sm text-gray-500">{t('delete_account_warning')}</p>
+                  <div className="mt-4 flex flex-wrap gap-4">
+                    {showDeleteConfirm ? (
+                      <>
+                        <button
+                          onClick={handleDeleteAccount}
+                          className="inline-flex items-center px-4 py-2 border border-red-600 text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50"
+                          disabled={isDeletingAccount}
+                        >
+                          {isDeletingAccount && (
+                            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          )}
+                          {isDeletingAccount ? t('deleting_account') : t('confirm_delete')}
+                        </button>
+                        <button
+                          onClick={cancelDeleteAccount}
+                          className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                          disabled={isDeletingAccount}
+                        >
+                          {t('cancel')}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={handleDeleteAccount}
+                        className="inline-flex items-center px-4 py-2 border border-red-600 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        {t('delete_account')}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>

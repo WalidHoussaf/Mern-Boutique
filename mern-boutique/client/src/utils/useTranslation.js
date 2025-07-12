@@ -9,8 +9,12 @@ import { getTranslation } from './translations';
 const useTranslation = () => {
   const { language } = useContext(ShopContext);
   
-  // Translation function
-  const t = (key) => getTranslation(key, language);
+  // Translation function that always uses the current language
+  const t = (key) => {
+    // Get the current language from localStorage as fallback
+    const currentLanguage = language || localStorage.getItem('language') || 'en';
+    return getTranslation(key, currentLanguage);
+  };
   
   return { t, language };
 };

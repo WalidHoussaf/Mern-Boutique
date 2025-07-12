@@ -3,11 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import ProductItem from '../components/ProductItem';
 import { assets } from '../assets/assets';
+import useTranslation from '../utils/useTranslation';
 
 // Quick filter presets with SVG icons
 const FILTER_PRESETS = [
   { 
-    name: "Fresh Finds", 
+    name: "fresh_finds", 
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -17,7 +18,7 @@ const FILTER_PRESETS = [
     sort: "newest" 
   },
   { 
-    name: "Power Dressing", 
+    name: "power_dressing", 
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -27,7 +28,7 @@ const FILTER_PRESETS = [
     subCategory: "Topwear" 
   },
   { 
-    name: "Urban Explorer", 
+    name: "urban_explorer", 
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -37,7 +38,7 @@ const FILTER_PRESETS = [
     subCategory: "Topwear" 
   },
   { 
-    name: "Cozy Luxe", 
+    name: "cozy_luxe", 
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 12l-5-5m5 5l5-5m-5 5v-10m0 10l-5 5m5-5l5 5m-5-5h10m-10 0h-10" />
@@ -50,51 +51,36 @@ const FILTER_PRESETS = [
 
 // Sorting options
 const SORTING_OPTIONS = [
-  { value: 'newest', label: 'Newest First', icon: (
+  { value: 'newest', label: 'newest_first', icon: (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
     </svg>
   )},
-  { value: 'price-asc', label: 'Price: Low to High', icon: (
+  { value: 'price-asc', label: 'price_low_to_high', icon: (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
     </svg>
   )},
-  { value: 'price-desc', label: 'Price: High to Low', icon: (
+  { value: 'price-desc', label: 'price_high_to_low', icon: (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
     </svg>
   )},
-  { value: 'rating-desc', label: 'Rating: High to Low', icon: (
+  { value: 'rating-desc', label: 'rating_high_to_low', icon: (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
     </svg>
   )},
-  { value: 'name-asc', label: 'Name: A-Z', icon: (
+  { value: 'name-asc', label: 'name_a_to_z', icon: (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
     </svg>
   )}
 ];
 
-// Creative category display names mapping
-const CATEGORY_DISPLAY_NAMES = {
-  'All': 'All Collections',
-  'Women': 'Femme Edit',
-  'Men': 'Gent\'s Showcase',
-  'Kids': 'Little Trendsetters'
-};
-
-// Creative subcategory display names mapping
-const SUBCATEGORY_DISPLAY_NAMES = {
-  'All': 'All Styles',
-  'Topwear': 'Statement Tops',
-  'Bottomwear': 'Signature Bottoms',
-  'Winterwear': 'Seasonal Layers'
-};
-
 const Collection = () => {
   const { allProducts, loading } = useContext(ShopContext);
+  const { t } = useTranslation();
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All');
@@ -111,6 +97,22 @@ const Collection = () => {
   const initialRender = useRef(true);
   const productsContainerRef = useRef(null);
   const filterContainerRef = useRef(null);
+
+  // Creative category display names mapping
+  const CATEGORY_DISPLAY_NAMES = {
+    'All': t('all_collections'),
+    'Women': t('femme_edit'),
+    'Men': t('gents_showcase'),
+    'Kids': t('little_trendsetters')
+  };
+
+  // Creative subcategory display names mapping
+  const SUBCATEGORY_DISPLAY_NAMES = {
+    'All': t('all_styles'),
+    'Topwear': t('statement_tops'),
+    'Bottomwear': t('signature_bottoms'),
+    'Winterwear': t('seasonal_layers')
+  };
   
   // Handle scroll for sticky filter and scroll-to-top button
   useEffect(() => {
@@ -404,16 +406,16 @@ const Collection = () => {
   return (
     <div className="py-8 px-4 max-w-7xl mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-prata text-secondary mb-3">Our Collection</h1>
+        <h1 className="text-3xl md:text-4xl font-prata text-secondary mb-3">{t('our_collection')}</h1>
         <div className="w-24 h-1 bg-primary mx-auto"></div>
         <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
-          Browse our carefully curated collection of premium fashion items and accessories.
+          {t('browse_collection_description')}
         </p>
       </div>
 
       {/* Quick Filter Presets */}
       <div className="mb-8">
-        <h2 className="text-lg font-medium text-gray-800 mb-4">Style Quickshop</h2>
+        <h2 className="text-lg font-medium text-gray-800 mb-4">{t('style_categories')}</h2>
         <div className="flex flex-wrap gap-3">
           {FILTER_PRESETS.map((preset, index) => (
             <button
@@ -426,7 +428,7 @@ const Collection = () => {
               }`}
             >
               {preset.icon}
-              {preset.name}
+              {t(preset.name)}
             </button>
           ))}
         </div>
@@ -447,7 +449,7 @@ const Collection = () => {
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-medium text-secondary">
-                Style Navigator
+                {t('style_navigator')}
               </h2>
               <button 
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -455,14 +457,14 @@ const Collection = () => {
               >
                 {isFilterOpen ? (
                   <>
-                    <span>Hide Filters</span>
+                    <span>{t('hide_filters')}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                     </svg>
                   </>
                 ) : (
                   <>
-                    <span>Show Filters</span>
+                    <span>{t('show_filters')}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -485,7 +487,9 @@ const Collection = () => {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-                        <h3 className="text-lg font-medium text-gray-800">Fashion Worlds</h3>
+                        <h3 className="text-lg font-medium text-gray-800">
+                          {t('fashion_worlds')}
+                        </h3>
                       </div>
                       <svg 
                         xmlns="http://www.w3.org/2000/svg" 
@@ -546,7 +550,9 @@ const Collection = () => {
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-1.5 h-6 bg-secondary rounded-full"></div>
-                          <h3 className="text-lg font-medium text-gray-800">Style Categories</h3>
+                          <h3 className="text-lg font-medium text-gray-800">
+                            {t('style_categories')}
+                          </h3>
                         </div>
                         <svg 
                           xmlns="http://www.w3.org/2000/svg" 
@@ -611,7 +617,9 @@ const Collection = () => {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-1.5 h-6 bg-amber-500 rounded-full"></div>
-                        <h3 className="text-lg font-medium text-gray-800">Sort Products</h3>
+                        <h3 className="text-lg font-medium text-gray-800">
+                          {t('sort_products')}
+                        </h3>
                       </div>
                       <svg 
                         xmlns="http://www.w3.org/2000/svg" 
@@ -640,7 +648,7 @@ const Collection = () => {
                               <span className={`mr-3 ${sortOption === option.value ? 'text-amber-500' : 'text-gray-400'}`}>
                                 {option.icon}
                               </span>
-                              {option.label}
+                              {t(option.label)}
                             </div>
                             {sortOption === option.value && (
                               <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -656,9 +664,11 @@ const Collection = () => {
                   {/* Empty State Guidance */}
                   {hasNoResults && (
                     <div className="bg-red-50 rounded-lg p-4 mb-6 animate-fadeIn">
-                      <h4 className="text-sm font-medium text-red-800 mb-1">No products found</h4>
+                      <h4 className="text-sm font-medium text-red-800 mb-1">
+                        {t('no_products_found')}
+                      </h4>
                       <p className="text-xs text-red-600 mb-3">
-                        Try removing some filters to see more products.
+                        {t('try_removing_filters')}
                       </p>
                       <button
                         onClick={() => {
@@ -667,7 +677,7 @@ const Collection = () => {
                         }}
                         className="text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md transition-colors"
                       >
-                        Clear All Filters
+                        {t('clear_all_filters')}
                       </button>
                     </div>
                   )}
@@ -675,7 +685,9 @@ const Collection = () => {
                   {/* Active Filters Display */}
                   <div className="mt-6 pt-6 border-t border-gray-100">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm text-gray-500">Active filters:</span>
+                      <span className="text-sm text-gray-500">
+                        {t('active_filters')}:
+                      </span>
                       {selectedCategory !== 'All' && (
                         <span 
                           className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary animate-fadeIn"
@@ -728,7 +740,9 @@ const Collection = () => {
                         </span>
                       )}
                       {selectedCategory === 'All' && selectedSubCategory === 'All' && activePreset === null && (
-                        <span className="text-sm text-gray-400 italic">None</span>
+                        <span className="text-sm text-gray-400 italic">
+                          {t('none')}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -747,10 +761,10 @@ const Collection = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
               <span>
-                Showing <span className="font-semibold text-primary mx-1">{displayedProducts.length}</span> pieces
+                {t('showing')} <span className="font-semibold text-primary mx-1">{displayedProducts.length}</span> {t('pieces')}
               </span>
               {selectedCategory !== 'All' && (
-                <span>&nbsp;in <span className="font-semibold text-primary">{getCategoryDisplayName(selectedCategory)}</span></span>
+                <span>&nbsp;{t('in')} <span className="font-semibold text-primary">{getCategoryDisplayName(selectedCategory)}</span></span>
               )}
               {selectedSubCategory !== 'All' && (
                 <span>&nbsp;/ <span className="font-semibold text-secondary">{getSubCategoryDisplayName(selectedSubCategory)}</span></span>
@@ -765,7 +779,7 @@ const Collection = () => {
               >
                 <div className="flex items-center">
                   {SORTING_OPTIONS.find(opt => opt.value === sortOption)?.icon}
-                  <span className="ml-2">{SORTING_OPTIONS.find(opt => opt.value === sortOption)?.label}</span>
+                  <span className="ml-2">{t(SORTING_OPTIONS.find(opt => opt.value === sortOption)?.label || '')}</span>
                 </div>
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
@@ -791,7 +805,7 @@ const Collection = () => {
                         }`}
                       >
                         <span className="mr-3">{option.icon}</span>
-                        {option.label}
+                        {t(option.label)}
                       </button>
                     ))}
                   </div>
@@ -861,12 +875,14 @@ const Collection = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                     </div>
-                    <p className="text-gray-500 mb-4">No products found with the current filters.</p>
+                    <p className="text-gray-500 mb-4">
+                      {t('no_products_found_with_current_filters')}
+                    </p>
                     <button 
                       onClick={() => handleCategoryClick('All')}
                       className="px-6 py-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
                     >
-                      View All Collections
+                      {t('view_all_collections')}
                     </button>
                   </div>
                 )}
@@ -881,9 +897,10 @@ const Collection = () => {
         <button 
           onClick={scrollToTop} 
           className="fixed bottom-8 right-8 p-3 rounded-full bg-primary text-white shadow-lg hover:bg-primary/90 transition-all z-50 animate-fadeIn"
+          aria-label={t('scroll_to_top')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+            <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 111.414 1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
           </svg>
         </button>
       )}

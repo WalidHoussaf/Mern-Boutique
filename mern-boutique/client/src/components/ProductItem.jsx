@@ -212,7 +212,7 @@ const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rat
           onLoad={handleImageLoad}
           loading="eager"
           decoding="async"
-          fetchPriority="high"
+          fetchpriority="high"
         />
         
         {/* Secondary Image */}
@@ -230,7 +230,7 @@ const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rat
             onError={() => {}}
             loading="eager"
             decoding="async"
-            fetchPriority="high"
+            fetchpriority="high"
           />
         )}
         
