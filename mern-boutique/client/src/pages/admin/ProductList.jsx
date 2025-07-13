@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import BackToDashboard from '../../components/BackToDashboard';
+import useTranslation from '../../utils/useTranslation';
 
 const ProductList = () => {
+  const { t } = useTranslation();
   const { allProducts, loading } = useContext(ShopContext);
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +39,7 @@ const ProductList = () => {
         
         // Only show toast if we have no fallback data
         if (!allProducts || allProducts.length === 0) {
-          toast.error('Failed to load products');
+          toast.error(t('failed_load_products'));
         }
         
         // Fallback to using allProducts from context if API fails
@@ -66,10 +68,10 @@ const ProductList = () => {
     try {
       await axios.delete(`/api/products/${productToDelete._id}`);
       setProducts(products.filter(p => p._id !== productToDelete._id));
-      toast.success('Product deleted successfully');
+      toast.success(t('product_deleted'));
     } catch (error) {
       console.error('Error deleting product:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete product');
+      toast.error(error.response?.data?.message || t('failed_delete_product'));
     } finally {
       setDeleteLoading(false);
       setShowDeleteModal(false);
@@ -88,17 +90,25 @@ const ProductList = () => {
     return typeof price === 'number' ? `$${price.toFixed(2)}` : '$0.00';
   };
 
+  // Category translation function
+  const translateCategory = (category) => {
+    if (!category) return t('uncategorized');
+    
+    const categoryKey = `category_${category.toLowerCase()}`;
+    return t(categoryKey) || category; // Fallback to original if translation not found
+  };
+
   return (
     <div>
       <BackToDashboard />
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="p-6 border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-800">Products</h2>
+          <h2 className="text-xl font-bold text-gray-800">{t('products')}</h2>
           <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-4">
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder={t('search_products')}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary w-full"
                 value={searchTerm}
                 onChange={handleSearch}
@@ -116,7 +126,7 @@ const ProductList = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              Add Product
+              {t('add_product')}
             </Link>
           </div>
         </div>
@@ -127,7 +137,7 @@ const ProductList = () => {
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="p-6 text-center">
-            <p className="text-gray-500">No products found. Try changing your search term or add a new product.</p>
+            <p className="text-gray-500">{t('no_products_found')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -135,19 +145,19 @@ const ProductList = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
+                    {t('product')}
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Price
+                    {t('price')}
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category
+                    {t('category')}
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    {t('status')}
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    {t('actions')}
                   </th>
                 </tr>
               </thead>
@@ -181,14 +191,16 @@ const ProductList = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {product.category || 'Uncategorized'}
+                        {translateCategory(product.category)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         product.countInStock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
-                        {product.countInStock > 0 ? `In Stock (${product.countInStock})` : 'Out of Stock'}
+                        {product.countInStock > 0 
+                          ? t('in_stock').replace('{count}', product.countInStock) 
+                          : t('out_of_stock')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -197,20 +209,20 @@ const ProductList = () => {
                           to={`/admin/products/${product._id}/edit`}
                           className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
                         >
-                          Edit
+                          {t('edit')}
                         </Link>
                         <button
                           onClick={() => confirmDelete(product)}
                           className="text-red-600 hover:text-red-900 cursor-pointer"
                         >
-                          Delete
+                          {t('delete')}
                         </button>
                         <Link 
                           to={`/product/${product._id}`}
                           target="_blank"
                           className="text-gray-600 hover:text-gray-900 cursor-pointer"
                         >
-                          View
+                          {t('view')}
                         </Link>
                       </div>
                     </td>
@@ -227,9 +239,9 @@ const ProductList = () => {
             <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowDeleteModal(false)}></div>
             <div className="relative bg-white rounded-lg max-w-md w-full mx-4">
               <div className="p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('confirm_delete')}</h3>
                 <p className="text-gray-600 mb-6">
-                  Are you sure you want to delete <span className="font-medium">{productToDelete?.name}</span>? This action cannot be undone.
+                  {t('confirm_delete_product_desc').replace('{productName}', productToDelete?.name)}
                 </p>
                 <div className="flex justify-end space-x-3">
                   <button
@@ -237,7 +249,7 @@ const ProductList = () => {
                     className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
                     onClick={() => setShowDeleteModal(false)}
                   >
-                    Cancel
+                    {t('cancel')}
                   </button>
                   <button
                     type="button"
@@ -253,9 +265,9 @@ const ProductList = () => {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Deleting...
+                        {t('deleting')}
                       </div>
-                    ) : 'Delete'}
+                    ) : t('delete')}
                   </button>
                 </div>
               </div>

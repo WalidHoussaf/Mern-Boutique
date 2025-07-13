@@ -4,8 +4,10 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import BackToDashboard from '../../components/BackToDashboard';
+import useTranslation from '../../utils/useTranslation';
 
 const UserList = () => {
+  const { t } = useTranslation();
   const { isAuthenticated, user } = useContext(ShopContext);
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +54,7 @@ const UserList = () => {
         setUsers(response.data);
       } catch (error) {
         console.error('Error fetching users:', error);
-        toast.error('Failed to load users');
+        toast.error(t('failed_load_users'));
       } finally {
         setIsLoading(false);
       }
@@ -96,13 +98,13 @@ const UserList = () => {
     try {
       await axios.delete(`/api/users/${userToDelete._id}`);
       setUsers(users.filter(u => u._id !== userToDelete._id));
-      toast.success('User deleted successfully');
+      toast.success(t('user_deleted'));
     } catch (error) {
       console.error('Error deleting user:', error);
       
       // Display the specific error message from the server if available
       const errorMessage = error.response?.data?.message || 
-        'Failed to delete user. The user might have associated orders.';
+        t('failed_delete_user');
       
       toast.error(errorMessage);
     } finally {
@@ -130,10 +132,10 @@ const UserList = () => {
         u._id === userToToggleAdmin._id ? response.data : u
       ));
       
-      toast.success(`User ${response.data.isAdmin ? 'promoted to' : 'removed from'} admin role`);
+      toast.success(response.data.isAdmin ? t('user_promoted') : t('user_removed_admin'));
     } catch (error) {
       console.error('Error updating user:', error);
-      toast.error(error.response?.data?.message || 'Failed to update user');
+      toast.error(error.response?.data?.message || t('failed_update_user'));
     } finally {
       setShowAdminModal(false);
       setUserToToggleAdmin(null);
@@ -207,11 +209,11 @@ const UserList = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
               </svg>
-              User Management
+              {t('user_management')}
             </h2>
             <div className="mt-4 md:mt-0 flex items-center">
               <span className="text-sm text-gray-500 mr-2">
-                {filteredUsers.length} {filteredUsers.length === 1 ? 'user' : 'users'} found
+                {filteredUsers.length} {filteredUsers.length === 1 ? t('user_found') : t('users_found')}
               </span>
             </div>
           </div>
@@ -220,7 +222,7 @@ const UserList = () => {
             <div className="relative flex-grow">
               <input
                 type="text"
-                placeholder="Search users by name or email..."
+                placeholder={t('search_users')}
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 value={searchTerm}
                 onChange={handleSearch}
@@ -240,7 +242,7 @@ const UserList = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
                 </svg>
-                Filters
+                {t('filters')}
                 {getActiveFiltersCount() > 0 && (
                   <span className="ml-1.5 flex items-center justify-center h-5 w-5 bg-primary text-white text-xs font-medium rounded-full">
                     {getActiveFiltersCount()}
@@ -251,7 +253,7 @@ const UserList = () => {
               {showFilters && (
                 <div 
                   ref={filterRef}
-                  className="fixed sm:absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-50 animate-scaleIn origin-top-right" 
+                  className="fixed sm:absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 animate-scaleIn origin-top-right" 
                   style={{ 
                     maxHeight: '80vh', 
                     overflowY: 'auto',
@@ -266,7 +268,7 @@ const UserList = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 text-primary" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
                         </svg>
-                        Filter Options
+                        {t('filter_options')}
                       </span>
                       <button 
                         onClick={toggleFilters}
@@ -280,22 +282,22 @@ const UserList = () => {
                     <div className="space-y-2">
                       <div className="bg-gray-50 p-2.5 rounded-md border border-gray-100">
                         <label htmlFor="roleFilter" className="block text-sm font-medium text-gray-700 mb-1.5">
-                          User Role
+                          {t('user_role')}
                         </label>
-                        <div className="flex gap-2">
+                        <div className="inline-flex gap-2 w-full">
                           <button
                             type="button"
                             onClick={() => {
                               setRoleFilter('all');
                               setShowFilters(false);
                             }}
-                            className={`flex-1 py-2 px-3 text-sm rounded-md border ${
+                            className={`min-w-fit whitespace-nowrap py-2 px-3 text-sm rounded-md border ${
                               roleFilter === 'all' 
                                 ? 'bg-primary text-white border-primary' 
                                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                             } transition-colors`}
                           >
-                            All
+                            {t('all')}
                           </button>
                           <button
                             type="button"
@@ -303,13 +305,13 @@ const UserList = () => {
                               setRoleFilter('admin');
                               setShowFilters(false);
                             }}
-                            className={`flex-1 py-2 px-3 text-sm rounded-md border ${
+                            className={`min-w-fit whitespace-nowrap py-2 px-3 text-sm rounded-md border ${
                               roleFilter === 'admin' 
                                 ? 'bg-primary text-white border-primary' 
                                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                             } transition-colors`}
                           >
-                            Admins
+                            {t('admins')}
                           </button>
                           <button
                             type="button"
@@ -317,13 +319,13 @@ const UserList = () => {
                               setRoleFilter('customer');
                               setShowFilters(false);
                             }}
-                            className={`flex-1 py-2 px-3 text-sm rounded-md border ${
+                            className={`min-w-fit whitespace-nowrap py-2 px-3 text-sm rounded-md border ${
                               roleFilter === 'customer' 
                                 ? 'bg-primary text-white border-primary' 
                                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                             } transition-colors`}
                           >
-                            Customers
+                            {t('customers')}
                           </button>
                         </div>
                       </div>
@@ -339,7 +341,7 @@ const UserList = () => {
         {isLoading ? (
           <div className="p-8 flex flex-col justify-center items-center h-64">
             <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary mb-4"></div>
-            <p className="text-gray-500 font-medium">Loading users...</p>
+            <p className="text-gray-500 font-medium">{t('loading_users')}</p>
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="p-8 text-center">
@@ -348,8 +350,8 @@ const UserList = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-800 mb-1">No users found</h3>
-            <p className="text-gray-500">Try adjusting your search or filter criteria.</p>
+            <h3 className="text-lg font-medium text-gray-800 mb-1">{t('no_users_found')}</h3>
+            <p className="text-gray-500">{t('no_users_found_desc')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -359,10 +361,10 @@ const UserList = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>
-                  Showing filtered results: 
+                  {t('showing_filtered_results')}
                   {roleFilter !== 'all' && (
                     <span className="font-medium ml-1">
-                      {roleFilter === 'admin' ? 'Admin users only' : 'Customer users only'}
+                      {roleFilter === 'admin' ? t('admin_users_only') : t('customer_users_only')}
                     </span>
                   )}
                 </span>
@@ -373,7 +375,7 @@ const UserList = () => {
                   }}
                   className="ml-auto text-blue-700 hover:text-blue-900 font-medium flex items-center"
                 >
-                  Clear filters
+                  {t('clear_filters')}
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -389,7 +391,7 @@ const UserList = () => {
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center">
-                      User
+                      {t('user')}
                       {getSortIcon('name')}
                     </div>
                   </th>
@@ -399,7 +401,7 @@ const UserList = () => {
                     onClick={() => handleSort('createdAt')}
                   >
                     <div className="flex items-center">
-                      Joined
+                      {t('joined')}
                       {getSortIcon('createdAt')}
                     </div>
                   </th>
@@ -409,12 +411,12 @@ const UserList = () => {
                     onClick={() => handleSort('role')}
                   >
                     <div className="flex items-center">
-                      Role
+                      {t('role')}
                       {getSortIcon('role')}
                     </div>
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    {t('actions')}
                   </th>
                 </tr>
               </thead>
@@ -464,14 +466,14 @@ const UserList = () => {
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
-                            Admin
+                            {t('admin')}
                           </>
                         ) : (
                           <>
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                             </svg>
-                            Customer
+                            {t('customer')}
                           </>
                         )}
                       </span>
@@ -486,7 +488,7 @@ const UserList = () => {
                             <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                             <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                           </svg>
-                          View
+                          {t('view')}
                         </button>
                         <button
                           onClick={() => confirmToggleAdmin(u)}
@@ -494,21 +496,21 @@ const UserList = () => {
                             u.isAdmin ? 'text-yellow-600 hover:text-yellow-900' : 'text-purple-600 hover:text-purple-900'
                           } cursor-pointer transition-colors`}
                           disabled={u._id === user?._id}
-                          title={u._id === user?._id ? "You cannot change your own admin status" : ""}
+                          title={u._id === user?._id ? t('cannot_change_own_status') : ""}
                         >
                           {u.isAdmin ? (
                             <>
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                               </svg>
-                              Revoke
+                              {t('revoke')}
                             </>
                           ) : (
                             <>
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
                               </svg>
-                              Promote
+                              {t('promote')}
                             </>
                           )}
                         </button>
@@ -516,12 +518,12 @@ const UserList = () => {
                           onClick={() => confirmDelete(u)}
                           className="flex items-center text-red-600 hover:text-red-900 cursor-pointer transition-colors"
                           disabled={u._id === user?._id}
-                          title={u._id === user?._id ? "You cannot delete yourself" : ""}
+                          title={u._id === user?._id ? t('cannot_delete_yourself') : ""}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
-                          Delete
+                          {t('delete')}
                         </button>
                       </div>
                     </td>
@@ -543,9 +545,9 @@ const UserList = () => {
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-center text-gray-900 mb-4">Confirm User Deletion</h3>
+                <h3 className="text-lg font-medium text-center text-gray-900 mb-4">{t('confirm_user_deletion')}</h3>
                 <p className="text-gray-600 mb-6 text-center">
-                  Are you sure you want to delete <span className="font-medium">{userToDelete?.name}</span>? This action cannot be undone.
+                  {t('confirm_user_deletion_desc').replace('{userName}', userToDelete?.name)}
                 </p>
                 <div className="flex justify-center space-x-3">
                   <button
@@ -553,7 +555,7 @@ const UserList = () => {
                     className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors"
                     onClick={() => setShowDeleteModal(false)}
                   >
-                    Cancel
+                    {t('cancel')}
                   </button>
                   <button
                     type="button"
@@ -569,9 +571,9 @@ const UserList = () => {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Deleting...
+                        {t('deleting')}
                       </div>
-                    ) : 'Delete User'}
+                    ) : t('delete_user')}
                   </button>
                 </div>
               </div>
@@ -590,9 +592,11 @@ const UserList = () => {
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-center text-gray-900 mb-4">Confirm Role Change</h3>
+                <h3 className="text-lg font-medium text-center text-gray-900 mb-4">{t('confirm_role_change')}</h3>
                 <p className="text-gray-600 mb-6 text-center">
-                  Are you sure you want to {userToToggleAdmin?.isAdmin ? 'remove admin privileges from' : 'grant admin privileges to'} <span className="font-medium">{userToToggleAdmin?.name}</span>?
+                  {t('confirm_role_change_desc')
+                    .replace('{action}', userToToggleAdmin?.isAdmin ? t('remove_admin_privileges') : t('grant_admin_privileges'))
+                    .replace('{userName}', userToToggleAdmin?.name)}
                 </p>
                 <div className="flex justify-center space-x-3">
                   <button
@@ -600,14 +604,14 @@ const UserList = () => {
                     className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors"
                     onClick={() => setShowAdminModal(false)}
                   >
-                    Cancel
+                    {t('cancel')}
                   </button>
                   <button
                     type="button"
                     className="px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                     onClick={handleToggleAdmin}
                   >
-                    Confirm
+                    {t('confirm')}
                   </button>
                 </div>
               </div>

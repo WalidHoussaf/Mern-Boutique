@@ -4,8 +4,10 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import BackToDashboard from '../../components/BackToDashboard';
+import useTranslation from '../../utils/useTranslation';
 
 const Messages = () => {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState(null);
@@ -19,7 +21,7 @@ const Messages = () => {
       const { data } = await axios.get('/api/contact');
       setMessages(data);
     } catch (error) {
-      toast.error('Failed to fetch messages');
+      toast.error(t('failed_fetch_messages'));
     } finally {
       setLoading(false);
     }
@@ -31,23 +33,23 @@ const Messages = () => {
       setMessages(messages.map(msg => 
         msg._id === id ? { ...msg, isRead: true } : msg
       ));
-      toast.success('Message marked as read');
+      toast.success(t('message_marked_read'));
     } catch (error) {
-      toast.error('Failed to update message status');
+      toast.error(t('failed_update_message'));
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this message?')) {
+    if (window.confirm(t('confirm_delete_message'))) {
       try {
         await axios.delete(`/api/contact/${id}`);
         setMessages(messages.filter(msg => msg._id !== id));
         if (selectedMessage?._id === id) {
           setSelectedMessage(null);
         }
-        toast.success('Message deleted successfully');
+        toast.success(t('message_deleted_successfully'));
       } catch (error) {
-        toast.error('Failed to delete message');
+        toast.error(t('failed_delete_message'));
       }
     }
   };
@@ -66,9 +68,9 @@ const Messages = () => {
       <div className="bg-white rounded-lg shadow-md">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">Contact Messages</h2>
+            <h2 className="text-xl font-semibold text-gray-800">{t('contact_messages')}</h2>
             <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-              {messages.filter(msg => !msg.isRead).length} unread
+              {messages.filter(msg => !msg.isRead).length} {t('unread')}
             </span>
           </div>
 
@@ -78,7 +80,7 @@ const Messages = () => {
               <div className="divide-y max-h-[600px] overflow-y-auto">
                 {messages.length === 0 ? (
                   <div className="p-4 text-center text-gray-500">
-                    No messages found
+                    {t('no_messages_found')}
                   </div>
                 ) : (
                   messages.map((message) => (
@@ -133,37 +135,37 @@ const Messages = () => {
                           onClick={() => handleMarkAsRead(selectedMessage._id)}
                           className="text-sm px-3 py-1 rounded bg-primary text-white hover:bg-primary-dark transition-colors"
                         >
-                          Mark as Read
+                          {t('mark_as_read')}
                         </button>
                       )}
                       <button
                         onClick={() => handleDelete(selectedMessage._id)}
                         className="text-sm px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
                       >
-                        Delete
+                        {t('delete')}
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-gray-700 mb-2">Subject</h4>
+                    <h4 className="font-medium text-gray-700 mb-2">{t('subject')}</h4>
                     <p className="text-gray-600">{selectedMessage.subject}</p>
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-gray-700 mb-2">Message</h4>
+                    <h4 className="font-medium text-gray-700 mb-2">{t('message')}</h4>
                     <p className="text-gray-600 whitespace-pre-wrap">{selectedMessage.message}</p>
                   </div>
 
                   <div className="pt-4 border-t">
                     <p className="text-sm text-gray-500">
-                      Received on {format(new Date(selectedMessage.createdAt), 'MMMM d, yyyy h:mm a')}
+                      {t('received_on')} {format(new Date(selectedMessage.createdAt), 'MMMM d, yyyy h:mm a')}
                     </p>
                   </div>
                 </motion.div>
               ) : (
                 <div className="h-full flex items-center justify-center text-gray-500">
-                  Select a message to view details
+                  {t('select_message')}
                 </div>
               )}
             </div>

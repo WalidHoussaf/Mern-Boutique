@@ -280,11 +280,6 @@ const Product = () => {
       </nav>
 
       {/* Save percentage */}
-      {product?.originalPrice && (
-        <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">
-          {t('save')} {Math.round((1 - product.price / product.originalPrice) * 100)}%
-        </span>
-      )}
       <div className="flex flex-col lg:flex-row gap-8 xl:gap-12">
         {/* Product Images */}
         <div className="lg:w-1/2">
@@ -426,7 +421,7 @@ const Product = () => {
               {/* Display discount percentage if there's an old price */}
               {product?.originalPrice && (
                 <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">
-                  Save {Math.round((1 - product.price / product.originalPrice) * 100)}%
+                  {t('save')} {Math.round((1 - product.price / product.originalPrice) * 100)}%
                 </span>
               )}
             </div>
@@ -446,6 +441,16 @@ const Product = () => {
                   </svg>
                 ))}
               </div>
+              {product?.rating !== undefined && (
+                <span className="ml-2 text-sm text-gray-700 font-medium">
+                  {Number(product.rating).toFixed(1)}
+                </span>
+              )}
+              {product?.numReviews !== undefined && (
+                <span className="ml-2 text-xs text-gray-500">
+                  ({product.numReviews} {t('reviews')})
+                </span>
+              )}
             </div>
             
             {/* Product description */}
@@ -463,7 +468,7 @@ const Product = () => {
                     ? 'bg-green-100 text-green-800' 
                     : 'bg-red-100 text-red-800'
                 }`}>
-                  {product?.countInStock > 0 ? t('in_stock') : t('out_of_stock')}
+                  {product?.countInStock > 0 ? t('in_stock').replace('{count}', product.countInStock) : t('out_of_stock')}
                   {product?.countInStock > 0 && (
                     <span className="ml-1 text-gray-500">
                       ({product.countInStock} {t('units')})
@@ -486,7 +491,7 @@ const Product = () => {
                     className="text-sm text-primary cursor-pointer hover:underline"
                     onClick={() => navigate(`/collection?category=${encodeURIComponent(product?.category)}`)}
                   >
-                    {product?.category}
+                    {product?.category ? t(`category_${product.category.toLowerCase()}`) || product.category : ''}
                   </span>
                   {product?.subCategory && (
                     <>
@@ -495,7 +500,7 @@ const Product = () => {
                         className="text-sm text-primary cursor-pointer hover:underline"
                         onClick={() => navigate(`/collection?category=${encodeURIComponent(product?.category)}&subcategory=${encodeURIComponent(product?.subCategory)}`)}
                       >
-                        {product.subCategory}
+                        {product.subCategory ? t(`subcategory_${product.subCategory.toLowerCase()}`) || product.subCategory : ''}
                       </span>
                     </>
                   )}

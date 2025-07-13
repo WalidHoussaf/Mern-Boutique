@@ -4,8 +4,10 @@ import { toast } from 'react-toastify';
 import { ShopContext } from '../../context/ShopContext';
 import axios from 'axios';
 import BackToDashboard from '../../components/BackToDashboard';
+import useTranslation from '../../utils/useTranslation';
 
 const ProductForm = () => {
+  const { t } = useTranslation();
   const { productId } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, user, refreshProducts } = useContext(ShopContext);
@@ -70,7 +72,7 @@ const ProductForm = () => {
           setProduct(productData);
         } catch (error) {
           console.error('Error fetching product:', error);
-          toast.error('Failed to load product data');
+          toast.error(t('failed_load_product'));
           navigate('/admin/products');
         } finally {
           setIsLoading(false);
@@ -155,7 +157,7 @@ const ProductForm = () => {
     if (files.length === 0) return;
     // Limit to 5 images
     if (product.images.length + files.length > 5) {
-      toast.warning('Maximum 5 images allowed');
+      toast.warning(t('maximum_images'));
       return;
     }
     setUploadLoading(true);
@@ -176,13 +178,13 @@ const ProductForm = () => {
           ...prev,
           images: [...prev.images, ...urls],
         }));
-        toast.success(`${urls.length} image(s) uploaded successfully`);
+        toast.success(t('images_uploaded').replace('{count}', urls.length));
       } else {
-        toast.error('Image upload failed');
+        toast.error(t('image_upload_failed'));
       }
     } catch (error) {
       console.error('Error uploading images:', error);
-      toast.error('Failed to upload images');
+      toast.error(t('failed_upload_images'));
     } finally {
       setUploadLoading(false);
     }
@@ -200,12 +202,12 @@ const ProductForm = () => {
     e.preventDefault();
     
     if (product.sizes.length === 0) {
-      toast.error('Please select at least one size');
+      toast.error(t('please_select_size'));
       return;
     }
     
     if (product.images.length === 0) {
-      toast.error('Please upload at least one image');
+      toast.error(t('please_upload_image'));
       return;
     }
     
@@ -235,11 +237,11 @@ const ProductForm = () => {
       if (productId && productId !== 'new') {
         // Update existing product
         response = await axios.put(`/api/products/${productId}`, productData);
-        toast.success('Product updated successfully');
+        toast.success(t('product_updated'));
       } else {
         // Create new product
         response = await axios.post('/api/products', productData);
-        toast.success('Product created successfully');
+        toast.success(t('product_created'));
       }
       
       // Refresh products in context to show latest data
@@ -248,7 +250,7 @@ const ProductForm = () => {
       navigate('/admin/products');
     } catch (error) {
       console.error('Error saving product:', error);
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to save product';
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || t('failed_save_product');
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -257,13 +259,13 @@ const ProductForm = () => {
 
   const addNewSubCategory = () => {
     if (!newSubCategory || newSubCategory.trim() === '') {
-      toast.error('Please enter a subcategory name');
+      toast.error(t('enter_subcategory_name'));
       return;
     }
     
     // Check if subcategory already exists
     if (subcategories.includes(newSubCategory)) {
-      toast.error('This subcategory already exists');
+      toast.error(t('subcategory_exists'));
       return;
     }
     
@@ -276,7 +278,7 @@ const ProductForm = () => {
     // Reset the new subcategory input
     setNewSubCategory('');
     
-    toast.success(`Subcategory "${newSubCategory}" added`);
+    toast.success(t('subcategory_added').replace('{name}', newSubCategory));
   };
 
   if (isLoading) {
@@ -293,7 +295,7 @@ const ProductForm = () => {
       <div className="bg-white rounded-lg shadow-md">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">
-            {productId && productId !== 'new' ? 'Edit Product' : 'Add New Product'}
+            {productId && productId !== 'new' ? t('edit_product') : t('add_new_product')}
           </h2>
         </div>
         
@@ -302,7 +304,7 @@ const ProductForm = () => {
             <div className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Name *
+                  {t('product_name')} *
                 </label>
                 <input
                   type="text"
@@ -312,7 +314,7 @@ const ProductForm = () => {
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
-                  placeholder="Enter product name"
+                  placeholder={t('enter_product_name')}
                 />
               </div>
               
@@ -321,7 +323,7 @@ const ProductForm = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                   </svg>
-                  Brand *
+                  {t('brand')} *
                 </label>
                 <input
                   type="text"
@@ -331,7 +333,7 @@ const ProductForm = () => {
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
-                  placeholder="Enter brand name"
+                  placeholder={t('enter_brand_name')}
                 />
               </div>
               
@@ -341,7 +343,7 @@ const ProductForm = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4c6 0 10 6 10 6s-4 6-10 6-10-6-10-6 4-6 10-6zm0 10a4 4 0 100-8 4 4 0 000 8z" />
                     </svg>
-                  Category *
+                  {t('category')} *
                 </label>
                 <select
                   id="category"
@@ -351,7 +353,7 @@ const ProductForm = () => {
                   required
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-gradient-to-r from-white to-gray-50"
                 >
-                  <option value="">Select a category</option>
+                  <option value="">{t('select_category')}</option>
                   {categories.map(category => (
                     <option key={category} value={category}>{category}</option>
                   ))}
@@ -363,7 +365,7 @@ const ProductForm = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
-                    Subcategory *
+                    {t('subcategory')} *
                   </label>
                   <select
                     id="subCategory"
@@ -373,7 +375,7 @@ const ProductForm = () => {
                     required
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-gradient-to-r from-white to-gray-50"
                   >
-                    <option value="">Select a subcategory</option>
+                    <option value="">{t('select_subcategory')}</option>
                     {subcategories.map(subcategory => (
                       <option key={subcategory} value={subcategory}>{subcategory}</option>
                     ))}
@@ -386,7 +388,7 @@ const ProductForm = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Add New Subcategory
+                  {t('add_new_subcategory')}
                 </label>
                 <div className="flex bg-gray-50 rounded-md shadow-sm">
                   <input
@@ -395,7 +397,7 @@ const ProductForm = () => {
                     value={newSubCategory}
                     onChange={(e) => setNewSubCategory(e.target.value)}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-secondary focus:border-secondary bg-white"
-                    placeholder="Enter new subcategory"
+                    placeholder={t('enter_new_subcategory')}
                   />
                   <button
                     type="button"
@@ -405,17 +407,17 @@ const ProductForm = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    Add
+                    {t('add')}
                   </button>
                 </div>
                 <p className="mt-1 text-xs text-gray-500 italic">
-                  Add custom subcategories that aren't in the standard list
+                  {t('custom_subcategory_note')}
                 </p>
               </div>
               
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  Description *
+                  {t('description')} *
                 </label>
                 <textarea
                   id="description"
@@ -425,14 +427,14 @@ const ProductForm = () => {
                   required
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
-                  placeholder="Enter product description"
+                  placeholder={t('enter_product_description')}
                 ></textarea>
               </div>
               
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                    Price ($) *
+                    {t('price')} ($) *
                   </label>
                   <input
                     type="number"
@@ -450,7 +452,7 @@ const ProductForm = () => {
                 
                 <div>
                   <label htmlFor="originalPrice" className="block text-sm font-medium text-gray-700 mb-1">
-                    Original Price ($)
+                    {t('original_price')} ($)
                   </label>
                   <input
                     type="number"
@@ -467,7 +469,7 @@ const ProductForm = () => {
                 
                 <div>
                   <label htmlFor="countInStock" className="block text-sm font-medium text-gray-700 mb-1">
-                    Stock Quantity *
+                    {t('stock_quantity')} *
                   </label>
                   <input
                     type="number"
@@ -486,7 +488,7 @@ const ProductForm = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="rating" className="block text-sm font-medium text-gray-700 mb-1">
-                    Rating (0-5)
+                    {t('rating_0_5')}
                   </label>
                   <input
                     type="number"
@@ -504,7 +506,7 @@ const ProductForm = () => {
                 
                 <div>
                   <label htmlFor="numReviews" className="block text-sm font-medium text-gray-700 mb-1">
-                    Number of Reviews
+                    {t('number_of_reviews')}
                   </label>
                   <input
                     type="number"
@@ -523,7 +525,7 @@ const ProductForm = () => {
             <div className="space-y-6">
               <div>
                 <span className="block text-sm font-medium text-gray-700 mb-2">
-                  Available Sizes *
+                  {t('available_sizes')} *
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => (
@@ -548,11 +550,11 @@ const ProductForm = () => {
                   <svg className="w-5 h-5 mr-2 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
-                  Product Features
+                  {t('product_features')}
                 </span>
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
                   <p className="text-sm text-gray-500 mb-4 italic">
-                    Add distinct features that make your product stand out. Good features highlight unique selling points.
+                    {t('features_description')}
                   </p>
                   <div className="space-y-3">
                 {product.features.map((feature, index) => (
@@ -565,13 +567,13 @@ const ProductForm = () => {
                       value={feature}
                       onChange={(e) => handleFeatureChange(index, e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
-                      placeholder="Enter product feature"
+                      placeholder={t('enter_product_feature')}
                     />
                     <button
                       type="button"
                       onClick={() => removeFeature(index)}
                           className="ml-2 p-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="Remove feature"
+                          title={t('remove_feature')}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -585,7 +587,7 @@ const ProductForm = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p>No features added yet</p>
+                    <p>{t('no_features_added')}</p>
                   </div>
                 )}
               <button
@@ -596,14 +598,14 @@ const ProductForm = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                Add Feature
+                {t('add_feature')}
               </button>
               </div>
             </div>
             
             <div>
               <span className="block text-sm font-medium text-gray-700 mb-2">
-                Product Images *
+                {t('product_images')} *
               </span>
               <div className="grid grid-cols-3 gap-4 mb-4">
                 {product.images.map((image, index) => (
@@ -637,9 +639,9 @@ const ProductForm = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
                         <p className="mb-1 text-sm text-gray-500">
-                          <span className="font-semibold">Click to upload</span> or drag and drop
+                          <span className="font-semibold">{t('click_to_upload')}</span> {t('drag_and_drop')}
                         </p>
-                        <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5 files</p>
+                        <p className="text-xs text-gray-500">{t('file_types')}</p>
                       </>
                     )}
                   </div>
@@ -662,7 +664,7 @@ const ProductForm = () => {
                   <svg className="w-5 h-5 mr-2 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                   </svg>
-                  Product Status Flags
+                  {t('product_status_flags')}
                 </span>
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
                   <div className="grid grid-cols-3 gap-4">
@@ -676,8 +678,8 @@ const ProductForm = () => {
                         className="h-5 w-5 text-primary focus:ring-primary border-gray-300 rounded"
                       />
                       <label htmlFor="isNew" className="ml-2 block text-sm text-gray-700">
-                        <span className="font-medium">New Arrival</span>
-                        <span className="block text-xs text-gray-500">Show at top of collection</span>
+                        <span className="font-medium">{t('new_arrival')}</span>
+                        <span className="block text-xs text-gray-500">{t('new_arrival_desc')}</span>
                       </label>
                     </div>
                     <div className="flex items-center">
@@ -690,8 +692,8 @@ const ProductForm = () => {
                         className="h-5 w-5 text-primary focus:ring-primary border-gray-300 rounded"
                       />
                       <label htmlFor="featured" className="ml-2 block text-sm text-gray-700">
-                        <span className="font-medium">Featured</span>
-                        <span className="block text-xs text-gray-500">Show on homepage</span>
+                        <span className="font-medium">{t('featured')}</span>
+                        <span className="block text-xs text-gray-500">{t('featured_desc')}</span>
                       </label>
                     </div>
                     <div className="flex items-center">
@@ -704,8 +706,8 @@ const ProductForm = () => {
                         className="h-5 w-5 text-primary focus:ring-primary border-gray-300 rounded"
                       />
                       <label htmlFor="bestseller" className="ml-2 block text-sm text-gray-700">
-                        <span className="font-medium">Bestseller</span>
-                        <span className="block text-xs text-gray-500">Mark as popular item</span>
+                        <span className="font-medium">{t('bestseller')}</span>
+                        <span className="block text-xs text-gray-500">{t('bestseller_desc')}</span>
                       </label>
                     </div>
                   </div>
@@ -721,10 +723,10 @@ const ProductForm = () => {
             {isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
-                    {productId && productId !== 'new' ? 'Updating...' : 'Creating...'}
+                    {productId && productId !== 'new' ? t('updating') : t('creating')}
                   </>
             ) : (
-                  <>{productId && productId !== 'new' ? 'Update Product' : 'Create Product'}</>
+                  <>{productId && productId !== 'new' ? t('update_product') : t('create_product')}</>
             )}
           </button>
             </div>

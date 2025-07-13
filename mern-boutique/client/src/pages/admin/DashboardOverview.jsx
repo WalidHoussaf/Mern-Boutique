@@ -3,8 +3,10 @@ import { ShopContext } from '../../context/ShopContext';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
+import useTranslation from '../../utils/useTranslation';
 
 const DashboardOverview = () => {
+  const { t } = useTranslation();
   const { isAuthenticated, user } = useContext(ShopContext);
   const [stats, setStats] = useState({
     productCount: 0,
@@ -137,7 +139,7 @@ const DashboardOverview = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Not available';
+    if (!dateString) return t('not_available');
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
@@ -149,9 +151,9 @@ const DashboardOverview = () => {
   };
 
   const getStatusText = (isPaid, isDelivered) => {
-    if (isDelivered) return 'Delivered';
-    if (isPaid) return 'Paid';
-    return 'Unpaid';
+    if (isDelivered) return t('delivered');
+    if (isPaid) return t('paid');
+    return t('unpaid');
   };
 
   return (
@@ -165,10 +167,10 @@ const DashboardOverview = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-yellow-500 text-sm font-semibold uppercase">Revenue</p>
+            <p className="text-yellow-500 text-sm font-semibold uppercase">{t('revenue')}</p>
             <h3 className="text-2xl font-bold text-gray-800 mt-1">
               {formatCurrency(stats.totalRevenue)}
-              <span className="text-sm font-normal text-gray-500 ml-1">total</span>
+              <span className="text-sm font-normal text-gray-500 ml-1">{t('total')}</span>
             </h3>
           </div>
           <div className="bg-yellow-100 p-3 rounded-full">
@@ -179,7 +181,7 @@ const DashboardOverview = () => {
         </div>
         <div className="mt-4">
           <Link to="/admin/orders" className="text-sm text-yellow-500 hover:text-yellow-700 cursor-pointer">
-            View revenue details →
+            {t('view_revenue_details')}
           </Link>
         </div>
       </motion.div>
@@ -189,7 +191,7 @@ const DashboardOverview = () => {
         {/* Recent Orders */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800">Recent Orders</h3>
+            <h3 className="text-lg font-semibold text-gray-800">{t('recent_orders')}</h3>
           </div>
           
           {isLoading ? (
@@ -206,7 +208,7 @@ const DashboardOverview = () => {
             </div>
           ) : stats.recentOrders.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              No orders yet
+              {t('no_orders_yet')}
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
@@ -223,13 +225,13 @@ const DashboardOverview = () => {
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <div className="text-sm text-gray-600">
-                      {order.user?.name || 'User'} • {order.orderItems?.length || 0} items
+                      {order.user?.name || t('user')} • {order.orderItems?.length || 0} {t('items')}
                     </div>
                     <div className="font-medium">{formatCurrency(order.totalPrice)}</div>
                   </div>
                   <div className="mt-2">
                     <Link to={`/admin/orders/${order._id}`} className="text-sm text-primary hover:text-primary/80">
-                      View order details →
+                      {t('view_order_details')}
                     </Link>
                   </div>
                 </div>
@@ -239,7 +241,7 @@ const DashboardOverview = () => {
           
           <div className="p-4 border-t border-gray-200 bg-gray-50">
             <Link to="/admin/orders" className="text-primary hover:text-primary/80 text-sm font-medium">
-              View all orders →
+              {t('view_all_orders')}
             </Link>
           </div>
         </div>
@@ -247,7 +249,7 @@ const DashboardOverview = () => {
         {/* Top Products */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800">Top Products</h3>
+            <h3 className="text-lg font-semibold text-gray-800">{t('top_products')}</h3>
           </div>
           
           {isLoading ? (
@@ -265,7 +267,7 @@ const DashboardOverview = () => {
             </div>
           ) : stats.topProducts.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              No product data available
+              {t('no_product_data')}
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
@@ -293,10 +295,10 @@ const DashboardOverview = () => {
                   </div>
                   <div className="mt-2 flex justify-between items-center">
                     <div className="text-sm text-gray-500">
-                      Stock: {product.countInStock} units
+                      {t('stock')}: {product.countInStock} {t('units')}
                     </div>
                     <Link to={`/admin/products/${product._id}/edit`} className="text-sm text-primary hover:text-primary/80">
-                      Edit →
+                      {t('edit')}
                     </Link>
                   </div>
                 </div>
@@ -306,7 +308,7 @@ const DashboardOverview = () => {
           
           <div className="p-4 border-t border-gray-200 bg-gray-50">
             <Link to="/admin/products" className="text-primary hover:text-primary/80 text-sm font-medium">
-              View all products →
+              {t('view_all_products')}
             </Link>
           </div>
         </div>

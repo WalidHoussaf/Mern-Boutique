@@ -2,8 +2,10 @@ import { useState, useContext, useEffect } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
+import useTranslation from '../utils/useTranslation';
 
 const PlaceOrder = () => {
+  const { t } = useTranslation();
   const { 
     user, 
     navigate, 
@@ -88,17 +90,17 @@ const PlaceOrder = () => {
   const validateField = (name, value) => {
     switch (name) {
       case 'fullName':
-        return value.trim().length >= 2 ? '' : 'Full name must be at least 2 characters';
+        return value.trim().length >= 2 ? '' : t('full_name_error');
       case 'address':
-        return value.trim().length >= 5 ? '' : 'Please enter a valid address';
+        return value.trim().length >= 5 ? '' : t('address_error');
       case 'city':
-        return value.trim().length >= 2 ? '' : 'Please enter a valid city';
+        return value.trim().length >= 2 ? '' : t('city_error');
       case 'postalCode':
-        return validatePostalCode(value, shippingInfo.country) ? '' : 'Invalid postal code format';
+        return validatePostalCode(value, shippingInfo.country) ? '' : t('postal_code_error');
       case 'country':
-        return value.trim().length >= 2 ? '' : 'Please enter a valid country';
+        return value.trim().length >= 2 ? '' : t('country_error');
       case 'phoneNumber':
-        return /^\d{3}-\d{3}-\d{4}$/.test(value) ? '' : 'Please enter a valid phone number (XXX-XXX-XXXX)';
+        return /^\d{3}-\d{3}-\d{4}$/.test(value) ? '' : t('phone_error');
       default:
         return '';
     }
@@ -139,7 +141,7 @@ const PlaceOrder = () => {
   // Redirect if not logged in
   useEffect(() => {
     if (!user) {
-      toast.error('Please log in to complete your purchase');
+      toast.error(t('please_login_purchase'));
       navigate('/login?redirect=place-order');
       return;
     }
@@ -148,7 +150,7 @@ const PlaceOrder = () => {
     if (getCartCount() === 0) {
       navigate('/cart');
     }
-  }, [user, navigate, getCartCount]);
+  }, [user, navigate, getCartCount, t]);
   
   // Calculate order totals
   const subtotal = getCartTotal();
@@ -188,7 +190,7 @@ const PlaceOrder = () => {
     // If there are validation errors, show them and return
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      toast.error('Please fix the errors in the shipping information');
+      toast.error(t('fix_shipping_errors'));
       return;
     }
 
@@ -197,7 +199,7 @@ const PlaceOrder = () => {
     try {
       // Verify user is logged in
       if (!user || !user._id) {
-        toast.error('You must be logged in to place an order');
+        toast.error(t('must_login_order'));
         navigate('/login?redirect=place-order');
         return;
       }
@@ -248,7 +250,7 @@ const PlaceOrder = () => {
       navigate(`/orders`);
     } catch (error) {
       console.error('Error placing order:', error);
-      let errorMessage = 'Failed to place order. Please try again.';
+      let errorMessage = t('failed_place_order');
       
       if (error.response && error.response.data) {
         errorMessage = error.response.data.message || errorMessage;
@@ -272,8 +274,8 @@ const PlaceOrder = () => {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12"
       >
-        <h1 className="text-3xl md:text-4xl font-prata text-secondary mb-3">Checkout</h1>
-        <p className="text-gray-500">Complete your purchase</p>
+        <h1 className="text-3xl md:text-4xl font-prata text-secondary mb-3">{t('checkout')}</h1>
+        <p className="text-gray-500">{t('complete_purchase')}</p>
       </motion.div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -293,12 +295,12 @@ const PlaceOrder = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-prata text-secondary">Shipping Address</h2>
+              <h2 className="text-xl font-prata text-secondary">{t('shipping_address')}</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">Full Name*</label>
+                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">{t('full_name')}</label>
                   <input
                     type="text"
                     id="fullName"
@@ -316,7 +318,7 @@ const PlaceOrder = () => {
                   )}
                 </div>
                 <div>
-                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Phone Number*</label>
+                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">{t('phone_number')}</label>
                   <input
                     type="tel"
                     id="phoneNumber"
@@ -334,7 +336,7 @@ const PlaceOrder = () => {
                   )}
               </div>
               <div className="md:col-span-2">
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Address*</label>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">{t('address')}</label>
                 <input
                   type="text"
                   id="address"
@@ -352,7 +354,7 @@ const PlaceOrder = () => {
                 )}
               </div>
                 <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">City*</label>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">{t('city')}</label>
                   <input
                     type="text"
                     id="city"
@@ -370,7 +372,7 @@ const PlaceOrder = () => {
                   )}
                 </div>
                 <div>
-                <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">Postal Code*</label>
+                <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">{t('postal_code')}</label>
                   <input
                     type="text"
                     id="postalCode"
@@ -388,7 +390,7 @@ const PlaceOrder = () => {
                   )}
                 </div>
               <div className="md:col-span-2">
-                <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country*</label>
+                <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">{t('country')}</label>
                   <select
                     id="country"
                     name="country"
@@ -400,11 +402,11 @@ const PlaceOrder = () => {
                   }`}
                     required
                   >
-                    <option value="">Select a country</option>
-                    <option value="Morocco">Morocco</option>
-                    <option value="United States">United States</option>
-                    <option value="Canada">Canada</option>
-                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="">{t('select_country')}</option>
+                    <option value="Morocco">{t('morocco')}</option>
+                    <option value="United States">{t('united_states')}</option>
+                    <option value="Canada">{t('canada')}</option>
+                    <option value="United Kingdom">{t('united_kingdom')}</option>
                     {/* Add more countries as needed */}
                   </select>
                   {fieldErrors.country && (
@@ -422,7 +424,7 @@ const PlaceOrder = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-prata text-secondary">Payment Method</h2>
+                <h2 className="text-xl font-prata text-secondary">{t('payment_method')}</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -445,11 +447,11 @@ const PlaceOrder = () => {
                     </div>
                     <div className="flex items-center">
                       {getPaymentMethodIcon('cash')}
-                      <span className="ml-2 font-medium">Cash on Delivery</span>
+                      <span className="ml-2 font-medium">{t('cash_on_delivery')}</span>
                     </div>
                   </div>
                   <p className="text-sm text-gray-500 mt-2 ml-10">
-                    Pay with cash when your order is delivered
+                    {t('cash_on_delivery_desc')}
                   </p>
                 </div>
 
@@ -472,11 +474,11 @@ const PlaceOrder = () => {
                     </div>
                     <div className="flex items-center">
                       {getPaymentMethodIcon('credit')}
-                      <span className="ml-2 font-medium">Credit/Debit Card</span>
+                      <span className="ml-2 font-medium">{t('credit_debit_card')}</span>
                     </div>
                   </div>
                   <p className="text-sm text-gray-500 mt-2 ml-10">
-                    Pay securely with your card at delivery
+                    {t('credit_debit_card_desc')}
                   </p>
                 </div>
               </div>
@@ -492,7 +494,7 @@ const PlaceOrder = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Return to Cart
+              {t('return_to_cart')}
             </motion.button>
             </div>
         </motion.div>
@@ -505,7 +507,7 @@ const PlaceOrder = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <div className="bg-white rounded-xl shadow-md p-6 md:p-8 border border-gray-100 sticky top-20">
-            <h2 className="text-xl font-prata text-secondary mb-6">Order Summary</h2>
+            <h2 className="text-xl font-prata text-secondary mb-6">{t('order_summary')}</h2>
             
             {/* Items List */}
             <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 mb-6 pr-1">
@@ -528,9 +530,9 @@ const PlaceOrder = () => {
                     <p className="font-medium text-gray-800 truncate">{product.name}</p>
                     <div className="flex flex-wrap mt-1 gap-1">
                       {product.size && (
-                        <span className="px-2 py-0.5 bg-primary/10 text-xs rounded-md text-primary font-medium">Size: {product.size}</span>
+                        <span className="px-2 py-0.5 bg-primary/10 text-xs rounded-md text-primary font-medium">{t('size')}: {product.size}</span>
                       )}
-                      <span className="px-2 py-0.5 bg-gray-100 text-xs rounded-md text-gray-600">Qty: {product.quantity}</span>
+                      <span className="px-2 py-0.5 bg-gray-100 text-xs rounded-md text-gray-600">{t('quantity')}: {product.quantity}</span>
                     </div>
                   </div>
                   <p className="font-medium text-primary whitespace-nowrap">
@@ -543,23 +545,23 @@ const PlaceOrder = () => {
             {/* Price Details */}
             <div className="space-y-3 py-4 border-t border-gray-100">
               <div className="flex justify-between items-center text-gray-700">
-                <span className="font-medium">Subtotal</span>
+                <span className="font-medium">{t('subtotal')}</span>
                 <span>{currency}{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-gray-700">
-                <span className="font-medium">Tax (5%)</span>
+                <span className="font-medium">{t('tax')}</span>
                 <span>{currency}{tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-gray-700">
-                <span className="font-medium">Shipping</span>
+                <span className="font-medium">{t('shipping')}</span>
                 <span className="flex items-center">
                   {subtotal > 100 ? (
-                    <span className="text-green-500 font-medium flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Free
-                    </span>
+                                          <span className="text-green-500 font-medium flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        {t('free')}
+                      </span>
                   ) : (
                     <span>{currency}{shipping.toFixed(2)}</span>
                   )}
@@ -569,7 +571,7 @@ const PlaceOrder = () => {
             
             <div className="pt-4 mt-4 border-t border-gray-100">
               <div className="flex justify-between items-center font-medium text-lg mb-6">
-                <span className="text-gray-800">Total</span>
+                <span className="text-gray-800">{t('total')}</span>
                 <span className="text-xl text-primary">{currency}{total.toFixed(2)}</span>
               </div>
               
@@ -590,14 +592,14 @@ const PlaceOrder = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Processing...
+                    {t('processing')}
                   </span>
                 ) : (
                   <>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    Place Order
+                    {t('place_order')}
                   </>
                 )}
               </motion.button>
@@ -607,7 +609,7 @@ const PlaceOrder = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                Secure checkout
+                {t('secure_checkout')}
             </div>
             </div>
           </div>

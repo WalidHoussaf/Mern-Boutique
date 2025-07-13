@@ -5,9 +5,11 @@ import { motion } from 'framer-motion';
 import DashboardOverview from './DashboardOverview';
 import StatCards from './StatCards';
 import axios from 'axios';
+import useTranslation from '../../utils/useTranslation';
 import './AdminButtons.css';
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { user, isAuthenticated } = useContext(ShopContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,11 +54,11 @@ const Dashboard = () => {
   return (
     <div className="max-w-7xl mx-auto pb-12">
       <div className="flex flex-col">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-8">Admin Dashboard</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-8">{t('admin_dashboard')}</h1>
         
         {/* Welcome message */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-700">Welcome, {user?.name}</h2>
+          <h2 className="text-lg font-semibold text-gray-700">{t('welcome_admin').replace('{name}', user?.name || '')}</h2>
         </div>
         
         {/* Admin navigation tabs */}
@@ -70,7 +72,7 @@ const Dashboard = () => {
             } cursor-pointer`}
             onClick={() => setActiveTab('overview')}
           >
-            Overview
+            {t('overview')}
           </Link>
           <Link 
             to="/admin/products" 
@@ -81,7 +83,7 @@ const Dashboard = () => {
             } cursor-pointer`}
             onClick={() => setActiveTab('products')}
           >
-            Products
+            {t('products')}
           </Link>
           <Link 
             to="/admin/orders" 
@@ -92,7 +94,7 @@ const Dashboard = () => {
             } cursor-pointer`}
             onClick={() => setActiveTab('orders')}
           >
-            Orders
+            {t('orders')}
           </Link>
           <Link 
             to="/admin/users" 
@@ -103,7 +105,7 @@ const Dashboard = () => {
             } cursor-pointer`}
             onClick={() => setActiveTab('users')}
           >
-            Users
+            {t('users')}
           </Link>
           <Link 
             to="/admin/messages" 
@@ -114,7 +116,7 @@ const Dashboard = () => {
             } cursor-pointer`}
             onClick={() => setActiveTab('messages')}
           >
-            Messages
+            {t('messages')}
             {unreadMessages > 0 && (
               <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs flex items-center justify-center rounded-full">
                 {unreadMessages}

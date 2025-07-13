@@ -2,8 +2,10 @@ import { useState, useEffect, useContext } from 'react';
 import { ShopContext } from '../../context/ShopContext';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import useTranslation from '../../utils/useTranslation';
 
 const StatCards = () => {
+  const { t } = useTranslation();
   const { isAuthenticated, user } = useContext(ShopContext);
   const [stats, setStats] = useState({
     productCount: 0,
@@ -107,7 +109,7 @@ const StatCards = () => {
       <div className="bg-blue-50 p-6 rounded-lg shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-blue-500 text-sm font-semibold uppercase">Products</p>
+            <p className="text-blue-500 text-sm font-semibold uppercase">{t('products')}</p>
             {isLoading ? (
               <div className="h-8 w-16 bg-blue-200 rounded animate-pulse mt-1"></div>
             ) : (
@@ -122,7 +124,7 @@ const StatCards = () => {
         </div>
         <div className="mt-4">
           <Link to="/admin/products" className="text-sm text-blue-500 hover:text-blue-700 cursor-pointer">
-            View all products →
+            {t('view_all_products')}
           </Link>
         </div>
       </div>
@@ -130,7 +132,7 @@ const StatCards = () => {
       <div className="bg-green-50 p-6 rounded-lg shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-green-500 text-sm font-semibold uppercase">Orders</p>
+            <p className="text-green-500 text-sm font-semibold uppercase">{t('orders')}</p>
             {isLoading ? (
               <div className="h-8 w-16 bg-green-200 rounded animate-pulse mt-1"></div>
             ) : (
@@ -138,7 +140,7 @@ const StatCards = () => {
                 <h3 className="text-2xl font-bold text-gray-800 mt-1">{stats.orderCount}</h3>
                 {stats.pendingOrderCount > 0 && (
                   <span className="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full mt-1">
-                    {stats.pendingOrderCount} pending
+                    {stats.pendingOrderCount} {t('pending')}
                   </span>
                 )}
               </div>
@@ -152,7 +154,7 @@ const StatCards = () => {
         </div>
         <div className="mt-4">
           <Link to="/admin/orders" className="text-sm text-green-500 hover:text-green-700 cursor-pointer">
-            View all orders →
+            {t('view_all_orders')}
           </Link>
         </div>
       </div>
@@ -160,7 +162,7 @@ const StatCards = () => {
       <div className="bg-purple-50 p-6 rounded-lg shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-purple-500 text-sm font-semibold uppercase">Users</p>
+            <p className="text-purple-500 text-sm font-semibold uppercase">{t('users')}</p>
             {isLoading ? (
               <div className="h-8 w-16 bg-purple-200 rounded animate-pulse mt-1"></div>
             ) : (
@@ -175,7 +177,7 @@ const StatCards = () => {
         </div>
         <div className="mt-4">
           <Link to="/admin/users" className="text-sm text-purple-500 hover:text-purple-700 cursor-pointer">
-            View all users →
+            {t('view_all_users')}
           </Link>
         </div>
       </div>
@@ -183,13 +185,13 @@ const StatCards = () => {
       <div className="bg-primary/10 p-6 rounded-lg shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-primary text-sm font-semibold uppercase">Messages</p>
+            <p className="text-primary text-sm font-semibold uppercase">{t('messages')}</p>
             {isLoading ? (
               <div className="h-8 w-16 bg-primary/20 rounded animate-pulse mt-1"></div>
             ) : (
               <div className="flex items-center">
                 <h3 className="text-2xl font-bold text-gray-800 mt-1">{stats.unreadMessages}</h3>
-                <span className="text-sm font-normal text-gray-500 ml-1">unread</span>
+                <span className="text-sm font-normal text-gray-500 ml-1">{t('unread')}</span>
               </div>
             )}
           </div>
@@ -208,7 +210,7 @@ const StatCards = () => {
         </div>
         <div className="mt-4">
           <Link to="/admin/messages" className="text-sm text-primary hover:text-primary-dark cursor-pointer">
-            View all messages →
+            {t('view_all_messages')}
           </Link>
         </div>
       </div>

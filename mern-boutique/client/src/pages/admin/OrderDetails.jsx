@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../../context/ShopContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import useTranslation from '../../utils/useTranslation';
 
 const OrderDetails = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useContext(ShopContext);
@@ -53,7 +55,7 @@ const OrderDetails = () => {
         setOrder(orderData);
       } catch (error) {
         console.error('Error fetching order details:', error);
-        toast.error('Failed to load order details');
+        toast.error(t('failed_load_order'));
         navigate('/admin/orders');
       } finally {
         setIsLoading(false);
@@ -68,11 +70,11 @@ const OrderDetails = () => {
     try {
       const response = await axios.put(`/api/orders/${id}/deliver`);
       setOrder(response.data);
-      toast.success('Order marked as delivered');
+      toast.success(t('order_marked_delivered'));
       setShowDeliveredModal(false);
     } catch (error) {
       console.error('Error updating order:', error);
-      toast.error(error.response?.data?.message || 'Failed to mark order as delivered');
+      toast.error(error.response?.data?.message || t('failed_mark_delivered'));
     } finally {
       setMarkDeliveredLoading(false);
     }
@@ -82,11 +84,11 @@ const OrderDetails = () => {
     setDeleteLoading(true);
     try {
       await axios.delete(`/api/orders/${id}`);
-      toast.success('Order deleted successfully');
+      toast.success(t('order_deleted_success'));
       navigate('/admin/orders');
     } catch (error) {
       console.error('Error deleting order:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete order');
+      toast.error(error.response?.data?.message || t('failed_delete_order'));
     } finally {
       setDeleteLoading(false);
       setShowDeleteModal(false);
@@ -94,7 +96,7 @@ const OrderDetails = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Not available';
+    if (!dateString) return t('not_available');
     const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
@@ -136,12 +138,12 @@ const OrderDetails = () => {
   if (!order) {
     return (
       <div className="text-center py-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Order not found</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('order_not_found')}</h2>
         <button
           onClick={() => navigate('/admin/orders')}
           className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
         >
-          Back to Orders
+          {t('back_to_orders')}
         </button>
       </div>
     );
@@ -166,14 +168,14 @@ const OrderDetails = () => {
                   <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
                   <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
                 </svg>
-                Order Details
+                {t('order_details')}
               </h2>
             </div>
             <p className="text-gray-500 mt-1">
-              Order ID: <span className="font-medium text-gray-700">{order._id}</span>
+              {t('order_id')}: <span className="font-medium text-gray-700">{order._id}</span>
             </p>
             <p className="text-gray-500">
-              Placed on: <span className="font-medium text-gray-700">{formatDate(order.createdAt)}</span>
+              {t('placed_on')}: <span className="font-medium text-gray-700">{formatDate(order.createdAt)}</span>
             </p>
           </div>
 
@@ -186,7 +188,7 @@ const OrderDetails = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                Mark as Delivered
+                {t('mark_as_delivered')}
               </button>
             )}
             <button
@@ -196,63 +198,63 @@ const OrderDetails = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              Delete Order
+              {t('delete_order')}
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Order Status</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">{t('order_status')}</h3>
             <div className="flex items-center">
               {order.isDelivered ? (
                 <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                  Delivered on {formatDate(order.deliveredAt)}
+                  {t('delivered_on')} {formatDate(order.deliveredAt)}
                 </span>
               ) : order.isPaid ? (
                 <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                  Paid, Not Delivered
+                  {t('paid_not_delivered')}
                 </span>
               ) : (
                 <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                  Not Paid
+                  {t('not_paid')}
                 </span>
               )}
             </div>
           </div>
 
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Payment Status</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">{t('payment_status')}</h3>
             <div>
               {order.isPaid ? (
                 <div>
                   <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                    Paid
+                    {t('paid')}
                   </span>
-                  <p className="text-sm text-gray-700 mt-1">Date: {formatDate(order.paidAt)}</p>
+                  <p className="text-sm text-gray-700 mt-1">{t('date')}: {formatDate(order.paidAt)}</p>
                   {order.paymentResult && (
-                    <p className="text-sm text-gray-700">Method: {order.paymentMethod}</p>
+                    <p className="text-sm text-gray-700">{t('method')}: {order.paymentMethod}</p>
                   )}
                 </div>
               ) : (
                 <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                  Not Paid
+                  {t('not_paid')}
                 </span>
               )}
             </div>
           </div>
 
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Customer</h3>
-            <p className="text-sm font-medium text-gray-800">{order.user?.name || 'Unknown User'}</p>
-            <p className="text-sm text-gray-600">{order.user?.email || 'No email available'}</p>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">{t('customer')}</h3>
+            <p className="text-sm font-medium text-gray-800">{order.user?.name || t('unknown_user')}</p>
+            <p className="text-sm text-gray-600">{order.user?.email || t('no_email_available')}</p>
           </div>
 
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Order Total</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">{t('order_total')}</h3>
             <p className="text-lg font-bold text-gray-900">{formatCurrency(calculateOrderTotal().calculatedTotal)}</p>
             <p className="text-xs text-gray-500">
-              {order.orderItems?.length || 0} {(order.orderItems?.length || 0) === 1 ? 'item' : 'items'}
+              {order.orderItems?.length || 0} {(order.orderItems?.length || 0) === 1 ? t('item') : t('items')}
             </p>
           </div>
         </div>
@@ -261,22 +263,22 @@ const OrderDetails = () => {
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Order Items</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('order_items')}</h3>
             <div className="border rounded-lg overflow-hidden">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Product
+                      {t('product')}
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price
+                      {t('price')}
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Quantity
+                      {t('quantity')}
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total
+                      {t('total')}
                     </th>
                   </tr>
                 </thead>
@@ -321,7 +323,7 @@ const OrderDetails = () => {
 
           <div>
             <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('order_summary')}</h3>
               {(() => {
                 const { itemsPrice, shippingPrice, taxPrice, calculatedTotal } = calculateOrderTotal();
                 const displayTotal = calculatedTotal;
@@ -329,24 +331,24 @@ const OrderDetails = () => {
                 return (
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Items:</span>
+                      <span className="text-gray-600">{t('items')}:</span>
                       <span className="font-medium">{formatCurrency(itemsPrice)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Shipping:</span>
+                      <span className="text-gray-600">{t('shipping')}:</span>
                       <span className="font-medium">{formatCurrency(shippingPrice)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Tax:</span>
+                      <span className="text-gray-600">{t('tax')}:</span>
                       <span className="font-medium">{formatCurrency(taxPrice)}</span>
                     </div>
                     <div className="border-t border-gray-200 pt-3 flex justify-between">
-                      <span className="text-lg font-bold text-gray-900">Total:</span>
+                      <span className="text-lg font-bold text-gray-900">{t('total')}:</span>
                       <span className="text-lg font-bold text-gray-900">{formatCurrency(displayTotal)}</span>
                     </div>
                     {Math.abs(displayTotal - (order.totalPrice || 0)) > 0.01 && (
                       <div className="text-xs text-orange-600 italic text-right">
-                        *Calculated total differs from order total
+                        {t('calculated_total_differs')}
                       </div>
                     )}
                   </div>
@@ -356,33 +358,33 @@ const OrderDetails = () => {
 
             <div className="mt-6 space-y-6">
               <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Shipping Information</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('shipping_address')}</h3>
                 <div className="space-y-2">
                   <p className="text-gray-700">
-                    <span className="font-medium">Name:</span> {order.user?.name || 'N/A'}
+                    <span className="font-medium">{t('name')}:</span> {order.user?.name || 'N/A'}
                   </p>
                   <p className="text-gray-700">
-                    <span className="font-medium">Address:</span> {order.shippingAddress?.address || 'N/A'}
+                    <span className="font-medium">{t('address')}:</span> {order.shippingAddress?.address || 'N/A'}
                   </p>
                   <p className="text-gray-700">
-                    <span className="font-medium">City:</span> {order.shippingAddress?.city || 'N/A'}
+                    <span className="font-medium">{t('city')}:</span> {order.shippingAddress?.city || 'N/A'}
                   </p>
                   <p className="text-gray-700">
-                    <span className="font-medium">Postal Code:</span> {order.shippingAddress?.postalCode || 'N/A'}
+                    <span className="font-medium">{t('postal_code')}:</span> {order.shippingAddress?.postalCode || 'N/A'}
                   </p>
                   <p className="text-gray-700">
-                    <span className="font-medium">Country:</span> {order.shippingAddress?.country || 'N/A'}
+                    <span className="font-medium">{t('country')}:</span> {order.shippingAddress?.country || 'N/A'}
                   </p>
                   {order.shippingAddress?.phone && (
                     <p className="text-gray-700">
-                      <span className="font-medium">Phone:</span> {order.shippingAddress.phone}
+                      <span className="font-medium">{t('phone')}:</span> {order.shippingAddress.phone}
                     </p>
                   )}
                 </div>
               </div>
 
               <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Method</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('payment_method')}</h3>
                 <p className="text-gray-700">
                   {order.paymentMethod || 'N/A'}
                 </p>
@@ -403,9 +405,9 @@ const OrderDetails = () => {
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-center text-gray-900 mb-4">Confirm Delivery Status</h3>
+              <h3 className="text-lg font-medium text-center text-gray-900 mb-4">{t('confirm_delivery_status')}</h3>
               <p className="text-gray-600 mb-6 text-center">
-                Are you sure you want to mark this order as delivered? This action cannot be undone.
+                {t('confirm_delivery_desc')}
               </p>
               <div className="flex justify-center space-x-3">
                 <button
@@ -413,7 +415,7 @@ const OrderDetails = () => {
                   className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors"
                   onClick={() => setShowDeliveredModal(false)}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   type="button"
@@ -429,9 +431,9 @@ const OrderDetails = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Processing...
+                      {t('processing')}
                     </div>
-                  ) : 'Confirm'}
+                  ) : t('confirm')}
                 </button>
               </div>
             </div>
@@ -450,9 +452,9 @@ const OrderDetails = () => {
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-center text-gray-900 mb-4">Confirm Delete</h3>
+              <h3 className="text-lg font-medium text-center text-gray-900 mb-4">{t('confirm_delete')}</h3>
               <p className="text-gray-600 mb-6 text-center">
-                Are you sure you want to delete this order? This action cannot be undone.
+                {t('confirm_delete_order_desc')}
               </p>
               <div className="flex justify-center space-x-3">
                 <button
@@ -460,7 +462,7 @@ const OrderDetails = () => {
                   className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors"
                   onClick={() => setShowDeleteModal(false)}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   type="button"
@@ -476,9 +478,9 @@ const OrderDetails = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Deleting...
+                      {t('deleting')}
                     </div>
-                  ) : 'Delete Order'}
+                  ) : t('delete_order_confirm')}
                 </button>
               </div>
             </div>
