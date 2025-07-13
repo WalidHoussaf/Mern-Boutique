@@ -1,9 +1,11 @@
 import { useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import { ShopContext } from '../context/ShopContext';
+import useTranslation from '../utils/useTranslation';
 
-const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rating, category, showRemoveButton = false }) => {
+const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rating, category, showRemoveButton = false, product }) => {
   const { currency, navigate, addToCart, addToWishlist, isInWishlist, convertPrice } = useContext(ShopContext);
+  const { t, getProductTranslation } = useTranslation();
   const [imgError, setImgError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -136,7 +138,7 @@ const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rat
         {isNew && (
           <span className="bg-green-500 text-white text-xs font-medium py-1 px-2.5 rounded-full shadow-sm flex items-center">
             <span className="w-1.5 h-1.5 bg-white rounded-full mr-1.5 animate-pulse"></span>
-            New Arrival
+            {t('newArrival')}
           </span>
         )}
       </div>
@@ -160,7 +162,7 @@ const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rat
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-            Remove
+            {t('remove')}
           </button>
         ) : (
           <button 
@@ -207,7 +209,7 @@ const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rat
             minHeight: '100%'
           }}
           src={!imgError ? imageUrl : '/images/p_img1.png'}
-          alt={name || 'Product Image'}
+          alt={product ? getProductTranslation(product, 'name') : (name || t('productImage'))}
           onError={handleImageError}
           onLoad={handleImageLoad}
           loading="eager"
@@ -226,7 +228,7 @@ const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rat
               minHeight: '100%'
             }}
             src={secondaryImage}
-            alt={`${name} - alternate view`}
+            alt={`${product ? getProductTranslation(product, 'name') : name} - ${t('alternateView')}`}
             onError={() => {}}
             loading="eager"
             decoding="async"
@@ -246,7 +248,7 @@ const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rat
               }}
               className="w-full text-white text-sm font-medium bg-primary hover:bg-primary/90 py-3 px-4 rounded-lg transition-colors shadow-lg transform hover:-translate-y-1 hover:shadow-xl duration-300"
             >
-              Quick View
+              {t('quickView')}
             </button>
           </div>
         </div>
@@ -258,7 +260,7 @@ const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rat
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center space-x-1">
             <p className="text-xs font-medium text-primary/80 bg-primary/5 px-2.5 py-1 rounded-full">
-              {category}
+              {category ? t(`category_${category.toLowerCase()}`) || category : ''}
             </p>
           </div>
           
@@ -294,7 +296,7 @@ const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rat
         <h3 
           className="font-medium text-gray-800 group-hover:text-primary transition-colors duration-300 mb-1 line-clamp-2 h-12 hover:underline cursor-pointer"
         >
-          {name}
+          {product ? getProductTranslation(product, 'name') : name}
         </h3>
         
         {/* Price Display Section */}
@@ -333,7 +335,8 @@ ProductItem.propTypes = {
   ]),
   category: PropTypes.string,
   subCategory: PropTypes.string,
-  showRemoveButton: PropTypes.bool
+  showRemoveButton: PropTypes.bool,
+  product: PropTypes.object
 };
 
 export default ProductItem;

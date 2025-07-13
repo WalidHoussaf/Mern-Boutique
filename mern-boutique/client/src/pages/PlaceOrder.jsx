@@ -174,11 +174,6 @@ const PlaceOrder = () => {
   // Remove cardInfo state since we're not using it anymore
   
   const handlePlaceOrder = async () => {
-    // Check if we have products
-    if (!cartProductsWithInfo || cartProductsWithInfo.length === 0) {
-      navigate('/cart');
-      return;
-    }
 
     // Validate all fields
     const errors = {};
@@ -247,6 +242,7 @@ const PlaceOrder = () => {
       // Submit order to backend
       const createdOrder = await createOrder(orderData);
       clearCart();
+      toast.success(t('order_placed_successfully'));
       navigate(`/orders`);
     } catch (error) {
       console.error('Error placing order:', error);

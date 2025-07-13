@@ -86,8 +86,10 @@ const createProduct = asyncHandler(async (req, res) => {
     
     const {
       name,
+      nameFr,
       price,
       description,
+      descriptionFr,
       image,
       images,
       brand,
@@ -145,6 +147,7 @@ const createProduct = asyncHandler(async (req, res) => {
     // If request body contains product data, use it; otherwise use default values
     const product = new Product({
       name: name || 'Sample name',
+      nameFr: nameFr || '',
       price: price !== undefined ? price : 0,
       user: req.user._id,
       image: productImage,
@@ -153,6 +156,7 @@ const createProduct = asyncHandler(async (req, res) => {
       countInStock: countInStock !== undefined ? countInStock : 0,
       numReviews: req.body.numReviews !== undefined ? parseInt(req.body.numReviews) : 0,
       description: description || 'Sample description',
+      descriptionFr: descriptionFr || '',
       featured: featured !== undefined ? featured : false,
       isNew: isNew !== undefined ? isNew : false,
       bestseller: bestseller !== undefined ? bestseller : false,
@@ -189,8 +193,10 @@ const updateProduct = asyncHandler(async (req, res) => {
     
     const {
       name,
+      nameFr,
       price,
       description,
+      descriptionFr,
       image,
       images,
       brand,
@@ -254,8 +260,10 @@ const updateProduct = asyncHandler(async (req, res) => {
 
     // Update product fields
     product.name = name || product.name;
+    product.nameFr = nameFr !== undefined ? nameFr : product.nameFr;
     product.price = price !== undefined ? price : product.price;
     product.description = description || product.description;
+    product.descriptionFr = descriptionFr !== undefined ? descriptionFr : product.descriptionFr;
     product.image = productImage;
     product.brand = brand || product.brand;
     product.category = category || product.category;

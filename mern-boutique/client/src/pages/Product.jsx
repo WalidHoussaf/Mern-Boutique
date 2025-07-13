@@ -10,7 +10,7 @@ import axios from 'axios';
 const Product = () => {
   const { productId } = useParams();
   const { allProducts, loading, addToCart, addToWishlist, isInWishlist, currency, convertPrice, navigate, refreshProducts } = useContext(ShopContext);
-  const { t } = useTranslation();
+  const { t, getProductTranslation } = useTranslation();
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
@@ -97,7 +97,7 @@ const Product = () => {
         }
       } catch (error) {
         console.error('Error fetching product details:', error);
-        toast.error('Failed to load product details');
+        toast.error(t('failed_load_product'));
       } finally {
         setLoadingProduct(false);
       }
@@ -145,7 +145,7 @@ const Product = () => {
 
   const handleAddToCart = () => {
     if (!selectedSize) {
-      toast.error('Please select a size', {
+      toast.error(t('please_select_size'), {
         position: 'bottom-right',
         autoClose: 3000,
         hideProgressBar: false,
@@ -173,7 +173,7 @@ const Product = () => {
       
       if (success) {
         setAddedToCart(true);
-        toast.success(`${product.name} (Size: ${selectedSize}) added to your cart!`, {
+        toast.success(t('product_added_cart', { productName: product.name, size: selectedSize }), {
           position: "bottom-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -410,7 +410,7 @@ const Product = () => {
           <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm border border-gray-100">
             {/* Product title and price */}
             <div className="mb-6">
-              <h1 className="text-2xl md:text-3xl font-prata text-secondary mb-4">{product?.name}</h1>
+              <h1 className="text-2xl md:text-3xl font-prata text-secondary mb-4">{product ? getProductTranslation(product, 'name') : ''}</h1>
               <div className="flex items-baseline gap-3">
                 <span className="text-2xl font-medium text-primary">{formatPrice(product?.price)}</span>
                 {product?.originalPrice && (
@@ -454,8 +454,8 @@ const Product = () => {
             </div>
             
             {/* Product description */}
-            <div className="text-gray-600 mb-8">
-              <p>{product?.description}</p>
+            <div className="text-gray-600 mb-8 text-justify">
+              <p>{product ? getProductTranslation(product, 'description') : ''}</p>
             </div>
             
             {/* Additional Product Information */}
@@ -937,6 +937,7 @@ const Product = () => {
                 isNew={similarProduct.isNew}
                 category={similarProduct.category}
                 subCategory={similarProduct.subCategory}
+                product={similarProduct}
               />
             ))}
           </div>

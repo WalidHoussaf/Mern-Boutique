@@ -2,6 +2,7 @@ import { createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { getTranslation } from "../utils/translations";
 
 export const ShopContext = createContext(null);
 
@@ -141,7 +142,7 @@ export const ShopContextProvider = (props) => {
       }
     } catch (error) {
       console.error('Error refreshing products:', error);
-      toast.error('Failed to refresh product data');
+      toast.error(getTranslation('failed_refresh_products', language));
     } finally {
       setLoading(false);
     }
@@ -171,7 +172,7 @@ export const ShopContextProvider = (props) => {
         console.error('Error fetching wishlist:', error);
         // If unauthorized, the token might be expired - don't show any error
         if (error.response && error.response.status !== 401) {
-          toast.error('Failed to load wishlist');
+          toast.error(getTranslation('failed_load_wishlist', language));
         }
       } finally {
         setWishlistLoading(false);
@@ -244,7 +245,7 @@ export const ShopContextProvider = (props) => {
       const newCart = { ...prev };
       delete newCart[itemKey];
       
-      toast.info(`Item removed from cart`);
+      toast.info(getTranslation('item_removed_cart', language));
       return newCart;
     });
   };
@@ -287,7 +288,7 @@ export const ShopContextProvider = (props) => {
   const addToWishlist = async (productId) => {
     // Check if user is logged in
     if (!user) {
-      toast.info("Please log in to add items to your wishlist");
+      toast.info(getTranslation('please_login_wishlist', language));
       navigate('/login?redirect=/product/' + productId);
       return;
     }
@@ -315,15 +316,15 @@ export const ShopContextProvider = (props) => {
           };
         });
         setWishlistItems(wishlistObj);
-        toast.success("Added to wishlist");
+        toast.success(getTranslation('added_to_wishlist', language));
       }
     } catch (error) {
       console.error('Error adding to wishlist:', error);
-      let errorMessage = 'Failed to add item to wishlist';
+      let errorMessage = getTranslation('failed_add_wishlist', language);
       
       if (error.response) {
         if (error.response.status === 401) {
-          errorMessage = 'Please log in to add items to your wishlist';
+          errorMessage = getTranslation('please_login_wishlist', language);
           navigate('/login?redirect=/product/' + productId);
         } else if (error.response.data && error.response.data.message) {
           errorMessage = error.response.data.message;
@@ -339,7 +340,7 @@ export const ShopContextProvider = (props) => {
   const removeFromWishlist = async (productId) => {
     // Check if user is logged in
     if (!user) {
-      toast.info("Please log in to manage your wishlist");
+      toast.info(getTranslation('please_login_manage_wishlist', language));
       return;
     }
     
@@ -354,10 +355,10 @@ export const ShopContextProvider = (props) => {
         return newWishlist;
       });
       
-      toast.info("Removed from wishlist");
+      toast.info(getTranslation('removed_from_wishlist', language));
     } catch (error) {
       console.error('Error removing from wishlist:', error);
-      let errorMessage = 'Failed to remove item from wishlist';
+      let errorMessage = getTranslation('failed_remove_wishlist', language);
       
       if (error.response && error.response.data && error.response.data.message) {
         errorMessage = error.response.data.message;
@@ -372,7 +373,7 @@ export const ShopContextProvider = (props) => {
   const clearWishlist = async () => {
     // Check if user is logged in
     if (!user) {
-      toast.info("Please log in to manage your wishlist");
+      toast.info(getTranslation('please_login_manage_wishlist', language));
       return;
     }
     
@@ -382,10 +383,10 @@ export const ShopContextProvider = (props) => {
       
       // Clear local state
       setWishlistItems({});
-      toast.info("Wishlist cleared");
+      toast.info(getTranslation('wishlist_cleared', language));
     } catch (error) {
       console.error('Error clearing wishlist:', error);
-      toast.error('Failed to clear wishlist');
+      toast.error(getTranslation('failed_clear_wishlist', language));
     } finally {
       setWishlistLoading(false);
     }
@@ -411,11 +412,11 @@ export const ShopContextProvider = (props) => {
       // Set token in axios defaults
       axios.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
       
-      toast.success(`Welcome back, ${userData.name}!`);
+      toast.success(getTranslation('welcome_back', language).replace('{name}', userData.name));
       navigate('/');
     } else {
       console.error('Login failed: No token received in userData:', userData);
-      toast.error('Authentication failed: No token received');
+      toast.error(getTranslation('auth_failed_no_token', language));
     }
   };
 
@@ -435,7 +436,7 @@ export const ShopContextProvider = (props) => {
       // Clear wishlist on logout
       setWishlistItems({});
       
-      toast.info('You have been logged out');
+      toast.info(getTranslation('logged_out', language));
       navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
@@ -443,7 +444,7 @@ export const ShopContextProvider = (props) => {
       setUser(null);
       localStorage.removeItem('user');
       setWishlistItems({});
-      toast.info('You have been logged out');
+      toast.info(getTranslation('logged_out', language));
       navigate('/');
     }
   };
@@ -494,7 +495,7 @@ export const ShopContextProvider = (props) => {
         config.headers.Authorization = `Bearer ${user.token}`;
       } else {
         console.error('No authentication token available');
-        toast.error('You must be logged in to place an order');
+        toast.error(getTranslation('please_login_purchase', language));
         navigate('/login?redirect=place-order');
         throw new Error('Authentication required');
       }

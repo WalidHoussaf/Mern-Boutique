@@ -83,7 +83,7 @@ const Cart = () => {
 
   const handleCheckout = () => {
     if (!user) {
-      toast.info('Please log in to complete your purchase');
+      toast.info(t('please_login_purchase'));
       navigate('/login?redirect=place-order');
     } else {
       navigate('/place-order');

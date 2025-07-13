@@ -865,6 +865,7 @@ const Collection = () => {
                         isNew={product.isNew || false}
                         category={product.category || 'Uncategorized'}
                         subCategory={product.subCategory || ''}
+                        product={product}
                       />
                     </div>
                   ))

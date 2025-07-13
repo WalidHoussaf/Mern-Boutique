@@ -250,6 +250,7 @@ const Wishlist = () => {
                     subCategory={product.subCategory}
                     isNew={product.isNew}
                     showRemoveButton={true}
+                    product={product}
                   />
                 </motion.div>
               );

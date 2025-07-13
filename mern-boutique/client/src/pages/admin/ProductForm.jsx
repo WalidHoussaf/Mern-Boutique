@@ -17,10 +17,12 @@ const ProductForm = () => {
   
   const [product, setProduct] = useState({
     name: '',
+    nameFr: '',
     brand: '',
     category: '',
     subCategory: '',
     description: '',
+    descriptionFr: '',
     price: '',
     originalPrice: '',
     countInStock: '',
@@ -304,7 +306,7 @@ const ProductForm = () => {
             <div className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('product_name')} *
+                  {t('product_name')} (English) *
                 </label>
                 <input
                   type="text"
@@ -315,6 +317,21 @@ const ProductForm = () => {
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
                   placeholder={t('enter_product_name')}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="nameFr" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('product_name')} (Français)
+                </label>
+                <input
+                  type="text"
+                  id="nameFr"
+                  name="nameFr"
+                  value={product.nameFr}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
+                  placeholder={t('enter_product_name_fr')}
                 />
               </div>
               
@@ -417,7 +434,7 @@ const ProductForm = () => {
               
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('description')} *
+                  {t('description')} (English) *
                 </label>
                 <textarea
                   id="description"
@@ -428,6 +445,21 @@ const ProductForm = () => {
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
                   placeholder={t('enter_product_description')}
+                ></textarea>
+              </div>
+              
+              <div>
+                <label htmlFor="descriptionFr" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('description')} (Français)
+                </label>
+                <textarea
+                  id="descriptionFr"
+                  name="descriptionFr"
+                  value={product.descriptionFr}
+                  onChange={handleChange}
+                  rows={4}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
+                  placeholder={t('enter_product_description_fr')}
                 ></textarea>
               </div>
               

@@ -98,6 +98,7 @@ const FeaturedProducts = () => {
                       rating={product.rating}
                       isNew={product.isNew}
                       category={product.category}
+                      product={product}
                     />
                   </div>
                 </div>

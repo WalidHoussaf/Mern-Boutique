@@ -93,7 +93,7 @@ const Settings = () => {
         console.error('Error fetching settings:', error);
         // If settings don't exist yet, we'll use the defaults
         if (error.response && error.response.status !== 404) {
-          toast.error('Failed to load your settings');
+          toast.error(t('failed_load_settings'));
         }
       } finally {
         setLoading(false);
@@ -113,7 +113,7 @@ const Settings = () => {
     // Call the context function to update currency globally
     setCurrency(currencySymbol);
     
-    toast.success(`Currency changed to ${currencySymbol}`);
+    toast.success(t('currency_changed', { currency: currencySymbol }));
   };
 
   const handleLanguageChange = (languageValue) => {
@@ -131,7 +131,7 @@ const Settings = () => {
       fr: 'Français'
     };
     
-    toast.success(`Language changed to ${languageNames[languageValue] || languageValue}`);
+    toast.success(t('language_changed', { language: languageNames[languageValue] || languageValue }));
   };
 
   const handleChange = (section, field, value) => {
@@ -145,7 +145,7 @@ const Settings = () => {
       }));
       
       // Show toast notification for changes
-      toast.info(`${field} setting updated`);
+      toast.info(t('setting_updated', { field }));
     } else {
       // Use dedicated handlers for special settings
       if (field === 'currency') {
@@ -168,10 +168,10 @@ const Settings = () => {
     setSaving(true);
     try {
       await axios.put('/api/users/settings', settings);
-      toast.success('Settings saved successfully');
+      toast.success(t('settings_saved'));
     } catch (error) {
       console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
+      toast.error(t('failed_save_settings'));
     } finally {
       setSaving(false);
     }
@@ -390,7 +390,7 @@ const Settings = () => {
                       // Clear search history and other browsing data
                       localStorage.removeItem('searchHistory');
                       // Clear other browsing data as needed
-                      toast.success('Browsing data cleared successfully');
+                      toast.success(t('browsing_data_cleared'));
                     }}
                   >
                     {t('clearBrowsingData')}
