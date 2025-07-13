@@ -104,6 +104,10 @@ const productSchema = mongoose.Schema(
       type: [String],
       required: false,
     },
+    featuresFr: {
+      type: [String],
+      required: false,
+    },
     date: {
       type: Number,
       required: false,

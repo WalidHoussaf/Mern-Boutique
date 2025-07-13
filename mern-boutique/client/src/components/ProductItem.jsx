@@ -4,7 +4,7 @@ import { ShopContext } from '../context/ShopContext';
 import useTranslation from '../utils/useTranslation';
 
 const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rating, category, showRemoveButton = false, product }) => {
-  const { currency, navigate, addToCart, addToWishlist, isInWishlist, convertPrice } = useContext(ShopContext);
+  const { currency, navigate, addToWishlist, isInWishlist, convertPrice } = useContext(ShopContext);
   const { t, getProductTranslation } = useTranslation();
   const [imgError, setImgError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -63,10 +63,7 @@ const ProductItem = ({ id, image, name, price, originalPrice, isNew = false, rat
     navigate(`/product/${id}`);
   };
 
-  const handleAddToCart = (e) => {
-    e.stopPropagation();
-    addToCart(id, 1);
-  };
+
   
   const handleWishlistClick = (e) => {
     e.stopPropagation();

@@ -30,6 +30,7 @@ const ProductForm = () => {
     rating: 0,
     numReviews: 0,
     features: [],
+    featuresFr: [],
     images: [],
     isNew: false,
     featured: false,
@@ -68,6 +69,7 @@ const ProductForm = () => {
             numReviews: response.data.numReviews || 0,
             subCategory: response.data.subCategory || '',
             features: response.data.features || [],
+            featuresFr: response.data.featuresFr || [],
             images: Array.isArray(response.data.image) ? response.data.image : response.data.image ? [response.data.image] : []
           };
           
@@ -127,29 +129,39 @@ const ProductForm = () => {
     });
   };
 
-  const handleFeatureChange = (index, value) => {
-    const updatedFeatures = [...product.features];
-    updatedFeatures[index] = value;
-    
-    setProduct({
-      ...product,
-      features: updatedFeatures
-    });
+  const handleFeatureChange = (index, value, lang = 'en') => {
+    if (lang === 'fr') {
+      const updatedFeaturesFr = [...product.featuresFr];
+      updatedFeaturesFr[index] = value;
+      setProduct({
+        ...product,
+        featuresFr: updatedFeaturesFr
+      });
+    } else {
+      const updatedFeatures = [...product.features];
+      updatedFeatures[index] = value;
+      setProduct({
+        ...product,
+        features: updatedFeatures
+      });
+    }
   };
 
   const addFeature = () => {
     setProduct({
       ...product,
-      features: [...product.features, '']
+      features: [...product.features, ''],
+      featuresFr: [...product.featuresFr, '']
     });
   };
 
   const removeFeature = (index) => {
     const updatedFeatures = product.features.filter((_, i) => i !== index);
-    
+    const updatedFeaturesFr = product.featuresFr.filter((_, i) => i !== index);
     setProduct({
       ...product,
-      features: updatedFeatures
+      features: updatedFeatures,
+      featuresFr: updatedFeaturesFr
     });
   };
 
@@ -229,7 +241,9 @@ const ProductForm = () => {
       // Include boolean flags
       isNew: Boolean(product.isNew),
       featured: Boolean(product.featured),
-      bestseller: Boolean(product.bestseller)
+      bestseller: Boolean(product.bestseller),
+      features: product.features,
+      featuresFr: product.featuresFr
     };
     
     setIsSubmitting(true);
@@ -306,7 +320,7 @@ const ProductForm = () => {
             <div className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('product_name')} (English) *
+                  {t('product_name_english')} *
                 </label>
                 <input
                   type="text"
@@ -322,7 +336,7 @@ const ProductForm = () => {
               
               <div>
                 <label htmlFor="nameFr" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('product_name')} (Français)
+                  {t('product_name_french')}
                 </label>
                 <input
                   type="text"
@@ -434,7 +448,7 @@ const ProductForm = () => {
               
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('description')} (English) *
+                  {t('description_english')} *
                 </label>
                 <textarea
                   id="description"
@@ -450,7 +464,7 @@ const ProductForm = () => {
               
               <div>
                 <label htmlFor="descriptionFr" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('description')} (Français)
+                  {t('description_french')}
                 </label>
                 <textarea
                   id="descriptionFr"
@@ -590,28 +604,35 @@ const ProductForm = () => {
                   </p>
                   <div className="space-y-3">
                 {product.features.map((feature, index) => (
-                      <div key={index} className="flex items-center group bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition-all">
+                      <div key={index} className="flex flex-col md:flex-row items-center group bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition-all gap-2 md:gap-4">
                         <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-full mr-3">
                           {index + 1}
                         </span>
-                    <input
-                      type="text"
-                      value={feature}
-                      onChange={(e) => handleFeatureChange(index, e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
-                      placeholder={t('enter_product_feature')}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeFeature(index)}
+                        <input
+                          type="text"
+                          value={feature}
+                          onChange={(e) => handleFeatureChange(index, e.target.value, 'en')}
+                          className="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
+                          placeholder={t('enter_product_feature_english')}
+                        />
+                        <input
+                          type="text"
+                          value={product.featuresFr[index] || ''}
+                          onChange={(e) => handleFeatureChange(index, e.target.value, 'fr')}
+                          className="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
+                          placeholder={t('enter_product_feature_fr')}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFeature(index)}
                           className="ml-2 p-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                           title={t('remove_feature')}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                 ))}
                   </div>
                 {product.features.length === 0 && (

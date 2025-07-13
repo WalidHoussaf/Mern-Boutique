@@ -101,6 +101,7 @@ const createProduct = asyncHandler(async (req, res) => {
       sizes,
       colors,
       features,
+      featuresFr,
       originalPrice,
       subCategory,
       date
@@ -163,6 +164,7 @@ const createProduct = asyncHandler(async (req, res) => {
       sizes: sizes || [],
       colors: colors || [],
       features: features || [],
+      featuresFr: featuresFr || [],
       originalPrice: originalPrice !== undefined ? originalPrice : null,
       subCategory: subCategory || '',
       date: date !== undefined ? date : null,
@@ -208,6 +210,7 @@ const updateProduct = asyncHandler(async (req, res) => {
       sizes,
       colors,
       features,
+      featuresFr,
       originalPrice,
       subCategory,
       date
@@ -274,6 +277,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     product.sizes = sizes || product.sizes;
     product.colors = colors || product.colors;
     product.features = features || product.features;
+    product.featuresFr = featuresFr || product.featuresFr;
     product.originalPrice = originalPrice !== undefined ? originalPrice : product.originalPrice;
     product.subCategory = subCategory || product.subCategory;
     product.date = date !== undefined ? date : product.date;

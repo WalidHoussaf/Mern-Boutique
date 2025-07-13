@@ -10,7 +10,7 @@ import axios from 'axios';
 const Product = () => {
   const { productId } = useParams();
   const { allProducts, loading, addToCart, addToWishlist, isInWishlist, currency, convertPrice, navigate, refreshProducts } = useContext(ShopContext);
-  const { t, getProductTranslation } = useTranslation();
+  const { t, language, getProductTranslation } = useTranslation();
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
@@ -168,6 +168,21 @@ const Product = () => {
       return;
     }
     
+    // Validate that the selected size is actually available for this product
+    if (product?.sizes && !product.sizes.includes(selectedSize)) {
+      toast.error(t('size_not_available'), {
+        position: 'bottom-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+      return;
+    }
+    
     if (product) {
       const success = addToCart(product._id, quantity, selectedSize);
       
@@ -231,6 +246,18 @@ const Product = () => {
 
   const toggleZoom = () => {
     setIsZoomed(!isZoomed);
+  };
+
+  // Helper to get translated features
+  const getTranslatedFeatures = () => {
+    if (!product) return [];
+    if (language === 'fr' && Array.isArray(product.featuresFr) && product.featuresFr.length > 0) {
+      // If French features exist and at least one is non-empty, use them
+      const hasNonEmpty = product.featuresFr.some(f => f && f.trim() !== '');
+      if (hasNonEmpty) return product.featuresFr;
+    }
+    // Fallback to English
+    return product.features || [];
   };
 
   if (loading || loadingProduct) {
@@ -525,6 +552,23 @@ const Product = () => {
                 </div>
               )}
 
+              {/* Product Features */}
+              {getTranslatedFeatures().length > 0 && (
+                <div className="mb-4">
+                  <span className="text-sm font-medium text-gray-700 w-24">{t('product_features')}:</span>
+                  <div className="mt-2 space-y-2">
+                    {getTranslatedFeatures().map((feature, index) => (
+                      <div key={index} className="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-sm text-gray-600">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Additional Details Grid */}
               <div className="mt-6 pt-6 border-t border-gray-100">
                 {/* Brand */}
@@ -575,19 +619,25 @@ const Product = () => {
                 {t('select_size')}
               </label>
               <div className="grid grid-cols-5 gap-2">
-                {['S', 'M', 'L', 'XL', 'XXL'].map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`py-2 border rounded-md text-center ${
-                      selectedSize === size
-                        ? 'bg-primary text-white border-primary'
-                        : 'bg-white text-gray-600 border-gray-300 hover:border-primary'
-                    } transition-colors`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {product?.sizes && product.sizes.length > 0 ? (
+                  product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`py-2 border rounded-md text-center ${
+                        selectedSize === size
+                          ? 'bg-primary text-white border-primary'
+                          : 'bg-white text-gray-600 border-gray-300 hover:border-primary'
+                      } transition-colors`}
+                    >
+                      {size}
+                    </button>
+                  ))
+                ) : (
+                  <div className="col-span-5 text-center py-4 text-gray-500">
+                    {t('no_sizes_available')}
+                  </div>
+                )}
               </div>
             </div>
             
@@ -649,6 +699,17 @@ const Product = () => {
             
             {/* Product Details Accordion */}
             <div className="mt-8 border-t pt-8">
+              {/* Features indicator */}
+              {getTranslatedFeatures().length > 0 && (
+                <div className="mb-4 flex items-center">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    {getTranslatedFeatures().length} {getTranslatedFeatures().length === 1 ? t('feature') : t('features')}
+                  </span>
+                </div>
+              )}
               {/* Shipping Info */}
               <div className="bg-white rounded-xl p-6 border border-gray-100">
                 <button
@@ -841,6 +902,58 @@ const Product = () => {
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Product Features */}
+              {getTranslatedFeatures().length > 0 && (
+                <div className="bg-white rounded-xl p-6 border border-gray-100">
+                  <button
+                    onClick={() => toggleAccordion('features')}
+                    className="flex w-full justify-between items-center text-left"
+                  >
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                      </svg>
+                      <span className="font-medium text-gray-900">{t('product_features')}</span>
+                    </div>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className={`h-5 w-5 text-gray-500 transition-transform ${openAccordion === 'features' ? 'transform rotate-180' : ''}`}
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <AnimatePresence>
+                    {openAccordion === 'features' && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-4 space-y-3">
+                          {getTranslatedFeatures().map((feature, index) => (
+                            <div key={index} className="flex items-start p-3 bg-gray-50 rounded-lg">
+                              <div className="flex-shrink-0 mr-3">
+                                <span className="flex items-center justify-center w-6 h-6 bg-primary text-white text-xs font-medium rounded-full">
+                                  {index + 1}
+                                </span>
+                              </div>
+                              <div className="flex-grow">
+                                <span className="text-sm text-gray-700">{feature}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
 
               {/* Returns & Exchanges */}
               <div className="bg-white rounded-xl p-6 border border-gray-100">

@@ -311,6 +311,8 @@ const translations = {
 
     // Product Page
     select_size: 'Size',
+    no_sizes_available: 'No sizes available',
+    size_not_available: 'Selected size is not available for this product',
     quantity: 'Quantity',
     add_to_cart: 'Add to Cart',
     added_to_cart: 'Added to Cart',
@@ -856,6 +858,8 @@ const translations = {
     number_of_reviews: 'Number of Reviews',
     available_sizes: 'Available Sizes',
     product_features: 'Product Features',
+    feature: 'feature',
+    features: 'features',
     features_description: 'Add distinct features that make your product stand out. Good features highlight unique selling points.',
     enter_product_feature: 'Enter product feature',
     remove_feature: 'Remove feature',
@@ -935,6 +939,8 @@ const translations = {
     please_login_purchase: 'Please log in to complete your purchase',
     failed_refresh_products: 'Failed to refresh product data',
     failed_load_wishlist: 'Failed to load wishlist',
+    enter_product_feature_english: 'Enter product feature (English)',
+    enter_product_feature_fr: 'Enter product feature (French)',
   },
   fr: {
     // Navigation & Common
@@ -1247,6 +1253,8 @@ const translations = {
 
     // Product Page
     select_size: 'Taille',
+    no_sizes_available: 'Aucune taille disponible',
+    size_not_available: 'La taille sélectionnée n\'est pas disponible pour ce produit',
     quantity: 'Quantité',
     add_to_cart: 'Ajouter au Panier',
     added_to_cart: 'Ajouté au Panier',
@@ -1792,6 +1800,8 @@ const translations = {
     number_of_reviews: 'Nombre d\'Avis',
     available_sizes: 'Tailles Disponibles',
     product_features: 'Caractéristiques du Produit',
+    feature: 'caractéristique',
+    features: 'caractéristiques',
     features_description: 'Ajoutez des caractéristiques distinctives qui font ressortir votre produit. Les bonnes caractéristiques mettent en valeur les points de vente uniques.',
     enter_product_feature: 'Entrez une caractéristique du produit',
     remove_feature: 'Supprimer la caractéristique',
@@ -1871,6 +1881,8 @@ const translations = {
     please_login_purchase: 'Veuillez vous connecter pour finaliser votre achat',
     failed_refresh_products: 'Échec de l\'actualisation des données produit',
     failed_load_wishlist: 'Échec du chargement de la liste de souhaits',
+    enter_product_feature_english: 'Entrez une caractéristique du produit (Anglais)',
+    enter_product_feature_fr: 'Entrez une caractéristique du produit (Français)',
   }
 };
 
