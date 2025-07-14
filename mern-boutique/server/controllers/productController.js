@@ -115,7 +115,6 @@ const createProduct = asyncHandler(async (req, res) => {
         // If they're base64 strings from the client's FileReader preview
         if (typeof image[0] === 'string' && image[0].startsWith('data:image')) {
           console.log('Base64 images detected, using placeholder instead');
-          // Use placeholder for now since we don't have image upload API yet
           productImage = ['https://via.placeholder.com/600x600'];
         } else {
           productImage = image;

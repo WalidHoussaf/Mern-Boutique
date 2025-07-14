@@ -188,7 +188,7 @@ const translations = {
     wishlist: 'Wishlist',
     my_account: 'My Account',
     contact: 'Contact',
-    address: '52 Zerktouni Boulevard , Casablanca 20100, Morocco',
+    address: 'Boulevard Mohammed Zerktouni N°52 Casablanca, Morocco',
     phone: '+1 (555) 123-4567',
     email: 'voguevault@boutique.com',
     copyright: 'Vogue Vault Boutique. All rights reserved.',
@@ -941,6 +941,9 @@ const translations = {
     failed_load_wishlist: 'Failed to load wishlist',
     enter_product_feature_english: 'Enter product feature (English)',
     enter_product_feature_fr: 'Enter product feature (French)',
+    address_label: 'Address',
+    address: 'Boulevard Mohammed Zerktouni N°52 Casablanca, Morocco',
+    machine_wash_gentle_cycle: 'Machine wash up to 40ºC/104ºF gentle cycle',
   },
   fr: {
     // Navigation & Common
@@ -1130,7 +1133,7 @@ const translations = {
     wishlist: 'Liste de souhaits',
     my_account: 'Mon compte',
     contact: 'Contact',
-    address: '52 Boulevard Zerktouni, Casablanca 20100, Maroc',
+    address: 'Boulevard Mohammed Zerktouni N°52 Casablanca, Maroc',
     phone: '+1 (555) 123-4567',
     email: 'voguevault@boutique.com',
     copyright: 'Vogue Vault Boutique. Tous droits réservés.',
@@ -1577,7 +1580,7 @@ const translations = {
     paid: 'Payé',
     unpaid: 'Non payé',
     user: 'Utilisateur',
-    items: 'articles',
+    items: 'items',
     not_available: 'Non disponible',
 
     // Admin StatCards Page
@@ -1883,6 +1886,9 @@ const translations = {
     failed_load_wishlist: 'Échec du chargement de la liste de souhaits',
     enter_product_feature_english: 'Entrez une caractéristique du produit (Anglais)',
     enter_product_feature_fr: 'Entrez une caractéristique du produit (Français)',
+    address_label: 'Adresse',
+    address: 'Boulevard Mohammed Zerktouni N°52 Casablanca, Maroc',
+    machine_wash_gentle_cycle: "Lavage en machine jusqu'à 40ºC/104ºF cycle délicat",
   }
 };
 

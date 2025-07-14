@@ -83,7 +83,7 @@ const Contact = () => {
       ),
       title: getTranslation('visit_us', language),
       details: getTranslation('address', language),
-      link: "https://maps.google.com",
+      link: language === 'fr' ? "https://www.google.com/maps/search/?api=1&query=Boulevard+Mohammed+Zerktouni+N°52+Casablanca+Maroc" : "https://www.google.com/maps/search/?api=1&query=Boulevard+Mohammed+Zerktouni+N°52+Casablanca+Morocco",
       linkText: getTranslation('get_directions', language)
     },
     {
@@ -93,7 +93,7 @@ const Contact = () => {
         </svg>
       ),
       title: getTranslation('email_us', language),
-      details: getTranslation('email', language),
+      details: 'voguevault@boutique.com',
       link: "mailto:voguevault@boutique.com",
       linkText: getTranslation('send_email', language)
     },
@@ -104,8 +104,8 @@ const Contact = () => {
         </svg>
       ),
       title: getTranslation('call_us', language),
-      details: getTranslation('phone', language),
-      link: "tel:+2125551234567",
+      details: '+1 (555) 123-4567',
+      link: "tel:+15551234567",
       linkText: getTranslation('make_call', language)
     },
     {

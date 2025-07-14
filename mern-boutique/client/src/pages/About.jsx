@@ -238,19 +238,19 @@ const About = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
-              name: "James Watkins",
+              name: "Walid Houssaf",
               position: getTranslation('founder_creative_director', language),
               src: assets.people1,
               bio: getTranslation('james_bio', language)
             },
             {
-              name: "Michael Chen",
+              name: "Zakaria El Haddad",
               position: getTranslation('head_operations', language),
               src: assets.people2,
               bio: getTranslation('michael_bio', language)
             },
             {
-              name: "Elena Rodriguez",
+              name: "Asmae Amir",
               position: getTranslation('lead_designer', language),
               src: assets.people3,
               bio: getTranslation('elena_bio', language)
@@ -268,7 +268,7 @@ const About = () => {
                 <img 
                   src={member.src} 
                   alt={member.name}
-                  className="w-full h-64 object-cover"
+                  className="w-full h-80 object-cover object-center"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
               </div>

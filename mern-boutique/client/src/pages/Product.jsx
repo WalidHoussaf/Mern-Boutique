@@ -710,69 +710,42 @@ const Product = () => {
                   </span>
                 </div>
               )}
-              {/* Shipping Info */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100">
-                <button
-                  onClick={() => toggleAccordion('shipping')}
-                  className="flex w-full justify-between items-center text-left"
-                >
-                  <div className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                    </svg>
-                    <span className="font-medium text-gray-900">{t('shipping_info')}</span>
-                  </div>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className={`h-5 w-5 text-gray-500 transition-transform ${openAccordion === 'shipping' ? 'transform rotate-180' : ''}`}
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              {/* Shipping Info - always visible */}
+              <div className="bg-white rounded-xl p-6 border border-gray-100 mb-6">
+                <div className="mb-4 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                </button>
-                <AnimatePresence>
-                  {openAccordion === 'shipping' && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="mt-4 space-y-4">
-                        {/* Store Pickup */}
-                        <div className="flex items-start p-4 bg-gray-50 rounded-lg">
-                          <div className="flex-shrink-0 mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                          </div>
-                          <div className="flex-grow">
-                            <h4 className="font-medium text-gray-900">{t('store_pickup')}</h4>
-                            <p className="mt-1 text-sm text-gray-600">{t('store_pickup_desc')}</p>
-                            <span className="inline-block mt-2 text-sm text-green-600 font-medium">{t('free')}</span>
-                          </div>
-                        </div>
-
-                        {/* Home Delivery */}
-                        <div className="flex items-start p-4 bg-gray-50 rounded-lg">
-                          <div className="flex-shrink-0 mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                          </div>
-                          <div className="flex-grow">
-                            <h4 className="font-medium text-gray-900">{t('home_delivery')}</h4>
-                            <p className="mt-1 text-sm text-gray-600">{t('home_delivery_desc')}</p>
-                            <span className="inline-block mt-2 text-sm text-green-600 font-medium">{t('free')}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                  <span className="font-medium text-gray-900">{t('shipping_info')}</span>
+                </div>
+                <div className="mt-4 space-y-4">
+                  {/* Store Pickup */}
+                  <div className="flex items-start p-4 bg-gray-50 rounded-lg">
+                    <div className="flex-shrink-0 mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
+                    <div className="flex-grow">
+                      <h4 className="font-medium text-gray-900">{t('store_pickup')}</h4>
+                      <p className="mt-1 text-sm text-gray-600">{t('store_pickup_desc')}</p>
+                      <span className="inline-block mt-2 text-sm text-green-600 font-medium">{t('free')}</span>
+                    </div>
+                  </div>
+                  {/* Home Delivery */}
+                  <div className="flex items-start p-4 bg-gray-50 rounded-lg">
+                    <div className="flex-shrink-0 mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                    </div>
+                    <div className="flex-grow">
+                      <h4 className="font-medium text-gray-900">{t('home_delivery')}</h4>
+                      <p className="mt-1 text-sm text-gray-600">{t('home_delivery_desc')}</p>
+                      <span className="inline-block mt-2 text-sm text-green-600 font-medium">{t('free')}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Material & Care */}
@@ -856,34 +829,29 @@ const Product = () => {
                           <h4 className="font-medium text-gray-900 mb-3">{t('care_instructions')}</h4>
                           <div className="space-y-3">
                             <div className="flex items-center space-x-3 text-sm">
-                              <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 6L18 6L18 18L6 18L6 6Z" stroke="currentColor" strokeWidth="1.5"/>
-                                <path d="M8 12C8 10.3431 9.34315 9 11 9H13C14.6569 9 16 10.3431 16 12" stroke="currentColor" strokeWidth="1.5"/>
-                                <path d="M9 15H15" stroke="currentColor" strokeWidth="1.5"/>
+                              <svg className="h-5 w-5 text-gray-600" viewBox="0 0 122.88 68.79" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0.22,4.23c-0.63-1.59,0.15-3.39,1.74-4.01c1.59-0.63,3.39,0.15,4.01,1.74l3.64,9.21c5.66-4.89,11.11-7.72,16.19-8.92 c6.86-1.62,13.01-0.31,18.13,2.86c7.26,4.49,12.33,6.76,17.05,6.85c4.67,0.1,9.45-1.94,16.17-6.05C82.94,2.36,90.12,0.4,97.5,1.91 c5.44,1.12,10.91,4.1,15.9,9.7l3.48-9.57c0.58-1.6,2.35-2.43,3.95-1.85c1.6,0.58,2.43,2.35,1.85,3.95L99.98,66.52 c-0.36,1.31-1.56,2.27-2.98,2.27H27.83c-1.23,0-2.4-0.74-2.88-1.96L0.22,4.23L0.22,4.23z M63.4,40.12c0-4.91,0.88-8.35,2.65-10.31 c1.77-1.96,4.47-2.94,8.08-2.94c1.74,0,3.17,0.22,4.29,0.64c1.12,0.43,2.03,0.99,2.73,1.67c0.71,0.69,1.26,1.41,1.67,2.17 c0.41,0.76,0.73,1.64,0.98,2.65c0.48,1.93,0.72,3.94,0.72,6.03c0,4.69-0.79,8.12-2.38,10.29c-1.58,2.17-4.32,3.26-8.2,3.26 c-2.17,0-3.93-0.35-5.27-1.04c-1.34-0.69-2.44-1.71-3.3-3.05c-0.62-0.95-1.11-2.25-1.46-3.9C63.57,43.95,63.4,42.12,63.4,40.12 L63.4,40.12z M70.51,40.14c0,3.29,0.29,5.54,0.87,6.74c0.58,1.2,1.43,1.81,2.53,1.81c0.73,0,1.36-0.25,1.9-0.76 c0.54-0.51,0.93-1.32,1.18-2.43c0.25-1.11,0.38-2.83,0.38-5.16c0-3.43-0.29-5.74-0.87-6.92c-0.58-1.18-1.46-1.77-2.62-1.77 c-1.19,0-2.05,0.6-2.58,1.81C70.78,34.65,70.51,36.88,70.51,40.14L70.51,40.14z M51.66,48.32H38.59v-5.9l13.07-15.55h6.25v15.89 h3.25v5.56h-3.25v4.84h-6.25V48.32L51.66,48.32z M51.66,42.76V34.6l-6.9,8.16H51.66L51.66,42.76z M12.03,17.3l17.9,45.3h64.91 l16.19-44.46c-0.31-0.19-0.59-0.43-0.83-0.73c-4.43-5.62-9.24-8.49-13.93-9.45c-5.68-1.17-11.3,0.41-15.9,3.22 c-7.73,4.73-13.44,7.07-19.51,6.95c-6.02-0.12-11.95-2.69-20.17-7.77c-3.78-2.34-8.35-3.3-13.49-2.08 C22.59,9.36,17.49,12.19,12.03,17.3L12.03,17.3z" fill="currentColor"/>
                               </svg>
-                              <span>{t('hand_wash')}</span>
+                              <span>{t('machine_wash_gentle_cycle')}</span>
                             </div>
 
                             <div className="flex items-center space-x-3 text-sm">
-                              <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 6L18 6L18 18L6 18L6 6Z" stroke="currentColor" strokeWidth="1.5"/>
-                                <path d="M8 8L16 16M16 8L8 16" stroke="currentColor" strokeWidth="1.5"/>
+                              <svg className="h-5 w-5 text-gray-600" viewBox="0 0 122.88 122.47" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M65.45,2.3l21.31,36.28l27.47-26.15c1.65-1.57,4.27-1.51,5.84,0.15c1.57,1.65,1.51,4.27-0.15,5.84L91.05,45.89l31.26,53.22 c1.17,1.99,0.5,4.55-1.49,5.71c-0.66,0.39-1.39,0.57-2.11,0.57v0.02h-12.35l10.44,9.94c1.65,1.57,1.72,4.19,0.15,5.84 c-1.57,1.65-4.19,1.72-5.84,0.15l-16.72-15.92H28.52l-16.72,15.92c-1.65,1.57-4.27,1.51-5.84-0.15c-1.57-1.65-1.51-4.27,0.15-5.84 l10.44-9.94H4.19c-2.31,0-4.19-1.88-4.19-4.19c0-0.87,0.27-1.68,0.72-2.35l31.3-52.81L2.98,18.41c-1.65-1.57-1.72-4.19-0.15-5.84 c1.57-1.65,4.19-1.72,5.84-0.15l27.68,26.34L58.11,2.06c1.17-1.99,3.74-2.65,5.73-1.47C64.55,1.01,65.1,1.61,65.45,2.3L65.45,2.3z M85.58,97.03L61.45,74.06L37.32,97.03H85.58L85.58,97.03z M55.46,68.36L38.24,51.98L11.54,97.03h13.81L55.46,68.36L55.46,68.36z M42.56,44.69l18.88,17.98l19.09-18.18L61.7,12.4L42.56,44.69L42.56,44.69z M67.44,68.36l30.12,28.67h13.85L84.84,51.8L67.44,68.36 L67.44,68.36z" fill="currentColor"/>
                               </svg>
                               <span>{t('do_not_bleach')}</span>
                             </div>
 
                             <div className="flex items-center space-x-3 text-sm">
-                              <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 6L18 6L18 18L6 18L6 6Z" stroke="currentColor" strokeWidth="1.5"/>
-                                <path d="M9 14L12 8L15 14" stroke="currentColor" strokeWidth="1.5"/>
+                              <svg className="h-5 w-5 text-gray-600" viewBox="0 0 122.88 90.65" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M31.59,7.92c-2.19,0-3.96-1.77-3.96-3.96c0-2.19,1.77-3.96,3.96-3.96h73.45c2.05,0,3.74,1.56,3.94,3.56l13.85,82.49 c0.36,2.15-1.1,4.19-3.25,4.55c-0.22,0.04-0.43,0.05-0.65,0.05L3.96,90.65C1.77,90.65,0,88.88,0,86.69c0-0.38,0.05-0.75,0.16-1.1 c1.93-9.12,4.66-17.41,8.42-24.62c3.89-7.44,8.87-13.71,15.18-18.53c13.22-10.09,23.71-10,37.74-9.87c0.65,0.01,1.25,0.01,4.7,0.01 h39.66L101.7,7.92H31.59L31.59,7.92z M64.12,55.42c4.03,0,7.29,3.26,7.29,7.29c0,4.03-3.26,7.29-7.29,7.29 c-4.03,0-7.29-3.26-7.29-7.29C56.83,58.69,60.09,55.42,64.12,55.42L64.12,55.42z M114.26,82.73l-7.09-42.23H66.18l-4.76-0.04 c-12.47-0.11-21.8-0.19-32.88,8.26c-5.37,4.1-9.62,9.48-12.98,15.9c-2.79,5.34-4.97,11.42-6.65,18.11H114.26L114.26,82.73z" fill="currentColor"/>
                               </svg>
                               <span>{t('iron_at')}</span>
                             </div>
 
                             <div className="flex items-center space-x-3 text-sm">
-                              <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5"/>
-                                <path d="M8 8L16 16" stroke="currentColor" strokeWidth="1.5"/>
+                              <svg className="h-5 w-5 text-gray-600" viewBox="0 0 122.27 122.88" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2.93,0h116.42c1.62,0,2.93,1.31,2.93,2.93v117.03c0,1.62-1.31,2.93-2.93,2.93H2.93c-1.62,0-2.93-1.31-2.93-2.93V2.93 C0,1.31,1.31,0,2.93,0L2.93,0z M61.14,51.72c5.37,0,9.72,4.35,9.72,9.72c0,5.37-4.35,9.72-9.72,9.72s-9.72-4.35-9.72-9.72 C51.42,56.07,55.77,51.72,61.14,51.72L61.14,51.72z M67.8,5.85c12.8,1.52,24.27,7.35,32.92,16c8.16,8.16,13.81,18.82,15.7,30.73 V5.85H67.8L67.8,5.85z M116.42,70.3c-1.89,11.91-7.54,22.57-15.7,30.73c-8.65,8.65-20.12,14.48-32.91,16h48.61V70.3L116.42,70.3z M54.47,117.03c-12.79-1.52-24.26-7.35-32.91-16C13.4,92.87,7.75,82.21,5.85,70.3v46.73H54.47L54.47,117.03z M5.85,52.59 c1.89-11.91,7.54-22.57,15.7-30.73c8.65-8.65,20.13-14.49,32.92-16H5.85V52.59L5.85,52.59z M90.67,31.9 c-7.56-7.56-18-12.23-29.54-12.23c-11.53,0-21.98,4.68-29.54,12.23c-7.56,7.56-12.23,18-12.23,29.54 c0,11.53,4.68,21.98,12.23,29.54c7.56,7.56,18,12.23,29.54,12.23c11.53,0,21.98-4.68,29.54-12.23c7.56-7.56,12.23-18,12.23-29.54 C102.91,49.91,98.23,39.46,90.67,31.9L90.67,31.9z" fill="currentColor"/>
                               </svg>
                               <span>{t('do_not_dry_clean')}</span>
                             </div>
@@ -990,8 +958,8 @@ const Product = () => {
                         {/* Free Returns */}
                         <div className="flex items-start p-4 bg-gray-50 rounded-lg">
                           <div className="flex-shrink-0 mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            <svg className="h-6 w-6 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 118.67 122.88" fill="currentColor">
+                              <path d="M3.92,22.79C1.81,22.79,0,20.98,0,18.77c0-2.11,1.81-3.92,3.92-3.92h5.43c0.1,0,0.3,0,0.41,0c3.62,0.1,6.84,0.8,9.54,2.51 c3.01,1.91,5.22,4.82,6.43,9.15c0,0.1,0,0.2,0.1,0.3l1,4.03h19.02v7.83h-16.8l0,0l8.94,33.67h63.4l8.34-33.67h-9.85v-7.83h13.92 h0.96c2.21,0,3.92,1.81,3.92,3.92c0,0.41-0.11,0.8-0.2,1.21l-10.25,41.3c-0.4,1.81-2.01,3.01-3.81,3.01l0,0H40.09 c1.41,5.22,2.81,8.04,4.72,9.35c2.31,1.51,6.34,1.6,13.07,1.51h0.1l0,0h45.42c2.21,0,3.92,1.81,3.92,3.92 c0,2.21-1.8,3.92-3.92,3.92H57.98l0,0c-8.34,0.1-13.46-0.1-17.59-2.81c-4.22-2.81-6.43-7.64-8.64-16.38l0,0L18.29,28.83 c0-0.1,0-0.1-0.1-0.2c-0.6-2.21-1.6-3.72-3.01-4.52c-1.41-0.91-3.31-1.3-5.52-1.3c-0.1,0-0.2,0-0.3,0L3.92,22.79L3.92,22.79 L3.92,22.79L3.92,22.79z M72.92,1.07l16.26,13.35c1.99,1.6,2.31,4.53,0.71,6.52c-1.6,1.99-4.53,2.31-6.52,0.71l-8.77-7.3l0.01,26.2 c0,2.56-2.07,4.63-4.63,4.63c-2.55,0-4.63-2.07-4.63-4.63l-0.01-26.21l-8.78,7.3c-1.99,1.6-4.91,1.28-6.52-0.71 c-1.6-1.99-1.28-4.91,0.71-6.52L67.02,1.07l0.05-0.04c1.71-1.33,3.94-1.43,5.79,0L72.92,1.07L72.92,1.07L72.92,1.07z M81.49,58.08 c0-1.24,1.23-2.24,2.73-2.24c1.51,0,2.73,1,2.73,2.24v4.71c0,1.24-1.23,2.24-2.73,2.24c-1.51,0-2.73-1-2.73-2.24V58.08L81.49,58.08 L81.49,58.08z M65.12,58.08c0-1.24,1.23-2.24,2.73-2.24c1.51,0,2.73,1,2.73,2.24v4.71c0,1.24-1.23,2.24-2.73,2.24 c-1.51,0-2.73-1-2.73-2.24V58.08L65.12,58.08L65.12,58.08z M48.76,58.08c0-1.24,1.23-2.24,2.73-2.24c1.51,0,2.73,1,2.73,2.24v4.71 c0,1.24-1.23,2.24-2.73,2.24c-1.51,0-2.73-1-2.73-2.24V58.08L48.76,58.08L48.76,58.08z M91.64,103.58c5.33,0,9.65,4.32,9.65,9.65 s-4.32,9.65-9.65,9.65c-5.32,0-9.65-4.32-9.65-9.65S86.32,103.58,91.64,103.58L91.64,103.58L91.64,103.58L91.64,103.58z M49.34,103.58c5.32,0,9.65,4.32,9.65,9.65s-4.32,9.65-9.65,9.65s-9.65-4.32-9.65-9.65S44.01,103.58,49.34,103.58L49.34,103.58 L49.34,103.58L49.34,103.58z"/>
                             </svg>
                           </div>
                           <div className="flex-grow">
