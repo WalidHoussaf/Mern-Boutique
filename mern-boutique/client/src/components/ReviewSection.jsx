@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import axios from 'axios';
-import { FaStar, FaThumbsUp, FaImage, FaCheck } from 'react-icons/fa';
+import { FaStar, FaThumbsUp, FaImage, FaCheck, FaTrash } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 const ReviewSection = ({ productId }) => {
@@ -100,6 +100,31 @@ const ReviewSection = ({ productId }) => {
       fetchReviews();
     } catch (error) {
       toast.error('Error recording vote');
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!userInfo) {
+      toast.error('Please login to delete review');
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      };
+
+      await axios.delete(
+        `/api/products/${productId}/reviews/${reviewId}`,
+        config
+      );
+
+      toast.success('Review deleted successfully');
+      fetchReviews();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error deleting review');
     }
   };
 
@@ -203,20 +228,32 @@ const ReviewSection = ({ productId }) => {
       <div className="space-y-6">
         {sortReviews().map((review) => (
           <div key={review._id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-4 mb-3">
-              <div className="flex">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <FaStar
-                    key={star}
-                    className={star <= review.rating ? 'text-yellow-400' : 'text-gray-300'}
-                  />
-                ))}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-4">
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <FaStar
+                      key={star}
+                      className={star <= review.rating ? 'text-yellow-400' : 'text-gray-300'}
+                    />
+                  ))}
+                </div>
+                <span className="font-medium text-gray-900">{review.name}</span>
+                {review.verifiedPurchase && (
+                  <span className="text-green-600 flex items-center gap-1 text-sm bg-green-50 px-2 py-1 rounded-full">
+                    <FaCheck className="w-3 h-3" /> Verified Purchase
+                  </span>
+                )}
               </div>
-              <span className="font-medium text-gray-900">{review.name}</span>
-              {review.verifiedPurchase && (
-                <span className="text-green-600 flex items-center gap-1 text-sm bg-green-50 px-2 py-1 rounded-full">
-                  <FaCheck className="w-3 h-3" /> Verified Purchase
-                </span>
+              {/* Delete button - only show for review owner or admin */}
+              {userInfo && (userInfo._id === review.user._id || userInfo.isAdmin) && (
+                <button
+                  onClick={() => handleDeleteReview(review._id)}
+                  className="text-red-500 hover:text-red-700 transition-colors"
+                  title="Delete review"
+                >
+                  <FaTrash className="w-4 h-4" />
+                </button>
               )}
             </div>
             <p className="text-gray-700 mb-4">{review.comment}</p>
