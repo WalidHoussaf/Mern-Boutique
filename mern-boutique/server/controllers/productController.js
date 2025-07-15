@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import Product from '../models/productModel.js';
+import Order from '../models/orderModel.js'; // Added import for Order
 
 // @desc    Fetch all products
 // @route   GET /api/products
@@ -308,7 +309,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 // @route   POST /api/products/:id/reviews
 // @access  Private
 const createProductReview = asyncHandler(async (req, res) => {
-  const { rating, comment } = req.body;
+  const { rating, comment, images } = req.body;
 
   const product = await Product.findById(req.params.id);
 
@@ -322,23 +323,176 @@ const createProductReview = asyncHandler(async (req, res) => {
       throw new Error('Product already reviewed');
     }
 
+    // Check if user has purchased the product
+    const orders = await Order.find({ 
+      user: req.user._id,
+      'orderItems.product': product._id,
+      isPaid: true
+    });
+    const verifiedPurchase = orders.length > 0;
+
     const review = {
       name: req.user.name,
       rating: Number(rating),
       comment,
       user: req.user._id,
+      images: images || [],
+      verifiedPurchase,
+      helpfulVotes: 0,
+      votedBy: []
     };
 
     product.reviews.push(review);
-
     product.numReviews = product.reviews.length;
-
     product.rating =
       product.reviews.reduce((acc, item) => item.rating + acc, 0) /
       product.reviews.length;
 
     await product.save();
     res.status(201).json({ message: 'Review added' });
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+});
+
+// @desc    Update review
+// @route   PUT /api/products/:id/reviews/:reviewId
+// @access  Private
+const updateProductReview = asyncHandler(async (req, res) => {
+  const { rating, comment, images } = req.body;
+  const product = await Product.findById(req.params.id);
+
+  if (product) {
+    const review = product.reviews.id(req.params.reviewId);
+
+    if (review) {
+      if (review.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+        res.status(403);
+        throw new Error('Not authorized to update this review');
+      }
+
+      review.rating = Number(rating) || review.rating;
+      review.comment = comment || review.comment;
+      review.images = images || review.images;
+
+      // Recalculate average rating
+      product.rating =
+        product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+        product.reviews.length;
+
+      await product.save();
+      res.json({ message: 'Review updated' });
+    } else {
+      res.status(404);
+      throw new Error('Review not found');
+    }
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+});
+
+// @desc    Delete review
+// @route   DELETE /api/products/:id/reviews/:reviewId
+// @access  Private
+const deleteProductReview = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+
+  if (product) {
+    const review = product.reviews.id(req.params.reviewId);
+
+    if (review) {
+      if (review.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+        res.status(403);
+        throw new Error('Not authorized to delete this review');
+      }
+
+      product.reviews.pull(req.params.reviewId);
+      product.numReviews = product.reviews.length;
+      
+      if (product.reviews.length > 0) {
+        product.rating =
+          product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+          product.reviews.length;
+      } else {
+        product.rating = 0;
+      }
+
+      await product.save();
+      res.json({ message: 'Review removed' });
+    } else {
+      res.status(404);
+      throw new Error('Review not found');
+    }
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+});
+
+// @desc    Vote on review helpfulness
+// @route   POST /api/products/:id/reviews/:reviewId/vote
+// @access  Private
+const voteReview = asyncHandler(async (req, res) => {
+  const { helpful } = req.body;
+  const product = await Product.findById(req.params.id);
+
+  if (product) {
+    const review = product.reviews.id(req.params.reviewId);
+
+    if (review) {
+      const existingVote = review.votedBy.find(
+        vote => vote.user.toString() === req.user._id.toString()
+      );
+
+      if (existingVote) {
+        if (existingVote.helpful !== helpful) {
+          // Change vote
+          existingVote.helpful = helpful;
+          review.helpfulVotes += helpful ? 1 : -1;
+        }
+      } else {
+        // New vote
+        review.votedBy.push({
+          user: req.user._id,
+          helpful
+        });
+        review.helpfulVotes += helpful ? 1 : 0;
+      }
+
+      await product.save();
+      res.json({ message: 'Vote recorded', helpfulVotes: review.helpfulVotes });
+    } else {
+      res.status(404);
+      throw new Error('Review not found');
+    }
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+});
+
+// @desc    Get product reviews
+// @route   GET /api/products/:id/reviews
+// @access  Public
+const getProductReviews = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id)
+    .populate('reviews.user', 'name profileImage');
+
+  if (product) {
+    // Sort reviews by date, verified purchase, and helpful votes
+    const sortedReviews = product.reviews.sort((a, b) => {
+      if (a.verifiedPurchase !== b.verifiedPurchase) {
+        return b.verifiedPurchase ? 1 : -1;
+      }
+      if (a.helpfulVotes !== b.helpfulVotes) {
+        return b.helpfulVotes - a.helpfulVotes;
+      }
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    res.json(sortedReviews);
   } else {
     res.status(404);
     throw new Error('Product not found');
@@ -361,5 +515,9 @@ export {
   createProduct,
   updateProduct,
   createProductReview,
+  updateProductReview,
+  deleteProductReview,
+  voteReview,
+  getProductReviews,
   getTopProducts,
 }; 

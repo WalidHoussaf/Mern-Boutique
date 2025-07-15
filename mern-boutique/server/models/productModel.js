@@ -10,6 +10,25 @@ const reviewSchema = mongoose.Schema(
       required: true,
       ref: 'User',
     },
+    images: {
+      type: [String],
+      default: [],
+    },
+    verifiedPurchase: {
+      type: Boolean,
+      default: false,
+    },
+    helpfulVotes: {
+      type: Number,
+      default: 0,
+    },
+    votedBy: [{
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+      helpful: Boolean,
+    }],
   },
   {
     timestamps: true,
