@@ -478,7 +478,7 @@ const voteReview = asyncHandler(async (req, res) => {
 // @access  Public
 const getProductReviews = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id)
-    .populate('reviews.user', 'name profileImage');
+    .populate('reviews.user', 'name profileImage location profession');
 
   if (product) {
     // Sort reviews by date, verified purchase, and helpful votes
@@ -507,6 +507,44 @@ const getTopProducts = asyncHandler(async (req, res) => {
   res.json(products);
 });
 
+// @desc    Get featured reviews (4 and 5 stars)
+// @route   GET /api/products/reviews/featured
+// @access  Public
+const getFeaturedReviews = asyncHandler(async (req, res) => {
+  // Find all products that have reviews with rating >= 4
+  const products = await Product.find({
+    'reviews.rating': { $gte: 4 }
+  }).populate('reviews.user', 'name profileImage location profession');
+
+  // Extract all reviews with rating >= 4 and add product info
+  let featuredReviews = [];
+  products.forEach(product => {
+    const highRatedReviews = product.reviews
+      .filter(review => review.rating >= 4)
+      .map(review => ({
+        ...review.toObject(),
+        product: {
+          _id: product._id,
+          name: product.name
+        }
+      }));
+    featuredReviews.push(...highRatedReviews);
+  });
+
+  // Sort by rating (highest first) and date (newest first)
+  featuredReviews.sort((a, b) => {
+    if (b.rating !== a.rating) {
+      return b.rating - a.rating;
+    }
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  // Limit to 10 reviews
+  featuredReviews = featuredReviews.slice(0, 10);
+
+  res.json(featuredReviews);
+});
+
 export {
   getProducts,
   getFeaturedProducts,
@@ -520,4 +558,5 @@ export {
   voteReview,
   getProductReviews,
   getTopProducts,
+  getFeaturedReviews,
 }; 

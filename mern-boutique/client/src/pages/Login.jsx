@@ -197,7 +197,7 @@ const Login = () => {
         {/* Header Section */}
         <div className="text-center mb-10 animate-fadeIn">
           <h1 className="font-prata text-4xl text-secondary mb-2">
-            {isLogin ? t('welcome_back') : t('join_us')}
+            {isLogin ? t('welcome_back_login') : t('join_us')}
           </h1>
           <div className="w-16 h-1 bg-primary mx-auto mb-4"></div>
           <p className="text-gray-600">

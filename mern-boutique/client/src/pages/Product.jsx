@@ -1028,9 +1028,6 @@ const Product = () => {
 
       {/* Reviews Section */}
       <div className="mt-16">
-        <div className="border-b border-gray-200 mb-8">
-          <h2 className="text-2xl font-prata text-secondary pb-4">{t('customer_reviews')}</h2>
-        </div>
         <ReviewSection productId={productId} />
       </div>
     </div>

@@ -23,7 +23,15 @@ const userSchema = mongoose.Schema(
     },
     profileImage: {
       type: String,
-      default: null,
+      default: 'https://secure.gravatar.com/avatar/default?s=200&d=mp',
+    },
+    location: {
+      type: String,
+      default: '',
+    },
+    profession: {
+      type: String,
+      default: '',
     },
   },
   {

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import axios from 'axios';
-import { FaStar, FaThumbsUp, FaImage, FaCheck, FaTrash } from 'react-icons/fa';
+import { FaStar, FaThumbsUp, FaImage, FaCheck, FaTrash, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import useTranslation from '../utils/useTranslation';
 
 const ReviewSection = ({ productId }) => {
   const [reviews, setReviews] = useState([]);
@@ -10,9 +11,11 @@ const ReviewSection = ({ productId }) => {
   const [comment, setComment] = useState('');
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [sortBy, setSortBy] = useState('recent'); // 'recent', 'helpful', 'rating'
+  const [sortBy, setSortBy] = useState('recent');
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const { user: userInfo } = useContext(ShopContext);
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchReviews();
@@ -23,272 +26,288 @@ const ReviewSection = ({ productId }) => {
       const { data } = await axios.get(`/api/products/${productId}/reviews`);
       setReviews(data);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error fetching reviews');
+      toast.error('Failed to fetch reviews');
     }
-  };
-
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${userInfo.token}`,
-        },
-      };
-
-      await axios.post(
-        `/api/products/${productId}/reviews`,
-        { rating, comment, images },
-        config
-      );
-
-      toast.success('Review submitted successfully');
-      setComment('');
-      setRating(5);
-      setImages([]);
-      fetchReviews();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Error submitting review');
-    }
-
-    setLoading(false);
   };
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     const formData = new FormData();
-    files.forEach((file) => formData.append('images', file));
+    
+    files.forEach((file) => {
+      formData.append('images', file);
+    });
 
     try {
-      const config = {
+      const { data } = await axios.post('/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${userInfo.token}`,
         },
-      };
-
-      const { data } = await axios.post('/api/upload', formData, config);
-      setImages((prev) => [...prev, ...data.data.map((img) => img.url)]);
+      });
+      setImages([...images, ...data.data.map(img => img.url)]);
+      toast.success('Images uploaded successfully');
     } catch (error) {
-      toast.error('Error uploading images');
+      toast.error('Failed to upload images');
     }
   };
 
-  const handleVote = async (reviewId, helpful) => {
-    if (!userInfo) {
-      toast.error('Please login to vote');
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!comment.trim()) {
+      toast.error('Please write a review comment');
       return;
     }
 
     try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${userInfo.token}`,
-        },
-      };
-
-      await axios.post(
-        `/api/products/${productId}/reviews/${reviewId}/vote`,
-        { helpful },
-        config
-      );
-
+      setLoading(true);
+      await axios.post(`/api/products/${productId}/reviews`, {
+        rating,
+        comment,
+        images,
+      });
+      setComment('');
+      setRating(5);
+      setImages([]);
       fetchReviews();
+      toast.success('Review submitted successfully');
     } catch (error) {
-      toast.error('Error recording vote');
+      toast.error(error.response?.data?.message || 'Failed to submit review');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('Are you sure you want to delete this review?')) return;
+
+    try {
+      await axios.delete(`/api/products/${productId}/reviews/${reviewId}`);
+      fetchReviews();
+      toast.success('Review deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete review');
+    }
+  };
+
+  const handleHelpfulVote = async (reviewId) => {
     if (!userInfo) {
-      toast.error('Please login to delete review');
+      toast.error('Please sign in to vote');
       return;
     }
 
     try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${userInfo.token}`,
-        },
-      };
-
-      await axios.delete(
-        `/api/products/${productId}/reviews/${reviewId}`,
-        config
-      );
-
-      toast.success('Review deleted successfully');
+      await axios.post(`/api/products/${productId}/reviews/${reviewId}/vote`);
       fetchReviews();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error deleting review');
+      toast.error('Failed to vote');
     }
   };
 
   const sortReviews = () => {
-    const sorted = [...reviews];
+    const sortedReviews = [...reviews];
     switch (sortBy) {
       case 'helpful':
-        return sorted.sort((a, b) => b.helpfulVotes - a.helpfulVotes);
+        return sortedReviews.sort((a, b) => (b.votedBy?.length || 0) - (a.votedBy?.length || 0));
       case 'rating':
-        return sorted.sort((a, b) => b.rating - a.rating);
+        return sortedReviews.sort((a, b) => b.rating - a.rating);
+      case 'recent':
       default:
-        return sorted.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
+        return sortedReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
   };
 
   return (
-    <div className="my-8">
-      {/* Review Form */}
-      {userInfo ? (
-        <form onSubmit={handleSubmitReview} className="mb-8 bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-xl font-prata text-secondary mb-4">Write a Review</h3>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
-            <div className="flex">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => setRating(star)}
-                  className={`text-2xl ${
-                    star <= rating ? 'text-yellow-400' : 'text-gray-300'
-                  }`}
-                >
-                  <FaStar />
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              required
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-              rows="4"
-              placeholder="Share your thoughts about this product..."
+    <>
+      {/* Image Lightbox Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={() => setSelectedImage(null)}>
+          <div className="relative max-w-4xl max-h-[90vh] mx-4">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <FaTimes className="w-6 h-6" />
+            </button>
+            <img
+              src={selectedImage}
+              alt="Review image"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Images</label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="mb-2"
-            />
-            <div className="flex gap-2">
-              {images.map((img, index) => (
-                <img
-                  key={index}
-                  src={img}
-                  alt={`Review ${index + 1}`}
-                  className="w-20 h-20 object-cover rounded-lg border border-gray-200"
-                />
-              ))}
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition-colors"
-          >
-            {loading ? 'Submitting...' : 'Submit Review'}
-          </button>
-        </form>
-      ) : (
-        <div className="mb-8 p-6 bg-blue-50 rounded-xl text-center">
-          <p className="text-blue-700">Please log in to write a review</p>
         </div>
       )}
 
-      {/* Sort Controls */}
-      <div className="mb-6 flex items-center gap-4">
-        <label className="text-sm font-medium text-gray-700">Sort by:</label>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="border border-gray-200 rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary"
-        >
-          <option value="recent">Most Recent</option>
-          <option value="helpful">Most Helpful</option>
-          <option value="rating">Highest Rating</option>
-        </select>
-      </div>
+      <div className="w-full bg-white">
+        <div className="border-b border-gray-200 mb-8">
+          <h2 className="text-2xl font-prata text-secondary pb-4">{t('customer_reviews')}</h2>
+        </div>
+        
+        {/* Review Statistics */}
+        {reviews.length > 0 && (
+          <div className="py-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-gray-800">
+                  {reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length}
+                  <span className="text-lg text-gray-600"> {t('out_of')} 5</span>
+                </p>
+                <p className="text-sm text-gray-600">{reviews.length} {t('reviews')}</p>
+              </div>
+              <div>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="recent">{t('newest_first')}</option>
+                  <option value="helpful">{t('most_helpful')}</option>
+                  <option value="rating">{t('rating_high_to_low')}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
 
-      {/* Reviews List */}
-      <div className="space-y-6">
-        {sortReviews().map((review) => (
-          <div key={review._id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-3">
+        {/* Write Review Section */}
+        {userInfo ? (
+          <div className="py-6 border-b border-gray-200">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">{t('write_a_review')}</h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className={`text-2xl transition-colors ${
+                      rating >= star ? 'text-yellow-400' : 'text-gray-300'
+                    } hover:text-yellow-500`}
+                  >
+                    <FaStar />
+                  </button>
+                ))}
+              </div>
+              
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder={t('share_your_thoughts')}
+                className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]"
+              />
+              
               <div className="flex items-center gap-4">
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <FaStar
-                      key={star}
-                      className={star <= review.rating ? 'text-yellow-400' : 'text-gray-300'}
-                    />
-                  ))}
-                </div>
-                <span className="font-medium text-gray-900">{review.name}</span>
-                {review.verifiedPurchase && (
-                  <span className="text-green-600 flex items-center gap-1 text-sm bg-green-50 px-2 py-1 rounded-full">
-                    <FaCheck className="w-3 h-3" /> Verified Purchase
+                <label className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <FaImage className="text-gray-600" />
+                  <span className="text-gray-700">{t('add_images')}</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+                {images.length > 0 && (
+                  <span className="text-sm text-gray-600">
+                    {images.length} {t(images.length === 1 ? 'image' : 'images')}
                   </span>
                 )}
               </div>
-              {/* Delete button - only show for review owner or admin */}
-              {userInfo && (userInfo._id === review.user._id || userInfo.isAdmin) && (
-                <button
-                  onClick={() => handleDeleteReview(review._id)}
-                  className="text-red-500 hover:text-red-700 transition-colors"
-                  title="Delete review"
-                >
-                  <FaTrash className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-            <p className="text-gray-700 mb-4">{review.comment}</p>
-            {review.images && review.images.length > 0 && (
-              <div className="flex gap-2 mb-4">
-                {review.images.map((img, index) => (
-                  <img
-                    key={index}
-                    src={img}
-                    alt={`Review ${index + 1}`}
-                    className="w-20 h-20 object-cover rounded-lg border border-gray-200"
-                  />
-                ))}
-              </div>
-            )}
-            <div className="flex items-center gap-4 text-sm text-gray-600">
+
               <button
-                onClick={() => handleVote(review._id, true)}
-                className="flex items-center gap-1 hover:text-primary transition-colors"
+                onClick={handleSubmitReview}
+                disabled={loading}
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FaThumbsUp className="w-4 h-4" /> 
-                <span>Helpful ({review.helpfulVotes})</span>
+                {loading ? t('submitting') : t('submit_review')}
               </button>
-              <span className="text-gray-500">{new Date(review.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
-        ))}
-        
+        ) : (
+          <div className="py-6 border-b border-gray-200">
+            <p className="text-gray-700">{t('please_login_review')}</p>
+          </div>
+        )}
+
+        {/* Reviews List */}
+        <div className="py-6 space-y-6">
+          {sortReviews().map((review) => (
+            <div key={review._id} className="border-b border-gray-200 pb-6 last:border-b-0">
+              {/* Header with user info */}
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0 mr-4">
+                  <img
+                    src={review.user.profileImage}
+                    alt={review.user.name}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
+                  />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-base font-prata text-secondary">{review.user.name}</h3>
+                  <div className="flex items-center mt-1 text-xs text-gray-500">
+                    {review.user.profession && (
+                      <>
+                        <span>{review.user.profession}</span>
+                        {review.user.location && <span className="mx-1">•</span>}
+                      </>
+                    )}
+                    {review.user.location && <span>{review.user.location}</span>}
+                    <span className="mx-1">•</span>
+                    <span>{new Date(review.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-gray-700 mb-4 leading-relaxed">{review.comment}</p>
+
+              {/* Review Images */}
+              {review.images && review.images.length > 0 && (
+                <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                  {review.images.map((image, index) => (
+                    <div
+                      key={index}
+                      className="relative group cursor-pointer"
+                      onClick={() => setSelectedImage(image)}
+                    >
+                      <img
+                        src={image}
+                        alt={`${t('review_image')} ${index + 1}`}
+                        className="w-24 h-24 object-cover rounded-lg border border-gray-200 transition-transform group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity rounded-lg flex items-center justify-center">
+                        <FaImage className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Helpful Button */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleHelpfulVote(review._id)}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
+                    review.votedBy?.some(vote => vote.user === userInfo?._id && vote.helpful)
+                      ? 'bg-primary-light text-primary'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  } transition-colors`}
+                >
+                  <FaThumbsUp className="w-3 h-3" />
+                  <span>{t('helpful')} ({review.votedBy?.length || 0})</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {reviews.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No reviews yet. Be the first to review this product!
+          <div className="py-12">
+            <p className="text-gray-600">{t('no_reviews_yet')}</p>
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
 

@@ -52,6 +52,7 @@ const translations = {
     notifications: 'Notifications',
     privacy: 'Privacy',
     language: 'Language',
+    language_code: 'en',
     appearanceAndDisplay: 'Appearance & Display',
     currency: 'Currency',
     currencyDescription: 'This changes the display currency and performs approximate conversion for your convenience.',
@@ -433,7 +434,8 @@ const translations = {
     free: 'Free',
 
     // Login/Register Page
-    welcome_back: 'Welcome Back',
+    welcome_back: 'Welcome back, {name}!',
+    welcome_back_login: 'Welcome back!',
     join_us: 'Join Us',
     sign_in_desc: 'Sign in to access your account and continue shopping',
     join_desc: 'Create an account to start your shopping journey',
@@ -944,6 +946,34 @@ const translations = {
     address_label: 'Address',
     address: 'Boulevard Mohammed Zerktouni N°52 Casablanca, Morocco',
     machine_wash_gentle_cycle: 'Machine wash up to 40ºC/104ºF gentle cycle',
+    // Review section
+    customer_reviews: 'Customer Reviews',
+    out_of: 'out of',
+    reviews: 'reviews',
+    newest_first: 'Newest First',
+    most_helpful: 'Most Helpful',
+    rating_high_to_low: 'Highest Rated',
+    write_a_review: 'Write a Review',
+    share_your_thoughts: 'Share your thoughts about this product...',
+    add_images: 'Add Images',
+    image: 'image',
+    images: 'images',
+    submitting: 'Submitting...',
+    submit_review: 'Submit Review',
+    please_login_review: 'Please sign in to write a review',
+    verified_purchase: 'Verified Purchase',
+    delete_review: 'Delete Review',
+    review_image: 'Review Image',
+    helpful: 'Helpful',
+    no_reviews_yet: 'No reviews yet. Be the first to review this product!',
+    profession: 'Profession',
+    location: 'Location',
+
+    // Product Form translations
+    product_name_english: 'Product Name (English)',
+    product_name_french: 'Product Name (French)',
+    description_english: 'Description (English)',
+    description_french: 'Description (French)',
   },
   fr: {
     // Navigation & Common
@@ -997,6 +1027,7 @@ const translations = {
     notifications: 'Notifications',
     privacy: 'Confidentialité',
     language: 'Langue',
+    language_code: 'fr',
     appearanceAndDisplay: 'Apparence et affichage',
     currency: 'Devise',
     currencyDescription: 'Cela change la devise d\'affichage et effectue une conversion approximative pour votre commodité.',
@@ -1378,7 +1409,8 @@ const translations = {
     free: 'Gratuit',
 
     // Login/Register Page
-    welcome_back: 'Bon Retour',
+    welcome_back: 'Bon Retour, {name} !',
+    welcome_back_login: 'Bon retour !',
     join_us: 'Rejoignez-nous',
     sign_in_desc: 'Connectez-vous pour accéder à votre compte et continuer vos achats',
     join_desc: 'Créez un compte pour commencer votre expérience shopping',
@@ -1567,7 +1599,7 @@ const translations = {
     total: 'total',
     view_revenue_details: 'Voir les détails des revenus →',
     recent_orders: 'Commandes Récentes',
-    no_orders_yet: 'Aucune commande pour le moment',
+    no_orders_yet: 'No orders yet',
     view_order_details: 'Voir les détails de la commande →',
     view_all_orders: 'Voir toutes les commandes →',
     top_products: 'Produits Populaires',
@@ -1889,6 +1921,20 @@ const translations = {
     address_label: 'Adresse',
     address: 'Boulevard Mohammed Zerktouni N°52 Casablanca, Maroc',
     machine_wash_gentle_cycle: "Lavage en machine jusqu'à 40ºC/104ºF cycle délicat",
+    // Profile page
+    my_profile: 'Mon Profil',
+    my_orders: 'Mes Commandes',
+    admin_dashboard: 'Tableau de Bord Admin',
+    settings: 'Paramètres',
+    logout: 'Déconnexion',
+    profession: 'Profession',
+    location: 'Localisation',
+
+    // Product Form translations
+    product_name_english: 'Nom du Produit (Anglais)',
+    product_name_french: 'Nom du Produit (Français)',
+    description_english: 'Description (Anglais)',
+    description_french: 'Description (Français)',
   }
 };
 
