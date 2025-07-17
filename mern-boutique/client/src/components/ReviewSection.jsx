@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import axios from 'axios';
-import { FaStar, FaThumbsUp, FaImage, FaCheck, FaTrash, FaTimes } from 'react-icons/fa';
+import { FaStar, FaThumbsUp, FaImage, FaCheck, FaTrash, FaTimes, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import useTranslation from '../utils/useTranslation';
 
@@ -13,6 +13,12 @@ const ReviewSection = ({ productId }) => {
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState('recent');
   const [selectedImage, setSelectedImage] = useState(null);
+  const [editingReview, setEditingReview] = useState(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editComment, setEditComment] = useState('');
+  const [editImages, setEditImages] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [reviewToDelete, setReviewToDelete] = useState(null);
 
   const { user: userInfo } = useContext(ShopContext);
   const { t } = useTranslation();
@@ -30,7 +36,7 @@ const ReviewSection = ({ productId }) => {
     }
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = async (e, isEdit = false) => {
     const files = Array.from(e.target.files);
     const formData = new FormData();
     
@@ -45,7 +51,12 @@ const ReviewSection = ({ productId }) => {
           Authorization: `Bearer ${userInfo.token}`,
         },
       });
-      setImages([...images, ...data.data.map(img => img.url)]);
+      
+      if (isEdit) {
+        setEditImages([...editImages, ...data.data.map(img => img.url)]);
+      } else {
+        setImages([...images, ...data.data.map(img => img.url)]);
+      }
       toast.success('Images uploaded successfully');
     } catch (error) {
       toast.error('Failed to upload images');
@@ -78,16 +89,68 @@ const ReviewSection = ({ productId }) => {
     }
   };
 
-  const handleDeleteReview = async (reviewId) => {
-    if (!window.confirm('Are you sure you want to delete this review?')) return;
+  const handleStartEdit = (review) => {
+    setEditingReview(review._id);
+    setEditRating(review.rating);
+    setEditComment(review.comment);
+    setEditImages(review.images || []);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingReview(null);
+    setEditRating(5);
+    setEditComment('');
+    setEditImages([]);
+  };
+
+  const handleUpdateReview = async (reviewId) => {
+    if (!editComment.trim()) {
+      toast.error('Please write a review comment');
+      return;
+    }
 
     try {
-      await axios.delete(`/api/products/${productId}/reviews/${reviewId}`);
+      setLoading(true);
+      await axios.put(`/api/products/${productId}/reviews/${reviewId}`, {
+        rating: editRating,
+        comment: editComment,
+        images: editImages,
+      });
+      setEditingReview(null);
+      setEditRating(5);
+      setEditComment('');
+      setEditImages([]);
       fetchReviews();
-      toast.success('Review deleted successfully');
+      toast.success('Review updated successfully');
     } catch (error) {
-      toast.error('Failed to delete review');
+      toast.error(error.response?.data?.message || 'Failed to update review');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleDeleteClick = (reviewId) => {
+    setReviewToDelete(reviewId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!reviewToDelete) return;
+
+    try {
+      await axios.delete(`/api/products/${productId}/reviews/${reviewToDelete}`);
+      fetchReviews();
+      toast.success(t('review_deleted_success'));
+      setShowDeleteModal(false);
+      setReviewToDelete(null);
+    } catch (error) {
+      toast.error(t('review_delete_error'));
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setReviewToDelete(null);
   };
 
   const handleHelpfulVote = async (reviewId) => {
@@ -135,6 +198,63 @@ const ReviewSection = ({ productId }) => {
               className="max-w-full max-h-[85vh] object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-center min-h-screen">
+            {/* Background overlay */}
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleDeleteCancel}></div>
+
+            {/* Modal panel */}
+            <div className="relative inline-block w-full max-w-lg p-6 my-8 text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl sm:w-full">
+              <div className="absolute top-0 right-0 pt-4 pr-4">
+                <button
+                  type="button"
+                  className="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  onClick={handleDeleteCancel}
+                >
+                  <span className="sr-only">{t('close')}</span>
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="sm:flex sm:items-start">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <FaTrash className="h-5 w-5 text-red-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                    {t('delete_review_confirmation_title')}
+                  </h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      {t('delete_review_confirmation_message')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200"
+                  onClick={handleDeleteConfirm}
+                >
+                  {t('delete')}
+                </button>
+                <button
+                  type="button"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm transition-colors duration-200"
+                  onClick={handleDeleteCancel}
+                >
+                  {t('cancel')}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -235,52 +355,163 @@ const ReviewSection = ({ productId }) => {
           {sortReviews().map((review) => (
             <div key={review._id} className="border-b border-gray-200 pb-6 last:border-b-0">
               {/* Header with user info */}
-              <div className="flex items-center mb-4">
-                <div className="flex-shrink-0 mr-4">
-                  <img
-                    src={review.user.profileImage}
-                    alt={review.user.name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
-                  />
-                </div>
-                <div className="text-left">
-                  <h3 className="text-base font-prata text-secondary">{review.user.name}</h3>
-                  <div className="flex items-center mt-1 text-xs text-gray-500">
-                    {review.user.profession && (
-                      <>
-                        <span>{review.user.profession}</span>
-                        {review.user.location && <span className="mx-1">•</span>}
-                      </>
-                    )}
-                    {review.user.location && <span>{review.user.location}</span>}
-                    <span className="mx-1">•</span>
-                    <span>{new Date(review.createdAt).toLocaleDateString()}</span>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 mr-4">
+                    <img
+                      src={review.user.profileImage}
+                      alt={review.user.name}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
+                    />
                   </div>
+                  <div className="text-left">
+                    <h3 className="text-base font-prata text-secondary">{review.user.name}</h3>
+                    <div className="flex items-center mt-1 text-xs text-gray-500">
+                      {review.user.profession && (
+                        <>
+                          <span>{review.user.profession}</span>
+                          {review.user.location && <span className="mx-1">•</span>}
+                        </>
+                      )}
+                      {review.user.location && <span>{review.user.location}</span>}
+                      <span className="mx-1">•</span>
+                      <span>{new Date(review.createdAt).toLocaleDateString()}</span>
+                      {review.verifiedPurchase && (
+                        <>
+                          <span className="mx-1">•</span>
+                          <div className="bg-green-50 rounded-full px-2 py-1 flex items-center">
+                            <svg className="w-3 h-3 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                            </svg>
+                            <span className="text-xs font-medium text-green-700">{t('verified_purchase')}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Edit/Delete buttons */}
+                <div className="flex items-center gap-2">
+                  {(userInfo?._id === review.user._id || userInfo?.isAdmin) && (
+                    <>
+                      {userInfo?._id === review.user._id && (
+                        <button
+                          onClick={() => handleStartEdit(review)}
+                          className="text-gray-400 hover:text-primary transition-colors"
+                          title={t('edit_review')}
+                        >
+                          <FaEdit className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeleteClick(review._id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                        title={t('delete_review')}
+                      >
+                        <FaTrash className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
-              <p className="text-gray-700 mb-4 leading-relaxed">{review.comment}</p>
-
-              {/* Review Images */}
-              {review.images && review.images.length > 0 && (
-                <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                  {review.images.map((image, index) => (
-                    <div
-                      key={index}
-                      className="relative group cursor-pointer"
-                      onClick={() => setSelectedImage(image)}
-                    >
-                      <img
-                        src={image}
-                        alt={`${t('review_image')} ${index + 1}`}
-                        className="w-24 h-24 object-cover rounded-lg border border-gray-200 transition-transform group-hover:scale-105"
+              {/* Review content */}
+              {editingReview === review._id ? (
+                // Edit form
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setEditRating(star)}
+                        className={`text-2xl transition-colors ${
+                          editRating >= star ? 'text-yellow-400' : 'text-gray-300'
+                        } hover:text-yellow-500`}
+                      >
+                        <FaStar />
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <textarea
+                    value={editComment}
+                    onChange={(e) => setEditComment(e.target.value)}
+                    placeholder={t('share_your_thoughts')}
+                    className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary min-h-[120px]"
+                  />
+                  
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer text-primary hover:text-primary-dark">
+                      <FaImage className="text-xl" />
+                      <span>{t('add_photos')}</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleImageUpload(e, true)}
                       />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity rounded-lg flex items-center justify-center">
-                        <FaImage className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
-                  ))}
+                    </label>
+                    
+                    {editImages.length > 0 && (
+                      <span className="text-sm text-gray-500">
+                        {editImages.length} {t('photos_selected')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end gap-2 mt-4">
+                    <button
+                      onClick={handleCancelEdit}
+                      className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                    >
+                      {t('cancel')}
+                    </button>
+                    <button
+                      onClick={() => handleUpdateReview(review._id)}
+                      className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+                      disabled={loading}
+                    >
+                      {loading ? t('updating') : t('update_review')}
+                    </button>
+                  </div>
                 </div>
+              ) : (
+                // Review content
+                <>
+                  <div className="flex items-center gap-1 mb-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <FaStar
+                        key={star}
+                        className={`${
+                          review.rating >= star ? 'text-yellow-400' : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-gray-700 mb-4 leading-relaxed">{review.comment}</p>
+                  {review.images && review.images.length > 0 && (
+                    <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                      {review.images.map((image, index) => (
+                        <div
+                          key={index}
+                          className="relative group cursor-pointer"
+                          onClick={() => setSelectedImage(image)}
+                        >
+                          <img
+                            src={image}
+                            alt={`${t('review_image')} ${index + 1}`}
+                            className="w-24 h-24 object-cover rounded-lg border border-gray-200 transition-transform group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity rounded-lg flex items-center justify-center">
+                            <FaImage className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Helpful Button */}

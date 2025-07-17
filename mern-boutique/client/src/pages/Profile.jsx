@@ -3,6 +3,7 @@ import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import useTranslation from '../utils/useTranslation';
+import UserAvatar from '../components/UserAvatar';
 
 const Profile = () => {
   const { user, login, logout, isAuthenticated, navigate, language } = useContext(ShopContext);
@@ -316,9 +317,18 @@ const Profile = () => {
 
   // Default profile avatar if no image is provided
   const defaultAvatar = (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-primary" viewBox="0 0 20 20" fill="currentColor">
-      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-    </svg>
+    <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center">
+      <div className="flex flex-col items-center">
+        <span className="text-4xl font-semibold text-primary">
+          {user?.name?.charAt(0).toUpperCase()}
+        </span>
+        {isEditing && (
+          <span className="mt-1 text-sm text-primary/70">
+            {t('add_photo')}
+          </span>
+        )}
+      </div>
+    </div>
   );
 
   // Loading state UI
@@ -362,34 +372,12 @@ const Profile = () => {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
               <div className="text-center">
-                <div className="relative inline-block group">
-                  <div className="w-32 h-32 mx-auto rounded-full overflow-hidden ring-4 ring-primary/10 transition-all duration-300 group-hover:ring-primary/20">
-                    {previewImage ? (
-                      <img
-                        src={previewImage}
-                        alt={t('profile_image')}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-primary/40" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  {isEditing && (
-                    <button
-                      onClick={triggerFileInput}
-                      className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg hover:bg-primary-dark transition-colors"
-                      title={t('change_photo')}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
+                <UserAvatar
+                  user={{ ...user, profileImage: previewImage }}
+                  isEditing={isEditing}
+                  onEdit={triggerFileInput}
+                  t={t}
+                />
                 <input
                   ref={fileInputRef}
                   type="file"

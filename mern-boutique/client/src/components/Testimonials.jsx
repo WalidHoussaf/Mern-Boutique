@@ -139,7 +139,7 @@ const Testimonials = () => {
     if (!isPaused && filteredReviews.length > reviewsPerPage) {
       intervalRef.current = setInterval(() => {
         setVisiblePage((prev) => (prev + 1) % totalPages);
-      }, 8000);
+      }, 5000); // Changed from 8000 to 5000
     }
     
     return () => {
@@ -259,7 +259,16 @@ const Testimonials = () => {
           onMouseLeave={() => setIsPaused(false)}
         >
           {getCurrentPageReviews().map((review) => (
-            <TestimonialCard key={review._id} review={review} t={t} />
+            <div 
+              key={review._id}
+              className="transform transition-all duration-500 ease-out"
+              style={{
+                opacity: 1,
+                transform: 'translateY(0)',
+              }}
+            >
+              <TestimonialCard review={review} t={t} />
+            </div>
           ))}
         </div>
 
