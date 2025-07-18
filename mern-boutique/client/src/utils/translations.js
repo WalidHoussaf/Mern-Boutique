@@ -335,6 +335,7 @@ const translations = {
     you_might_also_like: 'You Might Also Like',
     zoom_in: 'Zoom in',
     zoom_out: 'Zoom out',
+    insufficient_stock: 'Not enough stock available. Only {available} units available.',
 
     // Cart Page
     your_cart: 'Your Shopping Cart',
@@ -819,7 +820,7 @@ const translations = {
     delete: 'Delete',
     view: 'View',
     uncategorized: 'Uncategorized',
-    in_stock: '{count} in stock',
+    in_stock: 'In Stock',
     out_of_stock: 'Out of stock',
     confirm_delete: 'Confirm Delete',
     confirm_delete_product_desc: 'Are you sure you want to delete {productName}? This action cannot be undone.',
@@ -1325,6 +1326,7 @@ const translations = {
     you_might_also_like: 'Vous Aimerez Aussi',
     zoom_in: 'Zoomer',
     zoom_out: 'Dézoomer',
+    insufficient_stock: 'Not enough stock available. Only {available} units available.',
 
     // Cart Page
     your_cart: 'Votre Panier',
@@ -1686,7 +1688,7 @@ const translations = {
     date: 'Date',
     method: 'Méthode',
     unknown_user: 'Utilisateur Inconnu',
-    no_email_available: 'Aucun e-mail disponible',
+    no_email_available: 'No email available',
     product: 'Produit',
     calculated_total_differs: '*Le total calculé diffère du total de la commande',
     name: 'Nom',

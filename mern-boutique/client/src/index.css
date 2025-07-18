@@ -44,9 +44,19 @@ a.active hr {
 }
 
 .Toastify__toast {
-  white-space: nowrap;
+  white-space: pre-line;
   overflow: visible;
-  padding: 10px 20px;
+  padding: 16px 24px;
+  min-height: auto;
+  line-height: 1.5;
+}
+
+.Toastify__toast-body {
+  white-space: pre-line;
+  word-break: break-word;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 /* Custom transitions */

@@ -216,7 +216,27 @@ export const ShopContextProvider = (props) => {
       return false;
     }
     
+    // Find the product
+    const product = allProducts.find(p => p._id === productId);
+    if (!product) {
+      toast.error(getTranslation('product_not_found', language));
+      return false;
+    }
+
+    // Check if product is in stock
+    if (product.countInStock <= 0) {
+      toast.error(getTranslation('out_of_stock', language));
+      return false;
+    }
+
     const itemKey = getCartItemKey(productId, size);
+    
+    // Check if adding this quantity would exceed available stock
+    const currentQuantity = cartItems[itemKey]?.quantity || 0;
+    if (currentQuantity + quantity > product.countInStock) {
+      toast.error(getTranslation('insufficient_stock', language).replace('{available}', product.countInStock));
+      return false;
+    }
     
     setCartItems((prev) => {
       const newCart = { ...prev };

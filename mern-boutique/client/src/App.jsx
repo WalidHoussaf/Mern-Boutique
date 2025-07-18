@@ -93,8 +93,12 @@ const App = () => {
         draggable
         pauseOnHover
         style={{
-          width: 'fit-content',
-          maxWidth: '600px',
+          width: 'auto',
+          maxWidth: '800px',
+        }}
+        toastStyle={{
+          whiteSpace: 'pre-line',
+          wordBreak: 'break-word',
         }}
         limit={3}
         preventDuplicates

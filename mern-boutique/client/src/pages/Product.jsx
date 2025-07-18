@@ -496,12 +496,7 @@ const Product = () => {
                     ? 'bg-green-100 text-green-800' 
                     : 'bg-red-100 text-red-800'
                 }`}>
-                  {product?.countInStock > 0 ? t('in_stock').replace('{count}', product.countInStock) : t('out_of_stock')}
-                  {product?.countInStock > 0 && (
-                    <span className="ml-1 text-gray-500">
-                      ({product.countInStock} {t('units')})
-                    </span>
-                  )}
+                  {product?.countInStock > 0 ? t('in_stock') : t('out_of_stock')}
                 </span>
               </div>
 
@@ -672,16 +667,26 @@ const Product = () => {
             
             {/* Add to cart button */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: product?.countInStock > 0 ? 1.02 : 1 }}
+              whileTap={{ scale: product?.countInStock > 0 ? 0.98 : 1 }}
               onClick={handleAddToCart}
+              disabled={!product?.countInStock || product.countInStock <= 0}
               className={`w-full py-3 px-6 rounded-lg shadow-sm flex items-center justify-center text-base font-medium transition-colors ${
-                addedToCart
+                !product?.countInStock || product.countInStock <= 0
+                  ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                  : addedToCart
                   ? 'bg-green-500 hover:bg-green-600 text-white'
                   : 'bg-primary hover:bg-primary-dark text-white'
               }`}
             >
-              {addedToCart ? (
+              {!product?.countInStock || product.countInStock <= 0 ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {t('out_of_stock')}
+                </>
+              ) : addedToCart ? (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -696,7 +701,7 @@ const Product = () => {
                   {t('add_to_cart')}
                 </>
               )}
-            </motion.button>
+                        </motion.button>
             
             {/* Product Details Accordion */}
             <div className="mt-8 border-t pt-8">
