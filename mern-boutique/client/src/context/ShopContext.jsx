@@ -12,9 +12,10 @@ export const ShopContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
   const [wishlistItems, setWishlistItems] = useState({});
   const [showSearch, setShowSearch] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Changed to true initially
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   // Initialize currency from localStorage if available
   const initialCurrency = localStorage.getItem('currency') || "$";
@@ -33,93 +34,86 @@ export const ShopContextProvider = (props) => {
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
+  // Initialize auth state first
   useEffect(() => {
-    axios.defaults.withCredentials = true;
-    
-    const setupAuthToken = () => {
-      const userInfo = localStorage.getItem('user');
-      if (userInfo) {
-        try {
+    const initializeAuth = async () => {
+      try {
+        const userInfo = localStorage.getItem('user');
+        if (userInfo) {
           const parsedUser = JSON.parse(userInfo);
           if (parsedUser && parsedUser.token) {
-            // Setting the Authorization header for every request
+            setUser(parsedUser);
             axios.defaults.headers.common['Authorization'] = `Bearer ${parsedUser.token}`;
           } else {
-            console.warn('User info found in localStorage but no token available');
-            // Clear invalid user data
             localStorage.removeItem('user');
             setUser(null);
           }
-        } catch (error) {
-          console.error('Error parsing user info from localStorage:', error);
-          // Clear invalid user data
-          localStorage.removeItem('user');
-          setUser(null);
         }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        localStorage.removeItem('user');
+        setUser(null);
       }
     };
 
-    // Initial setup
-    setupAuthToken();
-    
-    const interceptor = axios.interceptors.request.use(
-      (config) => {
-        // Refresh token setup on each request
-        setupAuthToken();
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-    
-    return () => {
-      axios.interceptors.request.eject(interceptor);
-    };
+    initializeAuth();
   }, []);
 
+  // Then initialize products and cart
   useEffect(() => {
-    // Fetch products from API
-    const fetchProducts = async () => {
+    const initializeData = async () => {
       setLoading(true);
       try {
+        // Fetch products
         const response = await axios.get('/api/products');
         if (response.status === 200) {
           const data = response.data;
-          
-          // Check if data is an array or has a products property
           if (Array.isArray(data)) {
             setAllProducts(data);
           } else if (data.products && Array.isArray(data.products)) {
             setAllProducts(data.products);
-          } else {
-            console.error('Unexpected data format from API:', data);
-            setAllProducts([]);
           }
-        } else {
-          console.error('Failed to fetch products:', response.status);
+        }
+
+        // Load cart after products are loaded
+        const storedCart = localStorage.getItem('cart');
+        if (storedCart) {
+          try {
+            const parsedCart = JSON.parse(storedCart);
+            setCartItems(parsedCart);
+          } catch (error) {
+            console.error('Error parsing cart:', error);
+            localStorage.removeItem('cart');
+          }
         }
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error initializing data:', error);
       } finally {
         setLoading(false);
+        setIsInitialized(true);
       }
     };
 
-    fetchProducts();
-    
-    // Load cart from localStorage
-    const storedCart = localStorage.getItem('cart');
-    if (storedCart) {
-      setCartItems(JSON.parse(storedCart));
-    }
-    
-    // Load user from localStorage
+    initializeData();
+  }, []);
+
+  // Load user data in a separate effect to avoid coupling with cart loading
+  useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser && parsedUser.token) {
+          setUser(parsedUser);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${parsedUser.token}`;
+        }
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+        localStorage.removeItem('user');
+        setUser(null);
+      }
     }
-  }, []);
+  }, []); // Run only once on mount
 
   // Create a function to refresh products
   const refreshProducts = async () => {
@@ -182,15 +176,12 @@ export const ShopContextProvider = (props) => {
     fetchWishlist();
   }, [user]);
 
-  // Debug log whenever allProducts changes
-  useEffect(() => {
-    console.log(`ShopContext now has ${allProducts.length} products`);
-  }, [allProducts]);
-  
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (isInitialized) { // Only save cart after initialization
+      localStorage.setItem('cart', JSON.stringify(cartItems));
+    }
+  }, [cartItems, isInitialized]);
   
   // Save language to localStorage whenever it changes
   useEffect(() => {

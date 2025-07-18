@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
@@ -15,12 +15,13 @@ const PlaceOrder = () => {
     getCartCount,
     clearCart,
     currency = '$',
-    createOrder
+    createOrder,
+    loading
   } = useContext(ShopContext);
   
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPageReady, setIsPageReady] = useState(false);
   const [shippingInfo, setShippingInfo] = useState(() => {
-    // Try to load saved shipping info from localStorage
     const savedInfo = localStorage.getItem('shippingInfo');
     return savedInfo ? JSON.parse(savedInfo) : {
       fullName: user?.name || '',
@@ -32,10 +33,82 @@ const PlaceOrder = () => {
     };
   });
   const [fieldErrors, setFieldErrors] = useState({});
-  const [paymentMethod, setPaymentMethod] = useState('cash');  // Changed default to cash
-  
-  // Remove cardInfo state since we're not using it anymore
-  
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+
+  // Memoize cart products calculation
+  const cartProductsWithInfo = useMemo(() => {
+    return Object.entries(cartItems).map(([itemKey, item]) => {
+      const product = allProducts.find(p => p._id === item.productId);
+      if (!product) return null;
+      
+      return {
+        ...product,
+        cartItemKey: itemKey,
+        size: item.size,
+        quantity: item.quantity
+      };
+    }).filter(Boolean);
+  }, [cartItems, allProducts]);
+
+  // Memoize order totals calculation
+  const orderTotals = useMemo(() => {
+    const subtotal = getCartTotal();
+    const tax = subtotal * 0.05;
+    const shipping = subtotal > 100 ? 0 : 10;
+    const total = subtotal + tax + shipping;
+
+    return {
+      subtotal,
+      tax,
+      shipping,
+      total
+    };
+  }, [getCartTotal]);
+
+  // Memoize auth check to prevent unnecessary reruns
+  const checkAuth = useCallback(() => {
+    const userInfo = localStorage.getItem('user');
+    const parsedUser = userInfo ? JSON.parse(userInfo) : null;
+    
+    if (!parsedUser || !parsedUser.token || !user) {
+      toast.error(t('please_login_purchase'));
+      navigate('/login?redirect=place-order');
+      return false;
+    }
+
+    if (getCartCount() === 0) {
+      navigate('/cart');
+      return false;
+    }
+
+    return true;
+  }, [user, navigate, getCartCount, t]);
+
+  // Initialize page
+  useEffect(() => {
+    if (!loading) {
+      const isAuthenticated = checkAuth();
+      if (isAuthenticated) {
+        setIsPageReady(true);
+      }
+    }
+  }, [loading, checkAuth]);
+
+  // Save shipping info to localStorage
+  useEffect(() => {
+    if (isPageReady) {
+      localStorage.setItem('shippingInfo', JSON.stringify(shippingInfo));
+    }
+  }, [shippingInfo, isPageReady]);
+
+  if (!isPageReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
   const handlePaymentMethodChange = (method) => {
     setPaymentMethod(method);
   };
@@ -59,11 +132,6 @@ const PlaceOrder = () => {
     }
   };
 
-  // Save shipping info to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('shippingInfo', JSON.stringify(shippingInfo));
-  }, [shippingInfo]);
-  
   // Format phone number as user types
   const formatPhoneNumber = (value) => {
     const numbers = value.replace(/\D/g, '');
@@ -138,43 +206,7 @@ const PlaceOrder = () => {
     }));
   };
   
-  // Redirect if not logged in
-  useEffect(() => {
-    if (!user) {
-      toast.error(t('please_login_purchase'));
-      navigate('/login?redirect=place-order');
-      return;
-    }
-    
-    // Redirect if cart is empty
-    if (getCartCount() === 0) {
-      navigate('/cart');
-    }
-  }, [user, navigate, getCartCount, t]);
-  
-  // Calculate order totals
-  const subtotal = getCartTotal();
-  const tax = subtotal * 0.05; // 5% tax
-  const shipping = subtotal > 100 ? 0 : 10; // Free shipping over $100
-  const total = subtotal + tax + shipping;
-  
-  // Get cart products with additional info
-  const cartProductsWithInfo = Object.entries(cartItems).map(([itemKey, item]) => {
-    const product = allProducts.find(p => p._id === item.productId);
-    if (!product) return null;
-    
-    return {
-      ...product,
-      cartItemKey: itemKey,
-      size: item.size,
-      quantity: item.quantity
-    };
-  }).filter(Boolean);
-  
-  // Remove cardInfo state since we're not using it anymore
-  
   const handlePlaceOrder = async () => {
-
     // Validate all fields
     const errors = {};
     Object.keys(shippingInfo).forEach(field => {
@@ -182,7 +214,6 @@ const PlaceOrder = () => {
       if (error) errors[field] = error;
     });
 
-    // If there are validation errors, show them and return
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       toast.error(t('fix_shipping_errors'));
@@ -192,55 +223,40 @@ const PlaceOrder = () => {
     setIsProcessing(true);
     
     try {
-      // Verify user is logged in
-      if (!user || !user._id) {
-        toast.error(t('must_login_order'));
-        navigate('/login?redirect=place-order');
+      if (!checkAuth()) {
         return;
       }
 
       // Prepare order items from cart
-      const orderItems = cartProductsWithInfo.map(item => {
-        let imageUrl = '';
-        if (typeof item.image === 'string') {
-          imageUrl = item.image;
-        } else if (Array.isArray(item.image) && item.image.length > 0) {
-          imageUrl = item.image[0];
-        } else {
-          imageUrl = 'https://via.placeholder.com/150';
-        }
-
-        return {
-          name: item.name,
-          qty: item.quantity,
-          image: imageUrl,
-          price: item.price,
-          product: item._id
-        };
-      });
-      
-      // Prepare shipping address from shipping info
-      const shippingAddress = {
-        address: shippingInfo.address,
-        city: shippingInfo.city,
-        postalCode: shippingInfo.postalCode,
-        country: shippingInfo.country,
-        phoneNumber: shippingInfo.phoneNumber // Added phone number to shipping address
-      };
+      const orderItems = cartProductsWithInfo.map(item => ({
+        name: item.name,
+        qty: item.quantity,
+        image: typeof item.image === 'string' ? item.image : 
+              Array.isArray(item.image) && item.image.length > 0 ? item.image[0] : 
+              'https://via.placeholder.com/150',
+        price: item.price,
+        product: item._id
+      }));
       
       // Create order object
       const orderData = {
         orderItems,
-        shippingAddress,
+        shippingAddress: {
+          address: shippingInfo.address,
+          city: shippingInfo.city,
+          postalCode: shippingInfo.postalCode,
+          country: shippingInfo.country,
+          phoneNumber: shippingInfo.phoneNumber
+        },
         paymentMethod,
-        itemsPrice: Number(subtotal.toFixed(2)),
-        taxPrice: Number(tax.toFixed(2)),
-        shippingPrice: Number(shipping.toFixed(2)),
-        totalPrice: Number(total.toFixed(2))
+        itemsPrice: Number(orderTotals.subtotal.toFixed(2)),
+        taxPrice: Number(orderTotals.tax.toFixed(2)),
+        shippingPrice: Number(orderTotals.shipping.toFixed(2)),
+        totalPrice: Number(orderTotals.total.toFixed(2))
       };
       
-      // Submit order to backend
       const createdOrder = await createOrder(orderData);
+      localStorage.removeItem('shippingInfo');
       clearCart();
       toast.success(t('order_placed_successfully'));
       navigate(`/orders`);
@@ -248,8 +264,8 @@ const PlaceOrder = () => {
       console.error('Error placing order:', error);
       let errorMessage = t('failed_place_order');
       
-      if (error.response && error.response.data) {
-        errorMessage = error.response.data.message || errorMessage;
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
       }
       
       toast.error(errorMessage);
@@ -332,7 +348,7 @@ const PlaceOrder = () => {
                   )}
               </div>
               <div className="md:col-span-2">
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">{t('address')}</label>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">{t('address_label')}</label>
                 <input
                   type="text"
                   id="address"
@@ -542,16 +558,16 @@ const PlaceOrder = () => {
             <div className="space-y-3 py-4 border-t border-gray-100">
               <div className="flex justify-between items-center text-gray-700">
                 <span className="font-medium">{t('subtotal')}</span>
-                <span>{currency}{subtotal.toFixed(2)}</span>
+                <span>{currency}{orderTotals.subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-gray-700">
                 <span className="font-medium">{t('tax')}</span>
-                <span>{currency}{tax.toFixed(2)}</span>
+                <span>{currency}{orderTotals.tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-gray-700">
                 <span className="font-medium">{t('shipping')}</span>
                 <span className="flex items-center">
-                  {subtotal > 100 ? (
+                  {orderTotals.shipping === 0 ? (
                                           <span className="text-green-500 font-medium flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -559,7 +575,7 @@ const PlaceOrder = () => {
                         {t('free')}
                       </span>
                   ) : (
-                    <span>{currency}{shipping.toFixed(2)}</span>
+                    <span>{currency}{orderTotals.shipping.toFixed(2)}</span>
                   )}
                 </span>
               </div>
@@ -568,7 +584,7 @@ const PlaceOrder = () => {
             <div className="pt-4 mt-4 border-t border-gray-100">
               <div className="flex justify-between items-center font-medium text-lg mb-6">
                 <span className="text-gray-800">{t('total')}</span>
-                <span className="text-xl text-primary">{currency}{total.toFixed(2)}</span>
+                <span className="text-xl text-primary">{currency}{orderTotals.total.toFixed(2)}</span>
               </div>
               
               <motion.button 
