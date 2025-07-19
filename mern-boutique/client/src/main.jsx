@@ -4,6 +4,7 @@ import App from './App.jsx'
 import './index.css'
 import { BrowserRouter } from 'react-router-dom'
 import { ShopContextProvider } from './context/ShopContext.jsx'
+import { NotificationProvider } from './context/NotificationContext'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -13,9 +14,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         v7_relativeSplatPath: true,
       }}
     >
-      <ShopContextProvider>
-        <App />
-      </ShopContextProvider>
+      <NotificationProvider>
+        <ShopContextProvider>
+          <App />
+        </ShopContextProvider>
+      </NotificationProvider>
     </BrowserRouter>
   </React.StrictMode>,
 )

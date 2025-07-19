@@ -4,6 +4,8 @@ import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import './navbar.css';
 import useTranslation from '../utils/useTranslation';
+import { useNotifications } from '../context/NotificationContext';
+import NotificationCenter from './NotificationCenter';
 
 const Navbar = () => {
   const [visible, setVisible] = useState(false);
@@ -11,6 +13,7 @@ const Navbar = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const { setShowSearch, getCartCount, getWishlistCount, navigate, user, logout } = useContext(ShopContext);
   const { t } = useTranslation();
+  const { unreadCount } = useNotifications();
 
   // Handle scroll event to change navbar appearance
   useEffect(() => {
@@ -37,13 +40,6 @@ const Navbar = () => {
     window.scrollTo(0, 0);
     setShowSearch(false);
   };
-
-  // Sample notifications data
-  const notifications = [
-    { id: 1, type: 'info', message: t('notification_new_collection'), time: `2 ${t('notification_time_hours')}` },
-    { id: 2, type: 'discount', message: t('notification_summer_discount'), time: `1 ${t('notification_time_day')}` },
-    { id: 3, type: 'shipping', message: t('notification_order_shipped'), time: `3 ${t('notification_time_days')}` }
-  ];
 
   // Handle registration link separately from normal navigation
   const handleRegister = () => {
@@ -256,7 +252,9 @@ const Navbar = () => {
                   </svg>
                   <span className="absolute -bottom-1 -left-1 -right-1 h-[2px] rounded-full bg-gradient-to-r from-transparent via-primary/70 to-transparent transition-all duration-300 opacity-0 group-hover:opacity-100"></span>
                 </div>
-                <span className="absolute -right-1 -top-1 w-3 h-3 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full border-2 border-white z-20"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 w-3 h-3 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full border-2 border-white z-20"></span>
+                )}
               </div>
 
               {/* Notification Dropdown */}
@@ -267,49 +265,7 @@ const Navbar = () => {
                     className="fixed inset-0 z-40"
                     onClick={() => setShowNotifications(false)}
                   ></div>
-                  <div className="absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-100/80 overflow-hidden transition-all duration-300 transform origin-top-right animate-dropdown z-50">
-                    <div className="bg-gradient-to-r from-primary/10 to-primary/20 py-3 px-4">
-                      <h3 className="font-medium text-primary text-sm uppercase tracking-wide gold-gradient">{t('notifications')}</h3>
-                    </div>
-                    <div className="divide-y divide-gray-100/80">
-                      {notifications.map(note => (
-                        <div key={note.id} className="p-3 hover:bg-primary/5 cursor-pointer transition-colors duration-200">
-                          <div className="flex items-start gap-3">
-                            <div className={`mt-0.5 w-8 h-8 rounded-full flex items-center justify-center ${
-                              note.type === 'info' ? 'bg-blue-100 text-blue-500' : 
-                              note.type === 'discount' ? 'bg-green-100 text-green-500' : 
-                              'bg-primary/10 text-primary'
-                            }`}>
-                              {note.type === 'info' && (
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
-                                </svg>
-                              )}
-                              {note.type === 'discount' && (
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                                  <path fillRule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.25 0 0115.25 18H4.75A2.75 2.25 0 012 15.25v-8.5A2.75 2.25 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clipRule="evenodd" />
-                                </svg>
-                              )}
-                              {note.type === 'shipping' && (
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                                  <path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" />
-                                </svg>
-                              )}
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-700">{note.message}</p>
-                              <p className="text-xs text-gray-400 mt-1">{note.time}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="p-3 bg-gray-50/50 text-center">
-                      <button className="text-xs text-primary hover:text-primary/80 font-medium transition-colors">
-                        {t('view_all_notifications')}
-                      </button>
-                    </div>
-                  </div>
+                  <NotificationCenter onClose={() => setShowNotifications(false)} />
                 </>
               )}
             </div>

@@ -189,18 +189,7 @@ const Product = () => {
       
       if (success) {
         setAddedToCart(true);
-        toast.success(t('product_added_cart', { productName: product.name, size: selectedSize }), {
-          position: "bottom-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        });
-        
-        // Reset after 2 seconds
+        // Remove this toast since it's already handled in ShopContext
         setTimeout(() => {
           setAddedToCart(false);
         }, 2000);

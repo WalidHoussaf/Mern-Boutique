@@ -1,18 +1,60 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { getTranslation } from "../utils/translations";
+import { useNotifications } from "./NotificationContext";
 
 export const ShopContext = createContext(null);
 
+// Create a custom toast interceptor
+const createToastInterceptor = (addNotification) => {
+  const originalToast = { ...toast };
+  const types = ['success', 'error', 'info', 'warning'];
+
+  const toastConfig = {
+    position: "bottom-right",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "colored",
+  };
+
+  types.forEach(type => {
+    toast[type] = (message, options = {}) => {
+      // Add to notification center
+      addNotification(message, type);
+      // Call original toast with bottom position
+      return originalToast[type](message, { ...toastConfig, ...options });
+    };
+  });
+
+  return () => {
+    // Restore original toast functions
+    types.forEach(type => {
+      toast[type] = originalToast[type];
+    });
+  };
+};
+
 export const ShopContextProvider = (props) => {
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
+
+  // Set up toast interceptor
+  useEffect(() => {
+    const cleanup = createToastInterceptor(addNotification);
+    return cleanup;
+  }, [addNotification]);
+
   const [allProducts, setAllProducts] = useState([]);
   const [cartItems, setCartItems] = useState({});
   const [wishlistItems, setWishlistItems] = useState({});
   const [showSearch, setShowSearch] = useState(false);
-  const [loading, setLoading] = useState(true); // Changed to true initially
+  const [loading, setLoading] = useState(true);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -207,14 +249,12 @@ export const ShopContextProvider = (props) => {
       return false;
     }
     
-    // Find the product
     const product = allProducts.find(p => p._id === productId);
     if (!product) {
       toast.error(getTranslation('product_not_found', language));
       return false;
     }
 
-    // Check if product is in stock
     if (product.countInStock <= 0) {
       toast.error(getTranslation('out_of_stock', language));
       return false;
@@ -222,7 +262,6 @@ export const ShopContextProvider = (props) => {
 
     const itemKey = getCartItemKey(productId, size);
     
-    // Check if adding this quantity would exceed available stock
     const currentQuantity = cartItems[itemKey]?.quantity || 0;
     if (currentQuantity + quantity > product.countInStock) {
       toast.error(getTranslation('insufficient_stock', language).replace('{available}', product.countInStock));
@@ -243,9 +282,13 @@ export const ShopContextProvider = (props) => {
           quantity
         };
       }
-      
       return newCart;
     });
+
+    toast.success(getTranslation('product_added_cart', language)
+      .replace('{productName}', product.name)
+      .replace('{size}', size)
+    );
     
     return true;
   };
@@ -299,7 +342,7 @@ export const ShopContextProvider = (props) => {
   const addToWishlist = async (productId) => {
     // Check if user is logged in
     if (!user) {
-      toast.info(getTranslation('please_login_wishlist', language));
+      toast.warning(getTranslation('please_login_wishlist', language));
       navigate('/login?redirect=/product/' + productId);
       return;
     }
@@ -351,7 +394,7 @@ export const ShopContextProvider = (props) => {
   const removeFromWishlist = async (productId) => {
     // Check if user is logged in
     if (!user) {
-      toast.info(getTranslation('please_login_manage_wishlist', language));
+      toast.warning(getTranslation('please_login_manage_wishlist', language));
       return;
     }
     
@@ -384,7 +427,7 @@ export const ShopContextProvider = (props) => {
   const clearWishlist = async () => {
     // Check if user is logged in
     if (!user) {
-      toast.info(getTranslation('please_login_manage_wishlist', language));
+      toast.warning(getTranslation('please_login_manage_wishlist', language));
       return;
     }
     
@@ -394,7 +437,7 @@ export const ShopContextProvider = (props) => {
       
       // Clear local state
       setWishlistItems({});
-      toast.info(getTranslation('wishlist_cleared', language));
+      toast.success(getTranslation('wishlist_cleared', language));
     } catch (error) {
       console.error('Error clearing wishlist:', error);
       toast.error(getTranslation('failed_clear_wishlist', language));
@@ -423,7 +466,9 @@ export const ShopContextProvider = (props) => {
       // Set token in axios defaults
       axios.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
       
-      toast.success(getTranslation('welcome_back', language).replace('{name}', userData.name));
+      toast.success(
+        getTranslation('welcome_back', language).replace('{name}', userData.name)
+      );
       navigate('/');
     } else {
       console.error('Login failed: No token received in userData:', userData);
@@ -432,7 +477,7 @@ export const ShopContextProvider = (props) => {
   };
 
   // Logout function
-  const logout = async () => {
+  const logout = () => {
     try {
       // Backend logout (optional - to invalidate token on server)
       // await axios.post('/api/users/logout');

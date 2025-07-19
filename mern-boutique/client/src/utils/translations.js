@@ -990,6 +990,14 @@ const translations = {
     review_delete_error: 'Failed to delete review',
     delete: 'Delete',
     cancel: 'Cancel',
+
+    // Notification translations
+    notifications: 'Notifications',
+    mark_all_read: 'Mark all as read',
+    clear_all: 'Clear all',
+    no_notifications: 'No notifications',
+    mark_read: 'Mark as read',
+    delete: 'Delete',
   },
   fr: {
     // Navigation & Common
