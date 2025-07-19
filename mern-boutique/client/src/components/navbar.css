@@ -200,3 +200,11 @@ div:hover .gold-heart {
 .woman-icon:hover, .man-icon:hover, .kids-icon:hover {
   transform: scale(1.1);
 } 
+
+.primary-icon {
+  transition: filter 0.3s ease;
+}
+
+.group:hover .primary-icon {
+  filter: brightness(0) saturate(100%) invert(24%) sepia(85%) saturate(1642%) hue-rotate(187deg) brightness(94%) contrast(102%);
+} 

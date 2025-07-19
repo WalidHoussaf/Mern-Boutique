@@ -42,7 +42,7 @@ const createToastInterceptor = (addNotification) => {
 
 export const ShopContextProvider = (props) => {
   const navigate = useNavigate();
-  const { addNotification } = useNotifications();
+  const { addNotification, refreshNotifications } = useNotifications();
 
   // Set up toast interceptor
   useEffect(() => {
@@ -466,6 +466,9 @@ export const ShopContextProvider = (props) => {
       // Set token in axios defaults
       axios.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
       
+      // Refresh notifications to show login notification immediately
+      refreshNotifications();
+
       toast.success(
         getTranslation('welcome_back', language).replace('{name}', userData.name)
       );

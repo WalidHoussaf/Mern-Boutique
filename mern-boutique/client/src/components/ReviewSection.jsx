@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
+import { useNotifications } from '../context/NotificationContext';
 import axios from 'axios';
 import { FaStar, FaThumbsUp, FaImage, FaCheck, FaTrash, FaTimes, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -21,6 +22,7 @@ const ReviewSection = ({ productId }) => {
   const [reviewToDelete, setReviewToDelete] = useState(null);
 
   const { user: userInfo } = useContext(ShopContext);
+  const { refreshNotifications } = useNotifications();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -82,6 +84,8 @@ const ReviewSection = ({ productId }) => {
       setImages([]);
       fetchReviews();
       toast.success('Review submitted successfully');
+      // Refresh notifications to show the review approval notification
+      await refreshNotifications();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to submit review');
     } finally {
@@ -122,6 +126,8 @@ const ReviewSection = ({ productId }) => {
       setEditImages([]);
       fetchReviews();
       toast.success('Review updated successfully');
+      // Refresh notifications to show the review update notification
+      await refreshNotifications();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update review');
     } finally {
@@ -141,6 +147,8 @@ const ReviewSection = ({ productId }) => {
       await axios.delete(`/api/products/${productId}/reviews/${reviewToDelete}`);
       fetchReviews();
       toast.success(t('review_deleted_success'));
+      // Refresh notifications after review deletion
+      await refreshNotifications();
       setShowDeleteModal(false);
       setReviewToDelete(null);
     } catch (error) {

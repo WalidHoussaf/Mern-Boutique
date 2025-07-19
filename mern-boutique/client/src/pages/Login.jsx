@@ -111,7 +111,6 @@ const Login = () => {
       }
       
       login(userData);
-      toast.success(isLogin ? t('login_success') : t('register_success'));
       
       // Clear form data after successful registration
       if (!isLogin) {

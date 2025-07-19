@@ -134,6 +134,8 @@ const translations = {
     emailAddress: 'Email Address',
     emailPlaceholder: 'you@example.com',
     subscribeNow: 'Subscribe Now',
+    subscribing: 'Subscribing...',
+    thanksForSubscribing: 'Thanks for subscribing! Welcome to our fashion community.',
     privacyNotice: 'We respect your privacy. Unsubscribe at any time.',
     // Navbar
     navbarHome: 'Home',
@@ -1133,6 +1135,8 @@ const translations = {
     emailAddress: 'Adresse e-mail',
     emailPlaceholder: 'vous@exemple.com',
     subscribeNow: 'Abonnez-vous maintenant',
+    subscribing: 'S\'abonner...',
+    thanksForSubscribing: 'Merci pour votre abonnement ! Bienvenue dans notre communauté de mode.',
     privacyNotice: 'Nous respectons votre vie privée. Désabonnez-vous à tout moment.',
     // Navbar
     navbarHome: 'Accueil',

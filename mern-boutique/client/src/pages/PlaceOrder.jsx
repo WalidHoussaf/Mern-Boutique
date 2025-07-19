@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import { ShopContext } from '../context/ShopContext';
+import { useNotifications } from '../context/NotificationContext';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import useTranslation from '../utils/useTranslation';
@@ -18,6 +19,7 @@ const PlaceOrder = () => {
     createOrder,
     loading
   } = useContext(ShopContext);
+  const { refreshNotifications } = useNotifications();
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPageReady, setIsPageReady] = useState(false);
@@ -259,6 +261,8 @@ const PlaceOrder = () => {
       localStorage.removeItem('shippingInfo');
       clearCart();
       toast.success(t('order_placed_successfully'));
+      // Refresh notifications to show the order placement notification
+      await refreshNotifications();
       navigate(`/orders`);
     } catch (error) {
       console.error('Error placing order:', error);

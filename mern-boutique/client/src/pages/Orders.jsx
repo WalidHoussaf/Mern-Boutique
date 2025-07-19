@@ -4,10 +4,12 @@ import { toast } from 'react-toastify';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import useTranslation from '../utils/useTranslation';
+import { useNotifications } from '../context/NotificationContext';
 
 const Orders = () => {
   const { id: orderIdParam } = useParams();
   const { user, navigate, fetchUserOrders, getOrderById, updateOrderToPaid, orders: contextOrders, ordersLoading } = useContext(ShopContext);
+  const { refreshNotifications } = useNotifications();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -170,8 +172,11 @@ const Orders = () => {
       // Update the selected order in the UI
       setSelectedOrder(updatedOrder);
       
-      // Show translated success notification for cash payment
+      // Show success message
       toast.success(t('payment_update_success'));
+      
+      // Refresh notifications to show the server notification immediately
+      await refreshNotifications();
       
       // Refresh orders list
       await refreshOrdersList();
@@ -318,8 +323,11 @@ const Orders = () => {
       // Close payment modal
       handleClosePaymentModal();
       
-      // Show translated success notification for card payment
+      // Show success message
       toast.success(t('payment_success'));
+      
+      // Refresh notifications to show the server notification immediately
+      await refreshNotifications();
       
       // Refresh orders list
       await refreshOrdersList();

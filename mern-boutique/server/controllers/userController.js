@@ -4,6 +4,7 @@ import User from '../models/userModel.js';
 import Order from '../models/orderModel.js';
 import UserSettings from '../models/userSettingsModel.js';
 import Wishlist from '../models/wishlistModel.js';
+import NotificationService from '../services/notificationService.js';
 
 // @desc    Auth user & get token
 // @route   POST /api/users/login
@@ -14,6 +15,10 @@ const authUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
+    // Create notification for new login
+    const deviceInfo = req.headers['user-agent'] || 'unknown device';
+    await NotificationService.newLogin(user._id, deviceInfo);
+
     res.json({
       _id: user._id,
       name: user.name,
@@ -103,6 +108,8 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     
     if (req.body.password) {
       user.password = req.body.password;
+      // Create notification for password change
+      await NotificationService.passwordChanged(user._id);
     }
     
     // Handle profile image upload if file is present
@@ -113,6 +120,9 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     }
 
     const updatedUser = await user.save();
+
+    // Create notification for profile update
+    await NotificationService.profileUpdated(user._id);
 
     res.json({
       _id: updatedUser._id,

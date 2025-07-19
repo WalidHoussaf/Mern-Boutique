@@ -143,8 +143,8 @@ const Navbar = () => {
                   </svg>
                   {wishlistCount > 0 && (
                     <div className="absolute -top-1.5 -right-1.5 flex items-center justify-center">
-                      <span className="animate-ping absolute flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative flex rounded-full h-3.5 w-3.5 bg-gradient-to-r from-red-500 to-red-600 text-[9px] font-bold text-white items-center justify-center shadow-sm">
+                      <span className="animate-ping absolute flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span className="relative flex rounded-full h-3.5 w-3.5 bg-gradient-to-r from-primary to-primary/90 text-[9px] font-bold text-white items-center justify-center shadow-sm">
                         {wishlistCount}
                       </span>
                     </div>
@@ -223,7 +223,7 @@ const Navbar = () => {
             </div>
           </ul>
 
-          {/* Search, Notifications, Profile, Cart, and Menu */}
+          {/* Search, Notifications, Cart, Profile*/}
           <div className="flex items-center gap-7">
             {/* Search Icon */}
             <div 
@@ -270,12 +270,42 @@ const Navbar = () => {
               )}
             </div>
 
+            {/* Cart Icon */}
+            <div onClick={() => handleNavigation('/cart')} className="relative cursor-pointer group">
+              <div className="absolute inset-0 rounded-full bg-primary/10 scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+              <div className="relative z-10 flex items-center justify-center w-9 h-9 group-hover:text-primary transition-colors">
+                <img src={assets.cart_icon} className="w-5 h-5 primary-icon" alt="Cart" />
+                <span className="absolute -bottom-1 -left-1 -right-1 h-[2px] rounded-full bg-gradient-to-r from-transparent via-primary/70 to-transparent transition-all duration-300 opacity-0 group-hover:opacity-100"></span>
+              </div>
+              {getCartCount() > 0 && (
+                <div className="absolute -right-1.5 -top-1.5 flex items-center justify-center">
+                  <span className="animate-ping absolute flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative flex rounded-full h-4 w-4 bg-gradient-to-r from-primary to-primary/90 text-[9px] font-bold text-white items-center justify-center shadow-sm">
+                    {getCartCount()}
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Profile Icon */}
             <div className="group relative z-50">
               <div className="relative cursor-pointer group">
                 <div className="absolute inset-0 rounded-full bg-primary/10 scale-0 group-hover:scale-100 transition-transform duration-300"></div>
                 <div className="relative z-10 flex items-center justify-center w-9 h-9 group-hover:text-primary transition-colors">
-                  <img className="w-5 h-5" src={assets.profile_icon} alt="Profile" />
+                  {user?.profileImage ? (
+                    <img 
+                      className="w-7 h-7 rounded-full object-cover border border-gray-200"
+                      src={user.profileImage}
+                      alt={user.name || "User Profile"}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = assets.profile_icon;
+                        e.target.className = "w-5 h-5 primary-icon";
+                      }}
+                    />
+                  ) : (
+                    <img className="w-5 h-5 primary-icon" src={assets.profile_icon} alt="Profile" />
+                  )}
                   <span className="absolute -bottom-1 -left-1 -right-1 h-[2px] rounded-full bg-gradient-to-r from-transparent via-primary/70 to-transparent transition-all duration-300 opacity-0 group-hover:opacity-100"></span>
                 </div>
               </div>
@@ -372,23 +402,6 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Cart Icon */}
-            <div onClick={() => handleNavigation('/cart')} className="relative cursor-pointer group">
-              <div className="absolute inset-0 rounded-full bg-primary/10 scale-0 group-hover:scale-100 transition-transform duration-300"></div>
-              <div className="relative z-10 flex items-center justify-center w-9 h-9 group-hover:text-primary transition-colors">
-                <img src={assets.cart_icon} className="w-5 h-5" alt="Cart" />
-                <span className="absolute -bottom-1 -left-1 -right-1 h-[2px] rounded-full bg-gradient-to-r from-transparent via-primary/70 to-transparent transition-all duration-300 opacity-0 group-hover:opacity-100"></span>
-              </div>
-              {getCartCount() > 0 && (
-                <div className="absolute -right-1.5 -top-1.5 flex items-center justify-center">
-                  <span className="animate-ping absolute flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                  <span className="relative flex rounded-full h-4 w-4 bg-gradient-to-r from-primary to-primary/90 text-[9px] font-bold text-white items-center justify-center shadow-sm">
-                    {getCartCount()}
-                  </span>
-                </div>
-              )}
             </div>
           </div>
         </div>

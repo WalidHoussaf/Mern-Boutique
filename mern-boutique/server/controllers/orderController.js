@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import Order from '../models/orderModel.js';
 import Product from '../models/productModel.js'; // Added import for Product
+import NotificationService from '../services/notificationService.js';
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -65,6 +66,9 @@ const addOrderItems = asyncHandler(async (req, res) => {
     const createdOrder = await order.save();
     console.log('Order saved successfully:', createdOrder._id);
 
+    // Create notification for order placement
+    await NotificationService.orderPlaced(req.user._id, createdOrder._id);
+
     res.status(201).json(createdOrder);
   } catch (error) {
     console.error('Error in addOrderItems:', error);
@@ -93,44 +97,62 @@ const getOrderById = asyncHandler(async (req, res) => {
 // @route   PUT /api/orders/:id/pay
 // @access  Private
 const updateOrderToPaid = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id).populate('orderItems.product', 'countInStock');
+    const order = await Order.findById(req.params.id);
 
-  if (!order) {
-    res.status(404);
-    throw new Error('Order not found');
-  }
+    if (order) {
+        order.isPaid = true;
+        order.paidAt = Date.now();
+        order.paymentResult = {
+            id: req.body.id,
+            status: req.body.status,
+            update_time: req.body.update_time,
+            email_address: req.body.payer.email_address,
+        };
 
-  // Validate stock availability before processing payment
-  for (const item of order.orderItems) {
-    const product = await Product.findById(item.product);
-    if (!product) {
-      res.status(400);
-      throw new Error(`Product ${item.name} not found`);
+        const updatedOrder = await order.save();
+
+        // Send success notification
+        await NotificationService.paymentProcessed(
+            order.user,
+            order._id,
+            order.totalPrice
+        );
+
+        res.json(updatedOrder);
+    } else {
+        res.status(404);
+        throw new Error('Order not found');
     }
-    if (product.countInStock < item.qty) {
-      res.status(400);
-      throw new Error(`Insufficient stock for ${item.name}. Available: ${product.countInStock}, Requested: ${item.qty}`);
+});
+
+// @desc    Handle failed payment
+// @route   PUT /api/orders/:id/payment-failed
+// @access  Private
+const handlePaymentFailure = asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+        order.paymentResult = {
+            id: req.body.id,
+            status: 'FAILED',
+            update_time: Date.now(),
+            error: req.body.error
+        };
+
+        const updatedOrder = await order.save();
+
+        // Send failure notification
+        await NotificationService.paymentFailed(
+            order.user,
+            order._id,
+            req.body.error || 'Payment processing error'
+        );
+
+        res.json(updatedOrder);
+    } else {
+        res.status(404);
+        throw new Error('Order not found');
     }
-  }
-
-  // Update stock for each ordered item
-  for (const item of order.orderItems) {
-    const product = await Product.findById(item.product);
-    product.countInStock = Math.max(0, product.countInStock - item.qty);
-    await product.save();
-  }
-
-  order.isPaid = true;
-  order.paidAt = Date.now();
-  order.paymentResult = {
-    id: req.body.id,
-    status: req.body.status,
-    update_time: req.body.update_time,
-    email_address: req.body.payer.email_address,
-  };
-
-  const updatedOrder = await order.save();
-  res.json(updatedOrder);
 });
 
 // @desc    Update order to delivered
@@ -144,6 +166,9 @@ const updateOrderToDelivered = asyncHandler(async (req, res) => {
     order.deliveredAt = Date.now();
 
     const updatedOrder = await order.save();
+
+    // Create notification for order delivery
+    await NotificationService.orderDelivered(order.user, order._id);
 
     res.json(updatedOrder);
   } else {

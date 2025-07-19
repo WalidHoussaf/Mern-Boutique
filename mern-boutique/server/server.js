@@ -9,6 +9,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -66,6 +67,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

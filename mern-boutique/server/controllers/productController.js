@@ -1,6 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import Product from '../models/productModel.js';
-import Order from '../models/orderModel.js'; // Added import for Order
+import Order from '../models/orderModel.js'; 
+import Wishlist from '../models/wishlistModel.js'; 
+import NotificationService from '../services/notificationService.js'; 
 
 // @desc    Fetch all products
 // @route   GET /api/products
@@ -292,6 +294,36 @@ const updateProduct = asyncHandler(async (req, res) => {
       product.numReviews = parseInt(req.body.numReviews) || 0;
     }
 
+    // Check for price decrease
+    if (price && price < product.price) {
+      // Find users who have this product in their wishlist
+      const wishlists = await Wishlist.find({ 'items.product': product._id });
+      const discount = Math.round(((product.price - price) / product.price) * 100);
+      
+      // Notify users about the price drop
+      for (const wishlist of wishlists) {
+        await NotificationService.wishlistItemOnSale(
+          wishlist.user,
+          product.name,
+          discount
+        );
+      }
+    }
+
+    // Check for stock status change from 0 to positive
+    if (countInStock > 0 && product.countInStock === 0) {
+      // Find users who have this product in their wishlist
+      const wishlists = await Wishlist.find({ 'items.product': product._id });
+      
+      // Notify users about the product being back in stock
+      for (const wishlist of wishlists) {
+        await NotificationService.productBackInStock(
+          wishlist.user,
+          product.name
+        );
+      }
+    }
+
     const updatedProduct = await product.save();
     console.log('Product updated successfully with ID:', updatedProduct._id);
     res.json(updatedProduct);
@@ -309,51 +341,88 @@ const updateProduct = asyncHandler(async (req, res) => {
 // @route   POST /api/products/:id/reviews
 // @access  Private
 const createProductReview = asyncHandler(async (req, res) => {
-  const { rating, comment, images } = req.body;
+    const { rating, comment, images } = req.body;
 
-  const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id);
 
-  if (product) {
-    const alreadyReviewed = product.reviews.find(
-      (r) => r.user.toString() === req.user._id.toString()
-    );
+    if (product) {
+        const alreadyReviewed = product.reviews.find(
+            (r) => r.user.toString() === req.user._id.toString()
+        );
 
-    if (alreadyReviewed) {
-      res.status(400);
-      throw new Error('Product already reviewed');
+        if (alreadyReviewed) {
+            res.status(400);
+            throw new Error('Product already reviewed');
+        }
+
+        // Check if user has purchased the product
+        const orders = await Order.find({ 
+            user: req.user._id,
+            'orderItems.product': product._id,
+            isPaid: true
+        });
+        const verifiedPurchase = orders.length > 0;
+
+        const review = {
+            name: req.user.name,
+            rating: Number(rating),
+            comment,
+            user: req.user._id,
+            images: images || [],
+            verifiedPurchase,
+            helpfulVotes: 0,
+            votedBy: []
+        };
+
+        product.reviews.push(review);
+
+        product.numReviews = product.reviews.length;
+
+        product.rating =
+            product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+            product.reviews.length;
+
+        await product.save();
+
+        // Notify user that their review has been approved
+        await NotificationService.reviewApproved(req.user._id, product.name);
+
+        res.status(201).json({ message: 'Review added' });
+    } else {
+        res.status(404);
+        throw new Error('Product not found');
     }
+});
 
-    // Check if user has purchased the product
-    const orders = await Order.find({ 
-      user: req.user._id,
-      'orderItems.product': product._id,
-      isPaid: true
-    });
-    const verifiedPurchase = orders.length > 0;
+// @desc    Respond to a review
+// @route   POST /api/products/:id/reviews/:reviewId/respond
+// @access  Private/Admin
+const respondToReview = asyncHandler(async (req, res) => {
+    const { response } = req.body;
+    
+    const product = await Product.findById(req.params.id);
+    
+    if (product) {
+        const review = product.reviews.id(req.params.reviewId);
+        
+        if (review) {
+            review.sellerResponse = response;
+            review.sellerResponseDate = Date.now();
+            
+            await product.save();
 
-    const review = {
-      name: req.user.name,
-      rating: Number(rating),
-      comment,
-      user: req.user._id,
-      images: images || [],
-      verifiedPurchase,
-      helpfulVotes: 0,
-      votedBy: []
-    };
-
-    product.reviews.push(review);
-    product.numReviews = product.reviews.length;
-    product.rating =
-      product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-      product.reviews.length;
-
-    await product.save();
-    res.status(201).json({ message: 'Review added' });
-  } else {
-    res.status(404);
-    throw new Error('Product not found');
-  }
+            // Notify the review author about the response
+            await NotificationService.reviewResponse(review.user, product.name);
+            
+            res.json({ message: 'Response added to review' });
+        } else {
+            res.status(404);
+            throw new Error('Review not found');
+        }
+    } else {
+        res.status(404);
+        throw new Error('Product not found');
+    }
 });
 
 // @desc    Update review
