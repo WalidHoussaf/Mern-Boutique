@@ -32,6 +32,13 @@ const addOrderItems = asyncHandler(async (req, res) => {
       throw new Error('Missing required fields');
     }
 
+    // Validate payment method
+    const validPaymentMethods = ['visa', 'mastercard', 'paypal', 'stripe'];
+    if (!validPaymentMethods.includes(paymentMethod)) {
+      res.status(400);
+      throw new Error('Invalid payment method');
+    }
+
     // Ensure user exists in req
     if (!req.user || !req.user._id) {
       res.status(401);
@@ -97,32 +104,51 @@ const getOrderById = asyncHandler(async (req, res) => {
 // @route   PUT /api/orders/:id/pay
 // @access  Private
 const updateOrderToPaid = asyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id);
+  const order = await Order.findById(req.params.id);
 
-    if (order) {
-        order.isPaid = true;
-        order.paidAt = Date.now();
-        order.paymentResult = {
-            id: req.body.id,
-            status: req.body.status,
-            update_time: req.body.update_time,
-            email_address: req.body.payer.email_address,
-        };
-
-        const updatedOrder = await order.save();
-
-        // Send success notification
-        await NotificationService.paymentProcessed(
-            order.user,
-            order._id,
-            order.totalPrice
-        );
-
-        res.json(updatedOrder);
-    } else {
-        res.status(404);
-        throw new Error('Order not found');
+  if (order) {
+    // Validate payment result
+    const { id, status, update_time, payment_method, email_address, error_message } = req.body;
+    
+    if (!id || !status || !update_time || !payment_method) {
+      res.status(400);
+      throw new Error('Invalid payment result data');
     }
+
+    // Update order payment details
+    order.isPaid = status === 'COMPLETED';
+    order.paidAt = status === 'COMPLETED' ? Date.now() : undefined;
+    order.paymentResult = {
+      id,
+      status,
+      update_time,
+      payment_method,
+      email_address,
+      error_message
+    };
+
+    const updatedOrder = await order.save();
+
+    // Send appropriate notification based on payment status
+    if (status === 'COMPLETED') {
+      await NotificationService.paymentProcessed(
+        order.user,
+        order._id,
+        order.totalPrice
+      );
+    } else if (status === 'FAILED') {
+      await NotificationService.paymentFailed(
+        order.user,
+        order._id,
+        error_message || 'Payment processing failed'
+      );
+    }
+
+    res.json(updatedOrder);
+  } else {
+    res.status(404);
+    throw new Error('Order not found');
+  }
 });
 
 // @desc    Handle failed payment

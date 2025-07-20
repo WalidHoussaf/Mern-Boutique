@@ -2,9 +2,33 @@ import { useState, useContext, useEffect } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
 import { Link, useParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import useTranslation from '../utils/useTranslation';
 import { useNotifications } from '../context/NotificationContext';
+
+const PAYMENT_METHODS = {
+  visa: {
+    id: 'visa',
+    name: 'Visa',
+    icon: <img src="/visa-svg.svg" alt="Visa" className="h-8" />
+  },
+  mastercard: {
+    id: 'mastercard',
+    name: 'Mastercard',
+    icon: <img src="/mastercard-svg.svg" alt="Mastercard" className="h-8" />
+  },
+  paypal: {
+    id: 'paypal',
+    name: 'PayPal',
+    icon: <img src="/paypal-svg.svg" alt="PayPal" className="h-8" />
+  },
+  stripe: {
+    id: 'stripe',
+    name: 'Stripe',
+    icon: <img src="/stripe-svg.svg" alt="Stripe" className="h-8" />
+  }
+};
 
 const Orders = () => {
   const { id: orderIdParam } = useParams();
@@ -16,13 +40,42 @@ const Orders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderDetailsLoading, setOrderDetailsLoading] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentInfo, setPaymentInfo] = useState({
-    cardNumber: '',
-    expirationDate: '',
-    cvv: ''
-  });
   const { t } = useTranslation();
+
+  // Add sorting options
+  const [sortBy, setSortBy] = useState('latest');
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  // Sort orders based on selected option
+  const getSortedOrders = () => {
+    let filteredOrders = [...orders];
+    
+    // Apply status filter
+    if (filterStatus !== 'all') {
+      filteredOrders = filteredOrders.filter(order => {
+        if (filterStatus === 'completed') return order.isPaid && order.isDelivered;
+        if (filterStatus === 'processing') return order.isPaid && !order.isDelivered;
+        if (filterStatus === 'pending') return !order.isPaid;
+        return true;
+      });
+    }
+
+    // Apply sorting
+    return filteredOrders.sort((a, b) => {
+      switch (sortBy) {
+        case 'latest':
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        case 'oldest':
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        case 'highest':
+          return b.totalPrice - a.totalPrice;
+        case 'lowest':
+          return a.totalPrice - b.totalPrice;
+        default:
+          return 0;
+      }
+    });
+  };
 
   // First effect: Check authentication and load orders
   useEffect(() => {
@@ -112,15 +165,20 @@ const Orders = () => {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
+  };
+
+  // Format price with currency
+  const formatPrice = (price) => {
+    return `$${price.toFixed(2)}`;
   };
 
   const handleOrderClick = async (orderId) => {
     if (selectedOrder && selectedOrder._id === orderId) {
-      return; // Already selected
+      return;
     }
-    
-    // Update URL without full page reload
     navigate(`/order/${orderId}`);
   };
 
@@ -129,535 +187,416 @@ const Orders = () => {
     navigate('/orders');
   };
 
-  // Display status badges
+  // Enhanced Status Badge component
   const StatusBadge = ({ isPaid, isDelivered }) => {
-    const getStatusColor = () => {
-      if (isPaid && isDelivered) return 'bg-green-100 text-green-800';
-      if (isPaid) return 'bg-blue-100 text-blue-800';
-      return 'bg-red-100 text-red-800';
+    const getStatusConfig = () => {
+      if (isPaid && isDelivered) {
+        return {
+          color: 'bg-green-100 text-green-800 ring-green-600/20',
+          icon: (
+            <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+          ),
+          text: t('completed')
+        };
+      }
+      if (isPaid) {
+        return {
+          color: 'bg-blue-100 text-blue-800 ring-blue-600/20',
+          icon: (
+            <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ),
+          text: t('processing')
+        };
+      }
+      return {
+        color: 'bg-yellow-100 text-yellow-800 ring-yellow-600/20',
+        icon: (
+          <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+        text: t('pending')
+      };
     };
 
-    const getStatusText = () => {
-      if (isPaid && isDelivered) return t('completed');
-      if (isPaid) return t('paid_processing');
-      return t('payment_pending');
-    };
-
+    const config = getStatusConfig();
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor()}`}>
-        {getStatusText()}
+      <span className={`inline-flex items-center rounded-md px-2 py-1 text-sm font-medium ring-1 ring-inset ${config.color}`}>
+        {config.icon}
+        {config.text}
       </span>
     );
   };
 
-  const handleCashPayment = async () => {
-    if (paymentProcessing) return;
-    setPaymentProcessing(true);
-    
-    try {
-      // Create a payment result for cash payment
-      const paymentResult = {
-        id: 'CASH-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
-        status: 'PENDING',
-        update_time: new Date().toISOString(),
-        payment_method: 'cash',
-        payer: {
-          email_address: user?.email || 'customer@example.com'
-        }
-      };
-      
-      // Update the order to paid status
-      const updatedOrder = await updateOrderToPaid(selectedOrder._id, paymentResult);
-      
-      // Update the selected order in the UI
-      setSelectedOrder(updatedOrder);
-      
-      // Show success message
-      toast.success(t('payment_update_success'));
-      
-      // Refresh notifications to show the server notification immediately
-      await refreshNotifications();
-      
-      // Refresh orders list
-      await refreshOrdersList();
-    } catch (error) {
-      console.error('Error processing cash payment:', error);
-      let errorMessage = t('payment_update_failed');
-      
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-      
-      toast.error(errorMessage);
-    } finally {
-      setPaymentProcessing(false);
-    }
-  };
-
-  const handlePayNow = () => {
-    if (!selectedOrder) return;
-    
-    if (selectedOrder.paymentMethod === 'cash') {
-      handleCashPayment();
-    } else {
-      setShowPaymentModal(true);
-    }
-  };
-
-  const handleClosePaymentModal = () => {
-    setShowPaymentModal(false);
-    setPaymentInfo({
-      cardNumber: '',
-      expirationDate: '',
-      cvv: ''
-    });
-  };
-
-  const handlePaymentInfoChange = (e) => {
-    const { name, value } = e.target;
-    setPaymentInfo(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const formatCardNumber = (value) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || '';
-    const parts = [];
-
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-
-    if (parts.length) {
-      return parts.join(' ');
-    } else {
-      return value;
-    }
-  };
-
-  const formatExpirationDate = (value) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    if (v.length >= 2) {
-      return v.slice(0, 2) + (v.length > 2 ? '/' + v.slice(2, 4) : '');
-    }
-    return v;
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    let formattedValue = value;
-
-    if (name === 'cardNumber') {
-      // Only allow digits and format with spaces
-      formattedValue = value.replace(/\D/g, '')
-        .replace(/(\d{4})/g, '$1 ')
-        .trim()
-        .slice(0, 19); // 16 digits + 3 spaces
-    } else if (name === 'expirationDate') {
-      // Only allow digits and format as MM/YY
-      formattedValue = value.replace(/\D/g, '')
-        .replace(/^(\d{2})/, '$1/')
-        .slice(0, 5);
-    } else if (name === 'cvv') {
-      // Only allow digits and limit to 4 characters
-      formattedValue = value.replace(/\D/g, '').slice(0, 4);
-    }
-
-    setPaymentInfo(prev => ({
-      ...prev,
-      [name]: formattedValue
-    }));
-  };
-
-  // Create a local function to fetch orders without relying on context state updates
-  const refreshOrdersList = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      const response = await axios.get('/api/orders/myorders');
-      if (response.data && Array.isArray(response.data)) {
-        setOrders(response.data);
-      }
-    } catch (error) {
-      console.error('Error refreshing orders:', error);
-      toast.error(t('update_failed'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleProcessPayment = async () => {
-    if (paymentProcessing) return;
-
-    // Validate payment info before processing
-    const validationErrors = validatePaymentInfo();
-    if (validationErrors.length > 0) {
-      validationErrors.forEach(error => toast.error(error));
-      return;
-    }
+  const handlePaymentMethodRedirect = async (order) => {
+    if (!order) return;
     
     setPaymentProcessing(true);
-    
     try {
-      // Create payment result object
       const paymentResult = {
-        id: paymentInfo.cardNumber.replace(/\s/g, '').slice(-4), // Last 4 digits
+        id: `${order.paymentMethod.toUpperCase()}-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
         status: 'COMPLETED',
         update_time: new Date().toISOString(),
-        payment_method: 'credit',
-        payer: {
-          email_address: user?.email || ''
-        }
+        payment_method: order.paymentMethod,
+        email_address: user?.email || ''
       };
       
-      // Update the order to paid status
-      const updatedOrder = await updateOrderToPaid(selectedOrder._id, paymentResult);
-      
-      // Update the selected order in the UI
+      const updatedOrder = await updateOrderToPaid(order._id, paymentResult);
       setSelectedOrder(updatedOrder);
       
-      // Close payment modal
-      handleClosePaymentModal();
-      
-      // Show success message
-      toast.success(t('payment_success'));
-      
-      // Refresh notifications to show the server notification immediately
-      await refreshNotifications();
-      
-      // Refresh orders list
-      await refreshOrdersList();
+      toast.success(t('payment_success')); // Restore the success toast
+      await refreshNotifications(); // Update system notifications
+      await fetchUserOrders(); // Refresh the orders list
     } catch (error) {
       console.error('Error processing payment:', error);
-      let errorMessage = t('payment_failed');
-      
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-      
-      toast.error(errorMessage);
+      toast.error(error.response?.data?.message || t('payment_failed'));
     } finally {
       setPaymentProcessing(false);
     }
   };
 
-  // Validate payment info
-  const validatePaymentInfo = () => {
-    const errors = [];
-    
-    // Card number validation (Luhn algorithm)
-    const cardNumberDigits = paymentInfo.cardNumber.replace(/\s/g, '');
-    if (!isValidCreditCard(cardNumberDigits)) {
-      errors.push(t('invalid_card_number'));
-    }
-    
-    // Expiration date validation (MM/YY format)
-    const expirationDate = paymentInfo.expirationDate;
-    if (!isValidExpirationDate(expirationDate)) {
-      errors.push(t('invalid_expiration_date'));
-    }
-    
-    // CVV validation (3 or 4 digits)
-    if (!isValidCVV(paymentInfo.cvv)) {
-      errors.push(t('invalid_cvv'));
-    }
-    
-    return errors;
-  };
-
-  // Credit card number validation - simple 16 digit check
-  const isValidCreditCard = (number) => {
-    return /^\d{16}$/.test(number);
-  };
-
-  // Expiration date validation
-  const isValidExpirationDate = (expDate) => {
-    // Check format
-    if (!/^\d{2}\/\d{2}$/.test(expDate)) return false;
-    
-    const [month, year] = expDate.split('/').map(num => parseInt(num, 10));
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear() % 100;
-    const currentMonth = currentDate.getMonth() + 1;
-    
-    // Validate month
-    if (month < 1 || month > 12) return false;
-    
-    // Validate year
-    if (year < currentYear) return false;
-    
-    // If it's the current year, make sure the month hasn't passed
-    if (year === currentYear && month < currentMonth) return false;
-    
-    return true;
-  };
-
-  // CVV validation
-  const isValidCVV = (cvv) => {
-    // CVV should be 3 or 4 digits
-    return /^\d{3,4}$/.test(cvv);
-  };
-
-  // If loading, show loading state
-  if (loading || ordersLoading) {
+  if (loading || orderDetailsLoading) {
     return (
-      <div className="min-h-screen flex justify-center items-center">
-        <div className="animate-pulse text-center">
-          <div className="h-16 w-16 mx-auto bg-gray-200 rounded-full mb-4"></div>
-          <div className="h-4 w-32 mx-auto bg-gray-200 rounded mb-2"></div>
-          <div className="h-3 w-24 mx-auto bg-gray-200 rounded"></div>
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('error')}</h2>
+          <p className="text-gray-500">{error}</p>
         </div>
       </div>
     );
   }
 
-  // If no orders, show empty state
-  if (!loading && orders.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center p-4">
-        <h2 className="text-2xl font-semibold mb-2">{t('no_orders')}</h2>
-        <p className="text-gray-600 mb-4">{t('no_orders_desc')}</p>
-        <Link
-          to="/collection"
-          className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition-colors"
-        >
-          {t('start_shopping')}
-        </Link>
-      </div>
-    );
-  }
-
-  // If an order is selected, show order details
   if (selectedOrder) {
-    if (orderDetailsLoading) {
-      return (
-        <div className="min-h-screen flex justify-center items-center">
-          <div className="animate-pulse text-center">
-            <div className="h-16 w-16 mx-auto bg-gray-200 rounded-full mb-4"></div>
-            <div className="h-4 w-48 mx-auto bg-gray-200 rounded mb-2"></div>
-            <div className="h-3 w-32 mx-auto bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      );
-    }
-
     return (
-      <div className="max-w-6xl mx-auto p-4">
-        <button
-          onClick={handleBackClick}
-          className="mb-6 text-gray-600 hover:text-gray-800 flex items-center"
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          {t('back_to_orders')}
-        </button>
-
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold">{t('order_details')}</h2>
-            <StatusBadge isPaid={selectedOrder.isPaid} isDelivered={selectedOrder.isDelivered} />
+      <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <button
+              onClick={handleBackClick}
+              className="group flex items-center text-gray-600 hover:text-primary transition-colors"
+            >
+              <svg className="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              {t('back_to_orders')}
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <h3 className="font-semibold mb-2">{t('order_number')}</h3>
-              <p className="text-gray-600">{selectedOrder._id}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">{t('order_date')}</h3>
-              <p className="text-gray-600">{formatDate(selectedOrder.createdAt)}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">{t('payment_method')}</h3>
-              <p className="text-gray-600">
-                {selectedOrder.paymentMethod === 'cash' ? t('cash_on_delivery') : t('credit_card')}
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">{t('order_total')}</h3>
-              <p className="text-gray-600">${selectedOrder.totalPrice.toFixed(2)}</p>
-            </div>
-          </div>
-
-          <div className="border-t pt-6">
-            <h3 className="font-semibold mb-4">{t('order_items')}</h3>
-            <div className="space-y-4">
-              {selectedOrder.orderItems.map((item) => (
-                <div key={item._id} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                    <div className="ml-4">
-                      <h4 className="font-medium">{item.name}</h4>
-                      <p className="text-gray-600">
-                        {t('quantity')}: {item.qty} × ${item.price}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Order Details */}
+            <div className="lg:col-span-8">
+              <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-100">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
+                  <div>
+                    <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+                      {t('order_details')}
+                    </h1>
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-500 flex items-center">
+                        <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                        </svg>
+                        <span className="font-mono">{selectedOrder._id}</span>
+                      </p>
+                      <p className="text-sm text-gray-500 flex items-center">
+                        <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {formatDate(selectedOrder.createdAt)}
                       </p>
                     </div>
                   </div>
-                  <p className="font-medium">${(item.qty * item.price).toFixed(2)}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {!selectedOrder.isPaid && (
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={handlePayNow}
-                disabled={paymentProcessing}
-                className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition-colors disabled:opacity-50"
-              >
-                {paymentProcessing ? t('processing_payment') : t('pay_now')}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Payment Modal */}
-        {showPaymentModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-xl font-semibold mb-4">{t('payment_details')}</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('card_number')}
-                  </label>
-                  <input
-                    type="text"
-                    name="cardNumber"
-                    value={paymentInfo.cardNumber}
-                    onChange={handleInputChange}
-                    placeholder="1234 5678 9012 3456"
-                    className="w-full px-3 py-2 border rounded-md"
-                    maxLength="19"
+                  <StatusBadge
+                    isPaid={selectedOrder.isPaid}
+                    isDelivered={selectedOrder.isDelivered}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('expiration_date')}
-                    </label>
-                    <input
-                      type="text"
-                      name="expirationDate"
-                      value={paymentInfo.expirationDate}
-                      onChange={handleInputChange}
-                      placeholder="MM/YY"
-                      className="w-full px-3 py-2 border rounded-md"
-                      maxLength="5"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('cvv')}
-                    </label>
-                    <input
-                      type="text"
-                      name="cvv"
-                      value={paymentInfo.cvv}
-                      onChange={handleInputChange}
-                      placeholder="123"
-                      className="w-full px-3 py-2 border rounded-md"
-                      maxLength="4"
-                    />
+
+                {/* Order Items */}
+                <div className="border-t border-gray-100 pt-8">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    {t('order_items')}
+                  </h2>
+                  <div className="divide-y divide-gray-100">
+                    {selectedOrder.orderItems.map((item) => (
+                      <div key={item._id} className="flex items-center py-6 gap-6">
+                        <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="h-full w-full object-cover object-center"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base font-medium text-gray-900 truncate">
+                            {item.name}
+                          </h3>
+                          <div className="mt-1 flex items-center text-sm text-gray-500">
+                            <span className="flex items-center">
+                              <svg className="w-4 h-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                              </svg>
+                              {t('quantity')}: {item.qty}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-900">
+                            {formatPrice(item.price * item.qty)}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {formatPrice(item.price)} {t('each')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="flex justify-end space-x-4 mt-6">
-                  <button
-                    onClick={handleClosePaymentModal}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                  >
-                    {t('cancel')}
-                  </button>
-                  <button
-                    onClick={handleProcessPayment}
+
+                {/* Shipping Address */}
+                <div className="border-t border-gray-100 pt-8 mt-8">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {t('shipping_address')}
+                  </h2>
+                  <div className="bg-gray-50 rounded-lg p-6 text-gray-600 space-y-2">
+                    <p>{selectedOrder.shippingAddress.address}</p>
+                    <p>{selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.postalCode}</p>
+                    <p>{selectedOrder.shippingAddress.country}</p>
+                    {selectedOrder.shippingAddress.phoneNumber && (
+                      <p className="flex items-center mt-3 pt-3 border-t border-gray-200">
+                        <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        {selectedOrder.shippingAddress.phoneNumber}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="lg:col-span-4">
+              <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-100 sticky top-20">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  {t('order_summary')}
+                </h2>
+
+                {/* Order details */}
+                <div className="space-y-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">{t('subtotal')}:</span>
+                    <span className="font-medium text-gray-900">
+                      {formatPrice(selectedOrder.totalPrice - selectedOrder.taxPrice - selectedOrder.shippingPrice)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">{t('tax')}:</span>
+                    <span className="text-gray-900">{formatPrice(selectedOrder.taxPrice)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">{t('shipping')}:</span>
+                    <span className="text-gray-900">
+                      {selectedOrder.shippingPrice === 0 ? t('free') : formatPrice(selectedOrder.shippingPrice)}
+                    </span>
+                  </div>
+                  <div className="border-t border-gray-100 pt-4 mt-4">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-900">{t('total_amount')}:</span>
+                      <span className="font-bold text-primary">{formatPrice(selectedOrder.totalPrice)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payment Method */}
+                <div className="mt-8">
+                  <h3 className="text-sm font-medium text-gray-700 mb-4">{t('payment_method')}</h3>
+                  <div className="flex items-center p-4 border rounded-lg bg-gray-50/50">
+                    {PAYMENT_METHODS[selectedOrder.paymentMethod]?.icon}
+                    <span className="ml-3 font-medium text-gray-900">
+                      {PAYMENT_METHODS[selectedOrder.paymentMethod]?.name}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Payment Action Button */}
+                {!selectedOrder.isPaid && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handlePaymentMethodRedirect(selectedOrder)}
                     disabled={paymentProcessing}
-                    className={`bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition-colors ${
-                      paymentProcessing ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    className="w-full mt-8 py-4 bg-primary text-white font-medium rounded-lg shadow-sm hover:bg-primary-dark hover:shadow transition-all duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {paymentProcessing ? (
-                      <span className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        {t('processing_payment')}
-                      </span>
-                    ) : t('process_payment')}
-                  </button>
+                        {t('processing')}...
+                      </>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        {t('complete_payment')}
+                      </>
+                    )}
+                  </motion.button>
+                )}
+
+                {/* Secure payment indicator */}
+                <div className="mt-6 flex items-center justify-center text-xs text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  {t('secure_checkout')}
                 </div>
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     );
   }
 
-  // Show orders list
   return (
-    <div className="max-w-6xl mx-auto p-4">
-      <h2 className="text-2xl font-semibold mb-6">{t('order_history')}</h2>
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('order_number')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('order_date')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('order_total')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('order_status')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('view_details')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {orders.map((order) => (
-                <tr key={order._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {order._id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(order.createdAt)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${order.totalPrice.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-prata text-secondary mb-4">{t('my_orders')}</h1>
+          <div className="w-24 h-1 bg-primary mx-auto"></div>
+          <p className="text-gray-600 mt-4">
+            {t('welcome_back_name', { name: user?.name })}
+          </p>
+        </div>
+
+        {/* Filters and Sorting */}
+        {orders.length > 0 && (
+          <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex items-center gap-4">
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="rounded-lg border-gray-200 text-gray-600 text-sm focus:ring-primary focus:border-primary"
+              >
+                <option value="all">{t('all_orders')}</option>
+                <option value="completed">{t('completed')}</option>
+                <option value="processing">{t('processing')}</option>
+                <option value="pending">{t('pending')}</option>
+              </select>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="rounded-lg border-gray-200 text-gray-600 text-sm focus:ring-primary focus:border-primary"
+              >
+                <option value="latest">{t('newest_first')}</option>
+                <option value="oldest">{t('oldest_first')}</option>
+                <option value="highest">{t('price_high_to_low')}</option>
+                <option value="lowest">{t('price_low_to_high')}</option>
+              </select>
+            </div>
+            <div className="text-sm text-gray-500">
+              {getSortedOrders().length} {t('orders_found')}
+            </div>
+          </div>
+        )}
+
+        {orders.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100"
+          >
+            <div className="mb-6">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('no_orders')}</h3>
+            <p className="text-gray-500 mb-6 max-w-md mx-auto">{t('no_orders_desc')}</p>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => navigate('/collection')}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              {t('start_shopping')}
+            </motion.button>
+          </motion.div>
+        ) : (
+          <div className="grid gap-6">
+            {getSortedOrders().map((order) => (
+              <motion.div
+                key={order._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:border-primary/50 hover:shadow-md transition-all group"
+                onClick={() => handleOrderClick(order._id)}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 items-center">
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500">{t('order_number')}</p>
+                    <p className="font-mono text-sm text-gray-900">{order._id}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500">{t('order_date')}</p>
+                    <p className="text-sm text-gray-900">{formatDate(order.createdAt)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500">{t('total')}</p>
+                    <p className="text-sm font-medium text-gray-900">{formatPrice(order.totalPrice)}</p>
+                  </div>
+                  <div>
                     <StatusBadge isPaid={order.isPaid} isDelivered={order.isDelivered} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  </div>
+                  <div className="flex items-center justify-end">
                     <button
-                      onClick={() => handleOrderClick(order._id)}
-                      className="text-primary hover:text-primary-dark"
+                      className="text-primary hover:text-primary-dark transition-colors flex items-center text-sm font-medium group-hover:translate-x-1 transition-transform"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOrderClick(order._id);
+                      }}
                     >
                       {t('view_details')}
+                      <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

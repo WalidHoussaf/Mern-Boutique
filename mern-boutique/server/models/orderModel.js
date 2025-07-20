@@ -29,12 +29,15 @@ const orderSchema = mongoose.Schema(
     paymentMethod: {
       type: String,
       required: true,
+      enum: ['visa', 'mastercard', 'paypal', 'stripe'],
     },
     paymentResult: {
       id: { type: String },
-      status: { type: String },
+      status: { type: String, enum: ['PENDING', 'COMPLETED', 'FAILED'] },
       update_time: { type: String },
+      payment_method: { type: String },
       email_address: { type: String },
+      error_message: { type: String },
     },
     taxPrice: {
       type: Number,

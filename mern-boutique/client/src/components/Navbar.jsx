@@ -102,7 +102,7 @@ const Navbar = () => {
               className={({ isActive }) => `relative group ${isActive ? 'text-primary nav-link-active' : ''}`}
               onClick={handleNavLinkClick}
             >
-              <p className="group-hover:text-primary uppercase tracking-wide transition-colors duration-300">{t('navbarHome')}</p>
+              <p className="group-hover:text-primary uppercase tracking-wide transition-colors duration-300">{t('home')}</p>
               <span className="absolute bottom-[-4px] left-0 h-[2px] bg-gradient-to-r from-primary/70 via-primary to-primary/70 transition-all duration-300 group-hover:w-full w-0"></span>
             </NavLink>
             <NavLink 
@@ -110,7 +110,7 @@ const Navbar = () => {
               className={({ isActive }) => `relative group ${isActive ? 'text-primary nav-link-active' : ''}`}
               onClick={handleNavLinkClick}
             >
-              <p className="group-hover:text-primary uppercase tracking-wide transition-colors duration-300">{t('navbarCollection')}</p>
+              <p className="group-hover:text-primary uppercase tracking-wide transition-colors duration-300">{t('collection')}</p>
               <span className="absolute bottom-[-4px] left-0 h-[2px] bg-gradient-to-r from-primary/70 via-primary to-primary/70 transition-all duration-300 group-hover:w-full w-0"></span>
             </NavLink>
             <NavLink 
@@ -118,7 +118,7 @@ const Navbar = () => {
               className={({ isActive }) => `relative group ${isActive ? 'text-primary nav-link-active' : ''}`}
               onClick={handleNavLinkClick}
             >
-              <p className="group-hover:text-primary uppercase tracking-wide transition-colors duration-300">{t('navbarAbout')}</p>
+              <p className="group-hover:text-primary uppercase tracking-wide transition-colors duration-300">{t('about')}</p>
               <span className="absolute bottom-[-4px] left-0 h-[2px] bg-gradient-to-r from-primary/70 via-primary to-primary/70 transition-all duration-300 group-hover:w-full w-0"></span>
             </NavLink>
             <NavLink 
@@ -126,7 +126,7 @@ const Navbar = () => {
               className={({ isActive }) => `relative group ${isActive ? 'text-primary nav-link-active' : ''}`}
               onClick={handleNavLinkClick}
             >
-              <p className="group-hover:text-primary uppercase tracking-wide transition-colors duration-300">{t('navbarContact')}</p>
+              <p className="group-hover:text-primary uppercase tracking-wide transition-colors duration-300">{t('contact')}</p>
               <span className="absolute bottom-[-4px] left-0 h-[2px] bg-gradient-to-r from-primary/70 via-primary to-primary/70 transition-all duration-300 group-hover:w-full w-0"></span>
             </NavLink>
             {/* Wishlist link with counter */}
@@ -136,7 +136,7 @@ const Navbar = () => {
               onClick={handleNavLinkClick}
             >
               <div className="flex items-center gap-1">
-                <p className="group-hover:text-primary uppercase tracking-wide transition-colors duration-300">{t('navbarWishlist')}</p>
+                <p className="group-hover:text-primary uppercase tracking-wide transition-colors duration-300">{t('wishlist')}</p>
                 <div className="relative">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 gold-heart">
                     <path d="M9.653 16.915l-.005-.003-.019-.01a20.759 20.759 0 01-1.162-.682 22.045 22.045 0 01-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 018-2.828A4.5 4.5 0 0118 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 01-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 01-.69.001l-.002-.001z" />
@@ -157,7 +157,7 @@ const Navbar = () => {
             {/* New Categories dropdown */}
             <div className="relative group">
               <button className="flex items-center gap-1 group-hover:text-primary uppercase tracking-wide transition-colors duration-300">
-                {t('navbarCategories')}
+                {t('categories')}
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 transition-transform duration-300 group-hover:rotate-180">
                   <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                 </svg>

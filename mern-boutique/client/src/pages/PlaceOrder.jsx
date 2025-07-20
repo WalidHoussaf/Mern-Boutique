@@ -5,6 +5,30 @@ import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import useTranslation from '../utils/useTranslation';
 
+// Update the PAYMENT_METHODS object at the top of the file
+const PAYMENT_METHODS = {
+  visa: {
+    id: 'visa',
+    name: 'Visa',
+    icon: <img src="/visa-svg.svg" alt="Visa" className="h-8" />
+  },
+  mastercard: {
+    id: 'mastercard',
+    name: 'Mastercard',
+    icon: <img src="/mastercard-svg.svg" alt="Mastercard" className="h-8" />
+  },
+  paypal: {
+    id: 'paypal',
+    name: 'PayPal',
+    icon: <img src="/paypal-svg.svg" alt="PayPal" className="h-8" />
+  },
+  stripe: {
+    id: 'stripe',
+    name: 'Stripe',
+    icon: <img src="/stripe-svg.svg" alt="Stripe" className="h-8" />
+  }
+};
+
 const PlaceOrder = () => {
   const { t } = useTranslation();
   const { 
@@ -30,12 +54,11 @@ const PlaceOrder = () => {
       address: '',
       city: '',
       postalCode: '',
-      country: '',
       phoneNumber: ''
     };
   });
   const [fieldErrors, setFieldErrors] = useState({});
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethod, setPaymentMethod] = useState('visa');
 
   // Memoize cart products calculation
   const cartProductsWithInfo = useMemo(() => {
@@ -143,18 +166,10 @@ const PlaceOrder = () => {
   };
 
   // Validate postal code based on country
-  const validatePostalCode = (postalCode, country) => {
-    const postalCodeRegex = {
-      'United States': /^\d{5}(-\d{4})?$/,
-      'Canada': /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/,
-      'United Kingdom': /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i,
-      'Morocco': /^\d{5}$/,  // Moroccan postal code format
-      // Add more country-specific regex patterns here
-    };
-
-    if (!country) return true; // Skip validation if no country selected
-    const regex = postalCodeRegex[country];
-    return !regex || regex.test(postalCode);
+  const validatePostalCode = (postalCode) => {
+    // Moroccan postal code format
+    const moroccanPostalCodeRegex = /^\d{5}$/;
+    return moroccanPostalCodeRegex.test(postalCode);
   };
 
   const validateField = (name, value) => {
@@ -166,9 +181,7 @@ const PlaceOrder = () => {
       case 'city':
         return value.trim().length >= 2 ? '' : t('city_error');
       case 'postalCode':
-        return validatePostalCode(value, shippingInfo.country) ? '' : t('postal_code_error');
-      case 'country':
-        return value.trim().length >= 2 ? '' : t('country_error');
+        return validatePostalCode(value) ? '' : t('postal_code_error');
       case 'phoneNumber':
         return /^\d{3}-\d{3}-\d{4}$/.test(value) ? '' : t('phone_error');
       default:
@@ -247,7 +260,7 @@ const PlaceOrder = () => {
           address: shippingInfo.address,
           city: shippingInfo.city,
           postalCode: shippingInfo.postalCode,
-          country: shippingInfo.country,
+          country: 'Morocco',
           phoneNumber: shippingInfo.phoneNumber
         },
         paymentMethod,
@@ -258,12 +271,19 @@ const PlaceOrder = () => {
       };
       
       const createdOrder = await createOrder(orderData);
+      
+      // Clear data and show success message
       localStorage.removeItem('shippingInfo');
       clearCart();
       toast.success(t('order_placed_successfully'));
-      // Refresh notifications to show the order placement notification
+      
+      // Wait for notifications to refresh before navigating
       await refreshNotifications();
-      navigate(`/orders`);
+      
+      // Ensure we navigate after all operations are complete
+      setTimeout(() => {
+        navigate('/orders');
+      }, 100);
     } catch (error) {
       console.error('Error placing order:', error);
       let errorMessage = t('failed_place_order');
@@ -284,39 +304,30 @@ const PlaceOrder = () => {
   };
   
   return (
-    <div className="py-12 px-4 md:px-6 lg:px-8 max-w-screen-xl mx-auto">
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-12"
-      >
-        <h1 className="text-3xl md:text-4xl font-prata text-secondary mb-3">{t('checkout')}</h1>
-        <p className="text-gray-500">{t('complete_purchase')}</p>
-      </motion.div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Shipping and Payment Information */}
-        <motion.div 
-          className="lg:col-span-2 space-y-6"
-          initial="hidden"
-          animate="visible"
-          variants={fadeIn}
-        >
-          {/* Shipping Address */}
-          <div className="bg-white rounded-xl shadow-md p-6 md:p-8 border border-gray-100">
-            <div className="flex items-center mb-6">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-prata text-secondary">{t('shipping_address')}</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-prata text-secondary mb-2">{t('checkout')}</h1>
+          <p className="text-gray-600">{t('complete_purchase')}</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column - Forms */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="lg:col-span-8 space-y-6"
+          >
+            {/* Shipping Address */}
+            <div className="bg-white rounded-xl shadow-md p-8">
+              <h2 className="text-2xl font-semibold text-secondary mb-6">{t('shipping_address')}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">{t('full_name')}</label>
+                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('full_name')}
+                  </label>
                   <input
                     type="text"
                     id="fullName"
@@ -324,17 +335,20 @@ const PlaceOrder = () => {
                     value={shippingInfo.fullName}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
-                    fieldErrors.fullName ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white transition-all focus:ring-2 focus:ring-primary/20 ${
+                      fieldErrors.fullName ? 'border-red-500' : 'border-gray-200'
+                    }`}
                     required
                   />
                   {fieldErrors.fullName && (
-                    <p className="mt-1 text-sm text-red-500">{fieldErrors.fullName}</p>
+                    <p className="mt-2 text-sm text-red-600">{fieldErrors.fullName}</p>
                   )}
                 </div>
+
                 <div>
-                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">{t('phone_number')}</label>
+                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('phone_number')}
+                  </label>
                   <input
                     type="tel"
                     id="phoneNumber"
@@ -342,35 +356,41 @@ const PlaceOrder = () => {
                     value={shippingInfo.phoneNumber}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
-                    fieldErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  required
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white transition-all focus:ring-2 focus:ring-primary/20 ${
+                      fieldErrors.phoneNumber ? 'border-red-500' : 'border-gray-200'
+                    }`}
+                    required
                   />
                   {fieldErrors.phoneNumber && (
-                    <p className="mt-1 text-sm text-red-500">{fieldErrors.phoneNumber}</p>
+                    <p className="mt-2 text-sm text-red-600">{fieldErrors.phoneNumber}</p>
                   )}
-              </div>
-              <div className="md:col-span-2">
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">{t('address_label')}</label>
-                <input
-                  type="text"
-                  id="address"
-                  name="address"
-                  value={shippingInfo.address}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
-                    fieldErrors.address ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  required
-                />
-                {fieldErrors.address && (
-                  <p className="mt-1 text-sm text-red-500">{fieldErrors.address}</p>
-                )}
-              </div>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('address_label')}
+                  </label>
+                  <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    value={shippingInfo.address}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white transition-all focus:ring-2 focus:ring-primary/20 ${
+                      fieldErrors.address ? 'border-red-500' : 'border-gray-200'
+                    }`}
+                    required
+                  />
+                  {fieldErrors.address && (
+                    <p className="mt-2 text-sm text-red-600">{fieldErrors.address}</p>
+                  )}
+                </div>
+
                 <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">{t('city')}</label>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('city')}
+                  </label>
                   <input
                     type="text"
                     id="city"
@@ -378,17 +398,20 @@ const PlaceOrder = () => {
                     value={shippingInfo.city}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
-                    fieldErrors.city ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white transition-all focus:ring-2 focus:ring-primary/20 ${
+                      fieldErrors.city ? 'border-red-500' : 'border-gray-200'
+                    }`}
                     required
                   />
                   {fieldErrors.city && (
-                    <p className="mt-1 text-sm text-red-500">{fieldErrors.city}</p>
+                    <p className="mt-2 text-sm text-red-600">{fieldErrors.city}</p>
                   )}
                 </div>
+
                 <div>
-                <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">{t('postal_code')}</label>
+                  <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('postal_code')}
+                  </label>
                   <input
                     type="text"
                     id="postalCode"
@@ -396,240 +419,148 @@ const PlaceOrder = () => {
                     value={shippingInfo.postalCode}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
-                    fieldErrors.postalCode ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white transition-all focus:ring-2 focus:ring-primary/20 ${
+                      fieldErrors.postalCode ? 'border-red-500' : 'border-gray-200'
+                    }`}
                     required
                   />
                   {fieldErrors.postalCode && (
-                    <p className="mt-1 text-sm text-red-500">{fieldErrors.postalCode}</p>
+                    <p className="mt-2 text-sm text-red-600">{fieldErrors.postalCode}</p>
                   )}
                 </div>
-              <div className="md:col-span-2">
-                <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">{t('country')}</label>
-                  <select
-                    id="country"
-                    name="country"
-                    value={shippingInfo.country}
-                    onChange={handleInputChange}
-                    onBlur={handleBlur}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
-                    fieldErrors.country ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                    required
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right Column - Order Summary */}
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="lg:col-span-4"
+          >
+            <div className="bg-white rounded-xl shadow-md p-6 md:p-8 border border-gray-100 sticky top-20">
+              <h2 className="text-2xl font-semibold text-secondary mb-6">{t('order_summary')}</h2>
+               
+              {/* Order Items */}
+              <div className="space-y-4 mb-6">
+                {cartProductsWithInfo.map((product) => (
+                  <motion.div 
+                    key={product.cartItemKey} 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex gap-4"
                   >
-                    <option value="">{t('select_country')}</option>
-                    <option value="Morocco">{t('morocco')}</option>
-                    <option value="United States">{t('united_states')}</option>
-                    <option value="Canada">{t('canada')}</option>
-                    <option value="United Kingdom">{t('united_kingdom')}</option>
-                    {/* Add more countries as needed */}
-                  </select>
-                  {fieldErrors.country && (
-                    <p className="mt-1 text-sm text-red-500">{fieldErrors.country}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {/* Payment Method Section */}
-            <div className="bg-white rounded-xl shadow-md p-6 md:p-8 border border-gray-100 mt-6">
-              <div className="flex items-center mb-6">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-prata text-secondary">{t('payment_method')}</h2>
+                    <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                      <img 
+                        src={product.image?.[0] || 'https://via.placeholder.com/80'} 
+                        alt={product.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 truncate">{product.name}</h3>
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        {product.size && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                            {t('size')}: {product.size}
+                          </span>
+                        )}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          {t('quantity')}: {product.quantity}
+                        </span>
+                      </div>
+                      <p className="mt-1 font-medium text-primary">
+                        {currency}{(product.price * product.quantity).toFixed(2)}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Cash on Delivery Option */}
-                <div
-                  onClick={() => handlePaymentMethodChange('cash')}
-                  className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${
-                    paymentMethod === 'cash'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-primary/50'
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                      paymentMethod === 'cash' ? 'border-primary' : 'border-gray-300'
-                    }`}>
-                      {paymentMethod === 'cash' && (
-                        <div className="w-3 h-3 rounded-full bg-primary" />
-                      )}
-                    </div>
-                    <div className="flex items-center">
-                      {getPaymentMethodIcon('cash')}
-                      <span className="ml-2 font-medium">{t('cash_on_delivery')}</span>
-                    </div>
+              {/* Order details */}
+              <div className="space-y-4 mb-8">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{t('subtotal')}:</span>
+                  <span className="font-medium text-gray-800">{currency}{orderTotals.subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{t('tax')}:</span>
+                  <span className="text-gray-800">{currency}{orderTotals.tax.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{t('shipping')}:</span>
+                  <span className="text-gray-800">{orderTotals.shipping === 0 ? t('free') : `${currency}${orderTotals.shipping.toFixed(2)}`}</span>
+                </div>
+                <div className="border-t border-gray-100 pt-4 mt-2">
+                  <div className="flex justify-between text-lg">
+                    <span className="font-medium text-secondary">{t('total_amount')}:</span>
+                    <span className="font-bold text-primary">{currency}{orderTotals.total.toFixed(2)}</span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-2 ml-10">
-                    {t('cash_on_delivery_desc')}
+                  <p className="text-xs text-gray-500 mt-2">
+                    {t('prices_in_currency').replace('{currency}', currency)}
                   </p>
                 </div>
+              </div>
 
-                {/* Credit/Debit Card Option */}
-                <div
-                  onClick={() => handlePaymentMethodChange('credit')}
-                  className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${
-                    paymentMethod === 'credit'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-primary/50'
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                      paymentMethod === 'credit' ? 'border-primary' : 'border-gray-300'
-                    }`}>
-                      {paymentMethod === 'credit' && (
-                        <div className="w-3 h-3 rounded-full bg-primary" />
-                      )}
-                    </div>
-                    <div className="flex items-center">
-                      {getPaymentMethodIcon('credit')}
-                      <span className="ml-2 font-medium">{t('credit_debit_card')}</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-2 ml-10">
-                    {t('credit_debit_card_desc')}
-                  </p>
+              {/* Payment method selection */}
+              <div className="mb-8">
+                <h3 className="text-sm font-medium text-gray-700 mb-4">{t('select_payment_method')}</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.values(PAYMENT_METHODS).map((method) => (
+                    <motion.button
+                      key={method.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handlePaymentMethodChange(method.id)}
+                      className={`flex items-center justify-center p-4 rounded-lg border transition-all ${
+                        paymentMethod === method.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      {method.icon}
+                    </motion.button>
+                  ))}
                 </div>
               </div>
-            </div>
-            
-          {/* Return to cart link */}
-          <div className="mt-4">
-            <motion.button 
-              whileHover={{ x: -3 }}
-              onClick={() => navigate('/cart')}
-              className="text-primary hover:text-primary-dark transition-colors flex items-center text-sm font-medium"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              {t('return_to_cart')}
-            </motion.button>
-            </div>
-        </motion.div>
-        
-        {/* Order Summary */}
-        <motion.div 
-          className="lg:col-span-1"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <div className="bg-white rounded-xl shadow-md p-6 md:p-8 border border-gray-100 sticky top-20">
-            <h2 className="text-xl font-prata text-secondary mb-6">{t('order_summary')}</h2>
-            
-            {/* Items List */}
-            <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 mb-6 pr-1">
-              {cartProductsWithInfo.map((product) => (
-                <motion.div 
-                  key={product.cartItemKey} 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100"
-                >
-                  <div className="relative rounded-md overflow-hidden bg-gray-50">
-                  <img 
-                    src={product.image?.[0] || 'https://via.placeholder.com/50'} 
-                    alt={product.name} 
-                      className="w-16 h-16 object-cover"
-                  />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-800 truncate">{product.name}</p>
-                    <div className="flex flex-wrap mt-1 gap-1">
-                      {product.size && (
-                        <span className="px-2 py-0.5 bg-primary/10 text-xs rounded-md text-primary font-medium">{t('size')}: {product.size}</span>
-                      )}
-                      <span className="px-2 py-0.5 bg-gray-100 text-xs rounded-md text-gray-600">{t('quantity')}: {product.quantity}</span>
-                    </div>
-                  </div>
-                  <p className="font-medium text-primary whitespace-nowrap">
-                    {currency}{(product.price * product.quantity).toFixed(2)}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-            
-            {/* Price Details */}
-            <div className="space-y-3 py-4 border-t border-gray-100">
-              <div className="flex justify-between items-center text-gray-700">
-                <span className="font-medium">{t('subtotal')}</span>
-                <span>{currency}{orderTotals.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center text-gray-700">
-                <span className="font-medium">{t('tax')}</span>
-                <span>{currency}{orderTotals.tax.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center text-gray-700">
-                <span className="font-medium">{t('shipping')}</span>
-                <span className="flex items-center">
-                  {orderTotals.shipping === 0 ? (
-                                          <span className="text-green-500 font-medium flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        {t('free')}
-                      </span>
-                  ) : (
-                    <span>{currency}{orderTotals.shipping.toFixed(2)}</span>
-                  )}
-                </span>
-              </div>
-            </div>
-            
-            <div className="pt-4 mt-4 border-t border-gray-100">
-              <div className="flex justify-between items-center font-medium text-lg mb-6">
-                <span className="text-gray-800">{t('total')}</span>
-                <span className="text-xl text-primary">{currency}{orderTotals.total.toFixed(2)}</span>
-              </div>
-              
-              <motion.button 
+
+              {/* Place Order button */}
+              <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handlePlaceOrder}
                 disabled={isProcessing}
-                className={`w-full py-3.5 rounded-lg shadow-sm font-medium flex items-center justify-center ${
-                  isProcessing 
-                    ? 'bg-gray-400 text-white cursor-not-allowed' 
-                    : 'bg-primary text-white hover:bg-primary-dark hover:shadow transition-all duration-200'
-                }`}
+                className="w-full py-4 bg-primary text-white font-medium rounded-lg shadow-sm hover:bg-primary-dark hover:shadow transition-all duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isProcessing ? (
-                  <span className="flex items-center justify-center">
+                  <>
                     <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    {t('processing')}
-                  </span>
+                    {t('processing')}...
+                  </>
                 ) : (
                   <>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
                     {t('place_order')}
                   </>
                 )}
               </motion.button>
-              
+
               {/* Secure checkout indicator */}
               <div className="mt-6 flex items-center justify-center text-xs text-gray-500">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
                 {t('secure_checkout')}
+              </div>
             </div>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
