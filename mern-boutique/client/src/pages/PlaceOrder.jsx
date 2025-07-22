@@ -4,6 +4,7 @@ import { useNotifications } from '../context/NotificationContext';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import useTranslation from '../utils/useTranslation';
+import axios from 'axios'; 
 
 // Update the PAYMENT_METHODS object at the top of the file
 const PAYMENT_METHODS = {
@@ -271,19 +272,32 @@ const PlaceOrder = () => {
       };
       
       const createdOrder = await createOrder(orderData);
+
+      if (paymentMethod === 'stripe') {
+        // Create Stripe checkout session
+        const response = await axios.post('http://localhost:5000/api/stripe/create-checkout-session', {
+          orderId: createdOrder._id
+        }, {
+          headers: {
+            'Authorization': `Bearer ${user.token}`
+          }
+        });
+        
+        // Store order ID in localStorage to clear cart after successful payment
+        localStorage.setItem('pendingOrderId', createdOrder._id);
+        
+        // Redirect to Stripe Checkout
+        window.location.href = response.data.url;
+        return;
+      }
       
-      // Clear data and show success message
+      // For non-Stripe payment methods, clear cart immediately
       localStorage.removeItem('shippingInfo');
       clearCart();
       toast.success(t('order_placed_successfully'));
-      
-      // Wait for notifications to refresh before navigating
       await refreshNotifications();
+      navigate('/orders');
       
-      // Ensure we navigate after all operations are complete
-      setTimeout(() => {
-        navigate('/orders');
-      }, 100);
     } catch (error) {
       console.error('Error placing order:', error);
       let errorMessage = t('failed_place_order');

@@ -84,16 +84,33 @@ export const ShopContextProvider = (props) => {
         if (userInfo) {
           const parsedUser = JSON.parse(userInfo);
           if (parsedUser && parsedUser.token) {
-            setUser(parsedUser);
+            // Set axios default authorization header first
             axios.defaults.headers.common['Authorization'] = `Bearer ${parsedUser.token}`;
+            
+            // Verify token validity by making a test request
+            try {
+              await axios.get('/api/users/profile');
+              // Only set user state if token is valid
+              setUser(parsedUser);
+            } catch (error) {
+              if (error.response?.status === 401) {
+                // Token is invalid or expired, logout user
+                localStorage.removeItem('user');
+                delete axios.defaults.headers.common['Authorization'];
+                setUser(null);
+                return;
+              }
+            }
           } else {
             localStorage.removeItem('user');
+            delete axios.defaults.headers.common['Authorization'];
             setUser(null);
           }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
         localStorage.removeItem('user');
+        delete axios.defaults.headers.common['Authorization'];
         setUser(null);
       }
     };
@@ -140,22 +157,22 @@ export const ShopContextProvider = (props) => {
   }, []);
 
   // Load user data in a separate effect to avoid coupling with cart loading
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser && parsedUser.token) {
-          setUser(parsedUser);
-          axios.defaults.headers.common['Authorization'] = `Bearer ${parsedUser.token}`;
-        }
-      } catch (error) {
-        console.error('Error parsing user from localStorage:', error);
-        localStorage.removeItem('user');
-        setUser(null);
-      }
-    }
-  }, []); // Run only once on mount
+  // useEffect(() => {
+  //   const storedUser = localStorage.getItem('user');
+  //   if (storedUser) {
+  //     try {
+  //       const parsedUser = JSON.parse(storedUser);
+  //       if (parsedUser && parsedUser.token) {
+  //         setUser(parsedUser);
+  //         axios.defaults.headers.common['Authorization'] = `Bearer ${parsedUser.token}`;
+  //       }
+  //     } catch (error) {
+  //       console.error('Error parsing user from localStorage:', error);
+  //       localStorage.removeItem('user');
+  //       setUser(null);
+  //     }
+  //   }
+  // }, []); // Remove this duplicate effect
 
   // Create a function to refresh products
   const refreshProducts = async () => {
@@ -599,10 +616,32 @@ export const ShopContextProvider = (props) => {
   // Get a specific order by ID
   const getOrderById = async (orderId) => {
     try {
-      const response = await axios.get(`/api/orders/${orderId}`);
+      // Ensure we have a valid token
+      const userInfo = localStorage.getItem('user');
+      if (!userInfo) {
+        throw new Error('No authentication token available');
+      }
+
+      const parsedUser = JSON.parse(userInfo);
+      if (!parsedUser || !parsedUser.token) {
+        throw new Error('Invalid authentication token');
+      }
+
+      // Set the token in headers for this specific request
+      const config = {
+        headers: {
+          Authorization: `Bearer ${parsedUser.token}`
+        }
+      };
+
+      const response = await axios.get(`/api/orders/${orderId}`, config);
       return response.data;
     } catch (error) {
       console.error('Error fetching order details:', error);
+      if (error.response?.status === 401) {
+        // Token might be expired, trigger logout
+        logout();
+      }
       throw error;
     }
   };

@@ -93,8 +93,11 @@ export const NotificationProvider = ({ children }) => {
     }
 
     setNotifications(prev => {
+      // Generate a unique ID by combining timestamp with a random string
+      const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
       const newNotifications = [{
-        id: Date.now(),
+        id: uniqueId,
         message,
         type,
         title,

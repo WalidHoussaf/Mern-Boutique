@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import useTranslation from '../utils/useTranslation';
@@ -32,7 +32,7 @@ const PAYMENT_METHODS = {
 
 const Orders = () => {
   const { id: orderIdParam } = useParams();
-  const { user, navigate, fetchUserOrders, getOrderById, updateOrderToPaid, orders: contextOrders, ordersLoading } = useContext(ShopContext);
+  const { user, navigate, fetchUserOrders, getOrderById, updateOrderToPaid, orders: contextOrders, ordersLoading, clearCart } = useContext(ShopContext);
   const { refreshNotifications } = useNotifications();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +41,7 @@ const Orders = () => {
   const [orderDetailsLoading, setOrderDetailsLoading] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const { t } = useTranslation();
+  const location = useLocation();
 
   // Add sorting options
   const [sortBy, setSortBy] = useState('latest');
@@ -156,6 +157,60 @@ const Orders = () => {
       setOrders(contextOrders);
     }
   }, [contextOrders]); // Removed loading from dependencies
+
+  // Check for Stripe success/canceled status
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const success = queryParams.get('success');
+    const canceled = queryParams.get('canceled');
+
+    const handlePaymentStatus = async () => {
+      // Remove the URL parameters first to prevent multiple triggers
+      if ((success || canceled) && orderIdParam) {
+        navigate(`/order/${orderIdParam}`, { replace: true });
+      }
+
+      if (success === 'true' && orderIdParam) {
+        try {
+          // Refresh order details
+          const updatedOrder = await getOrderById(orderIdParam);
+          setSelectedOrder(updatedOrder);
+          
+          // Check if this is the pending order and clear cart if it is
+          const pendingOrderId = localStorage.getItem('pendingOrderId');
+          if (pendingOrderId === orderIdParam) {
+            localStorage.removeItem('pendingOrderId');
+            localStorage.removeItem('shippingInfo');
+            clearCart();
+          }
+
+          // Show single success message
+          toast.success(t('payment_success'));
+          
+          // Refresh data in a single batch
+          await Promise.all([
+            refreshNotifications(),
+            fetchUserOrders().then(updatedOrders => {
+              if (updatedOrders) {
+                setOrders(updatedOrders);
+              }
+            })
+          ]);
+
+        } catch (error) {
+          console.error('Error refreshing order:', error);
+        }
+      } else if (canceled === 'true') {
+        // If payment was canceled, remove the pending order ID
+        localStorage.removeItem('pendingOrderId');
+        toast.error(t('payment_canceled'));
+      }
+    };
+
+    if (success || canceled) {
+      handlePaymentStatus();
+    }
+  }, [location.search, orderIdParam, navigate, getOrderById, fetchUserOrders, refreshNotifications, t, clearCart]);
 
   // Format date for display
   const formatDate = (dateString) => {

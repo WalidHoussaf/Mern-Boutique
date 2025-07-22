@@ -64,6 +64,16 @@ const NotificationCenter = ({ onClose }) => {
     toggleSound
   } = useNotifications();
 
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    try {
+      return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+    } catch (error) {
+      console.error('Invalid timestamp:', timestamp);
+      return '';
+    }
+  };
+
   const dropdownVariants = {
     hidden: { opacity: 0, y: -10, scale: 0.95 },
     visible: { 
@@ -166,10 +176,11 @@ const NotificationCenter = ({ onClose }) => {
               {notifications.map(notification => {
                 const config = typeConfig[notification.type] || typeConfig.info;
                 const Icon = config.icon;
+                const timestamp = notification.timestamp || notification.createdAt;
 
                 return (
                   <motion.div
-                    key={notification.id}
+                    key={notification.id || notification._id}
                     layout
                     initial="hidden"
                     animate="visible"
@@ -192,20 +203,18 @@ const NotificationCenter = ({ onClose }) => {
                         </p>
                         <div className="flex items-center gap-3 mt-2">
                           <p className="text-xs text-gray-500">
-                            {formatDistanceToNow(new Date(notification.timestamp), {
-                              addSuffix: true
-                            })}
+                            {formatTimestamp(timestamp)}
                           </p>
                           {!notification.read && (
                             <button
-                              onClick={() => markAsRead(notification.id)}
+                              onClick={() => markAsRead(notification.id || notification._id)}
                               className="text-xs text-primary hover:text-primary-dark transition-colors font-medium"
                             >
                               {t('mark_read')}
                             </button>
                           )}
                           <button
-                            onClick={() => removeNotification(notification.id)}
+                            onClick={() => removeNotification(notification.id || notification._id)}
                             className="text-xs text-red-500 hover:text-red-600 transition-colors font-medium ml-auto"
                           >
                             {t('delete')}
