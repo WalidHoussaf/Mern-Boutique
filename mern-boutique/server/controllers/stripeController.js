@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import stripe from '../config/stripe.js';
 import Order from '../models/orderModel.js';
 import NotificationService from '../services/notificationService.js';
+import { updateProductStock } from '../utils/stockUtils.js';
 
 // @desc    Create Stripe checkout session
 // @route   POST /api/stripe/create-checkout-session
@@ -125,8 +126,21 @@ export const handleWebhook = asyncHandler(async (req, res) => {
         try {
           await order.save();
           
-          // Create payment success notification
+          // Update product stock quantities if payment was successful
           if (paymentStatus === 'COMPLETED') {
+            try {
+              await updateProductStock(order.orderItems);
+            } catch (stockError) {
+              console.error('Error updating stock:', stockError);
+              // Even if stock update fails, we keep the order as paid since payment was successful
+              // This requires manual intervention to resolve stock discrepancy
+              await NotificationService.notifyAdmin(
+                'Stock Update Failed',
+                `Failed to update stock for order ${order._id}: ${stockError.message}`
+              );
+            }
+            
+            // Create payment success notification
             await NotificationService.paymentProcessed(
               session.metadata.userId,
               session.metadata.orderId,

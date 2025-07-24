@@ -480,13 +480,22 @@ const Product = () => {
               {/* Availability Status */}
               <div className="flex items-center mb-4">
                 <span className="text-sm font-medium text-gray-700 w-24">{t('status')}:</span>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  product?.countInStock > 0 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {product?.countInStock > 0 ? t('in_stock') : t('out_of_stock')}
-                </span>
+                <div className="flex items-center">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    product?.countInStock > 0 
+                      ? product.countInStock <= 5 
+                        ? 'bg-yellow-100 text-yellow-800' 
+                        : 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {product?.countInStock > 0 
+                      ? product.countInStock <= 5 
+                        ? `${t('only')} ${product.countInStock} ${t('left_in_stock')}` 
+                        : t('in_stock')
+                      : t('out_of_stock')
+                    }
+                  </span>
+                </div>
               </div>
 
               {/* SKU */}
@@ -634,7 +643,10 @@ const Product = () => {
               <div className="flex items-center">
                 <button
                   onClick={() => handleQuantityChange(-1)}
-                  className="text-gray-500 hover:text-primary h-10 w-10 rounded-l-md border border-r-0 border-gray-300 flex items-center justify-center"
+                  disabled={quantity <= 1}
+                  className={`text-gray-500 hover:text-primary h-10 w-10 rounded-l-md border border-r-0 border-gray-300 flex items-center justify-center ${
+                    quantity <= 1 ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -645,13 +657,24 @@ const Product = () => {
                 </div>
                 <button
                   onClick={() => handleQuantityChange(1)}
-                  className="text-gray-500 hover:text-primary h-10 w-10 rounded-r-md border border-l-0 border-gray-300 flex items-center justify-center"
+                  disabled={quantity >= product?.countInStock}
+                  className={`text-gray-500 hover:text-primary h-10 w-10 rounded-r-md border border-l-0 border-gray-300 flex items-center justify-center ${
+                    quantity >= product?.countInStock ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                 </button>
               </div>
+              {product?.countInStock > 0 && product.countInStock <= 5 && (
+                <p className="mt-2 text-sm text-yellow-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline mr-1 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  {t('low_stock_warning')}
+                </p>
+              )}
             </div>
             
             {/* Add to cart button */}
@@ -690,7 +713,7 @@ const Product = () => {
                   {t('add_to_cart')}
                 </>
               )}
-                        </motion.button>
+            </motion.button>
             
             {/* Product Details Accordion */}
             <div className="mt-8 border-t pt-8">
