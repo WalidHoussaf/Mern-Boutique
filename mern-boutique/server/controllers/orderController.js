@@ -8,9 +8,6 @@ import NotificationService from '../services/notificationService.js';
 // @access  Private
 const addOrderItems = asyncHandler(async (req, res) => {
   try {
-    console.log('Creating new order. User ID:', req.user?._id);
-    console.log('Request body:', JSON.stringify(req.body, null, 2));
-    
     const {
       orderItems,
       shippingAddress,
@@ -69,12 +66,13 @@ const addOrderItems = asyncHandler(async (req, res) => {
       totalPrice: totalPrice || 0,
     });
 
-    console.log('Order object created, saving to database...');
     const createdOrder = await order.save();
-    console.log('Order saved successfully:', createdOrder._id);
 
-    // Create notification for order placement
-    await NotificationService.orderPlaced(req.user._id, createdOrder._id);
+    // Only create notification for non-Stripe payment methods
+    // For Stripe, we'll create the notification after successful payment
+    if (paymentMethod !== 'stripe') {
+      await NotificationService.orderPlaced(req.user._id, createdOrder._id);
+    }
 
     res.status(201).json(createdOrder);
   } catch (error) {
@@ -234,6 +232,35 @@ const deleteOrder = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Delete multiple orders
+// @route   DELETE /api/orders/bulk
+// @access  Private/Admin
+const deleteMultipleOrders = asyncHandler(async (req, res) => {
+  const { orderIds } = req.body;
+
+  if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+    res.status(400);
+    throw new Error('No order IDs provided');
+  }
+
+  try {
+    const result = await Order.deleteMany({ _id: { $in: orderIds } });
+    
+    if (result.deletedCount === 0) {
+      res.status(404);
+      throw new Error('No orders found to delete');
+    }
+
+    res.json({ 
+      message: `Successfully deleted ${result.deletedCount} orders`,
+      deletedCount: result.deletedCount 
+    });
+  } catch (error) {
+    res.status(500);
+    throw new Error(`Failed to delete orders: ${error.message}`);
+  }
+});
+
 export {
   addOrderItems,
   getOrderById,
@@ -242,4 +269,5 @@ export {
   getMyOrders,
   getOrders,
   deleteOrder,
+  deleteMultipleOrders
 }; 

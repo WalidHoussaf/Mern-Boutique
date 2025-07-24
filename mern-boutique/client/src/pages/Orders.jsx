@@ -32,14 +32,13 @@ const PAYMENT_METHODS = {
 
 const Orders = () => {
   const { id: orderIdParam } = useParams();
-  const { user, navigate, fetchUserOrders, getOrderById, updateOrderToPaid, orders: contextOrders, ordersLoading, clearCart } = useContext(ShopContext);
+  const { user, navigate, fetchUserOrders, getOrderById, orders: contextOrders, ordersLoading, clearCart } = useContext(ShopContext);
   const { refreshNotifications } = useNotifications();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderDetailsLoading, setOrderDetailsLoading] = useState(false);
-  const [paymentProcessing, setPaymentProcessing] = useState(false);
   const { t } = useTranslation();
   const location = useLocation();
 
@@ -183,19 +182,15 @@ const Orders = () => {
             localStorage.removeItem('shippingInfo');
             clearCart();
           }
-
-          // Show single success message
+          
+          // Show success toast
           toast.success(t('payment_success'));
           
-          // Refresh data in a single batch
-          await Promise.all([
-            refreshNotifications(),
-            fetchUserOrders().then(updatedOrders => {
-              if (updatedOrders) {
-                setOrders(updatedOrders);
-              }
-            })
-          ]);
+          // Then refresh orders data
+          const updatedOrders = await fetchUserOrders();
+          if (updatedOrders) {
+            setOrders(updatedOrders);
+          }
 
         } catch (error) {
           console.error('Error refreshing order:', error);
@@ -210,7 +205,7 @@ const Orders = () => {
     if (success || canceled) {
       handlePaymentStatus();
     }
-  }, [location.search, orderIdParam, navigate, getOrderById, fetchUserOrders, refreshNotifications, t, clearCart]);
+  }, [location.search, orderIdParam, navigate, getOrderById, fetchUserOrders, t, clearCart]);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -285,33 +280,6 @@ const Orders = () => {
         {config.text}
       </span>
     );
-  };
-
-  const handlePaymentMethodRedirect = async (order) => {
-    if (!order) return;
-    
-    setPaymentProcessing(true);
-    try {
-      const paymentResult = {
-        id: `${order.paymentMethod.toUpperCase()}-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
-        status: 'COMPLETED',
-        update_time: new Date().toISOString(),
-        payment_method: order.paymentMethod,
-        email_address: user?.email || ''
-      };
-      
-      const updatedOrder = await updateOrderToPaid(order._id, paymentResult);
-      setSelectedOrder(updatedOrder);
-      
-      toast.success(t('payment_success')); // Restore the success toast
-      await refreshNotifications(); // Update system notifications
-      await fetchUserOrders(); // Refresh the orders list
-    } catch (error) {
-      console.error('Error processing payment:', error);
-      toast.error(error.response?.data?.message || t('payment_failed'));
-    } finally {
-      setPaymentProcessing(false);
-    }
   };
 
   if (loading || orderDetailsLoading) {
@@ -496,40 +464,12 @@ const Orders = () => {
                   </div>
                 </div>
 
-                {/* Payment Action Button */}
-                {!selectedOrder.isPaid && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handlePaymentMethodRedirect(selectedOrder)}
-                    disabled={paymentProcessing}
-                    className="w-full mt-8 py-4 bg-primary text-white font-medium rounded-lg shadow-sm hover:bg-primary-dark hover:shadow transition-all duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-                  >
-                    {paymentProcessing ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        {t('processing')}...
-                      </>
-                    ) : (
-                      <>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        {t('complete_payment')}
-                      </>
-                    )}
-                  </motion.button>
-                )}
-
-                {/* Secure payment indicator */}
-                <div className="mt-6 flex items-center justify-center text-xs text-gray-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  {t('secure_checkout')}
+                {/* Payment Status */}
+                <div className="mt-6 text-center">
+                  <StatusBadge
+                    isPaid={selectedOrder.isPaid}
+                    isDelivered={selectedOrder.isDelivered}
+                  />
                 </div>
               </div>
             </div>

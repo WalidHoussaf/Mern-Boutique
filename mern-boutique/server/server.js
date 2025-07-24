@@ -25,10 +25,15 @@ connectDB();
 // Initialize Express
 const app = express();
 
-// Raw body for Stripe webhooks
-app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+// Stripe webhook endpoint must be before any other middleware
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  console.log('Webhook received at:', new Date().toISOString());
+  console.log('Headers:', req.headers);
+  const { handleWebhook } = await import('./controllers/stripeController.js');
+  return handleWebhook(req, res);
+});
 
-// Regular body parsing middleware
+// Regular body parsing middleware - must be after the webhook endpoint
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 

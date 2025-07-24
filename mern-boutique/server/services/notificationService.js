@@ -58,7 +58,7 @@ class NotificationService {
             userId,
             'success',
             'Order Placed Successfully',
-            `Your order #${orderId} has been placed successfully. Please proceed with the payment confirmation or continue exploring.`
+            `Your order #${orderId} has been placed successfully. Please complete the payment to process your order.`
         );
     }
 
@@ -163,8 +163,8 @@ class NotificationService {
         return this.createNotification(
             userId,
             'success',
-            'Payment Processed',
-            `Your payment of $${amount} for order #${orderId} has been processed successfully.`
+            'Payment Successful',
+            'Payment processed successfully'
         );
     }
 
@@ -173,7 +173,7 @@ class NotificationService {
             userId,
             'error',
             'Payment Failed',
-            `Payment for order #${orderId} failed: ${reason}. Please update your payment information.`
+            'Payment processing failed'
         );
     }
 

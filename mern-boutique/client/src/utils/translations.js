@@ -979,7 +979,14 @@ const translations = {
     stripe: 'Stripe',
     payment_success: 'Payment processed successfully',
     payment_failed: 'Payment processing failed',
+    payment_pending: 'Payment Pending',
+    payment_completed: 'Payment Completed',
+    payment_update_success: 'Payment updated successfully',
     continue_to_payment: 'Continue to Payment',
+    processing_payment: 'Processing payment...',
+    invalid_card_number: 'Invalid card number',
+    invalid_expiration_date: 'Invalid expiration date',
+    invalid_cvv: 'Invalid CVV',
 
     // Orders Page
     orders_found: 'orders found',
@@ -1986,7 +1993,14 @@ const translations = {
     stripe: 'Stripe',
     payment_success: 'Paiement traité avec succès',
     payment_failed: 'Échec du traitement du paiement',
+    payment_pending: 'Paiement en Attente',
+    payment_completed: 'Paiement Complété',
+    payment_update_success: 'Paiement mis à jour avec succès',
     continue_to_payment: 'Continuer vers le Paiement',
+    processing_payment: 'Traitement du paiement...',
+    invalid_card_number: 'Numéro de carte invalide',
+    invalid_expiration_date: 'Date d\'expiration invalide',
+    invalid_cvv: 'CVV invalide',
 
     // Orders Page
     orders_found: 'commandes trouvées',

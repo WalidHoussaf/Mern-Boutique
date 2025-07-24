@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import stripe from '../config/stripe.js';
 import Order from '../models/orderModel.js';
+import NotificationService from '../services/notificationService.js';
 
 // @desc    Create Stripe checkout session
 // @route   POST /api/stripe/create-checkout-session
@@ -8,7 +9,6 @@ import Order from '../models/orderModel.js';
 export const createCheckoutSession = asyncHandler(async (req, res) => {
   try {
     const { orderId } = req.body;
-    console.log('Creating checkout session for order:', orderId);
 
     // Get the order from database
     const order = await Order.findById(orderId);
@@ -17,8 +17,6 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
       res.status(404);
       throw new Error('Order not found');
     }
-
-    console.log('Found order:', order);
 
     // Create line items for Stripe
     const lineItems = order.orderItems.map(item => {
@@ -42,8 +40,6 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
       };
     });
 
-    console.log('Line items:', lineItems);
-
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -59,7 +55,6 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
       },
     });
 
-    console.log('Stripe session created:', session.id);
     res.json({ url: session.url });
   } catch (error) {
     console.error('Error creating checkout session:', error);
@@ -78,59 +73,95 @@ export const handleWebhook = asyncHandler(async (req, res) => {
   let event;
 
   try {
-    console.log('Received webhook event');
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-    console.log('Webhook event verified:', event.type);
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+      console.error('STRIPE_WEBHOOK_SECRET is missing');
+      return res.status(500).send('Webhook secret is not configured');
+    }
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err) {
+      console.error('Webhook signature verification failed:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
 
     // Handle the event
     switch (event.type) {
-      case 'checkout.session.completed':
+      case 'checkout.session.completed': {
         const session = event.data.object;
-        console.log('Processing completed checkout session:', session.id);
-        
+
+        if (!session.metadata?.orderId) {
+          console.error('No orderId found in session metadata');
+          return res.status(400).send('No orderId in session metadata');
+        }
+
         // Update order status
         const order = await Order.findById(session.metadata.orderId);
-        if (order) {
-          console.log('Updating order:', order._id);
-          order.isPaid = true;
-          order.paidAt = Date.now();
-          order.paymentResult = {
-            id: session.id,
-            status: session.payment_status,
-            update_time: new Date().toISOString(),
-            email_address: session.customer_email,
-          };
-          await order.save();
-          console.log('Order updated successfully');
-        } else {
+        if (!order) {
           console.error('Order not found:', session.metadata.orderId);
+          return res.status(404).send('Order not found');
+        }
+
+        // Map Stripe payment status to our order status
+        const paymentStatus = session.payment_status === 'paid' ? 'COMPLETED' 
+                          : session.payment_status === 'unpaid' ? 'PENDING'
+                          : 'FAILED';
+
+        // Update the order
+        order.isPaid = true;
+        order.paidAt = Date.now();
+        order.paymentResult = {
+          id: session.id,
+          status: paymentStatus,
+          update_time: new Date().toISOString(),
+          email_address: session.customer_email,
+          payment_method: 'stripe'
+        };
+
+        try {
+          await order.save();
+          
+          // Create payment success notification
+          if (paymentStatus === 'COMPLETED') {
+            await NotificationService.paymentProcessed(
+              session.metadata.userId,
+              session.metadata.orderId,
+              order.totalPrice
+            );
+          }
+          
+          res.json({ received: true, type: event.type });
+        } catch (err) {
+          console.error('Error saving order:', err);
+          return res.status(500).send(`Error updating order: ${err.message}`);
         }
         break;
+      }
 
-      case 'payment_intent.succeeded':
+      case 'payment_intent.succeeded': {
+        res.json({ received: true, type: event.type });
+        break;
+      }
+
+      case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object;
-        console.log('Payment succeeded:', paymentIntent.id);
+        console.error('PaymentIntent failed:', {
+          id: paymentIntent.id,
+          error: paymentIntent.last_payment_error
+        });
+        res.json({ received: true, type: event.type });
         break;
-
-      case 'payment_intent.payment_failed':
-        const failedPayment = event.data.object;
-        console.error('Payment failed:', failedPayment.id);
-        break;
+      }
 
       default:
-        console.log(`Unhandled event type ${event.type}`);
+        res.json({ received: true, type: event.type });
     }
-
-    res.json({ received: true });
   } catch (err) {
-    console.error('Webhook Error:', err.message);
-    console.error('Request body:', req.body);
-    console.error('Stripe signature:', sig);
-    res.status(400).send(`Webhook Error: ${err.message}`);
-    return;
+    console.error('Webhook processing error:', err);
+    res.status(500).send(`Webhook Error: ${err.message}`);
   }
 }); 

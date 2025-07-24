@@ -7,6 +7,7 @@ import {
   getMyOrders,
   getOrders,
   deleteOrder,
+  deleteMultipleOrders
 } from '../controllers/orderController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -17,6 +18,10 @@ router.route('/')
   .get(protect, admin, getOrders);
 
 router.route('/myorders').get(protect, getMyOrders);
+
+router.route('/bulk')
+  .delete(protect, admin, deleteMultipleOrders);
+
 router.route('/:id')
   .get(protect, getOrderById)
   .delete(protect, admin, deleteOrder);

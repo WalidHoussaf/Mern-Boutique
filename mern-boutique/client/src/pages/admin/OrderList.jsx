@@ -18,6 +18,8 @@ const OrderList = () => {
   const [showDeliveredModal, setShowDeliveredModal] = useState(false);
   const [orderToMarkDelivered, setOrderToMarkDelivered] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedOrders, setSelectedOrders] = useState(new Set());
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -124,6 +126,46 @@ const OrderList = () => {
     return '$' + num.toFixed(2);
   };
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      const newSelected = new Set(filteredOrders.map(order => order._id));
+      setSelectedOrders(newSelected);
+    } else {
+      setSelectedOrders(new Set());
+    }
+  };
+
+  const handleSelectOrder = (orderId) => {
+    const newSelected = new Set(selectedOrders);
+    if (newSelected.has(orderId)) {
+      newSelected.delete(orderId);
+    } else {
+      newSelected.add(orderId);
+    }
+    setSelectedOrders(newSelected);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedOrders.size === 0) return;
+    
+    setDeleteLoading(true);
+    try {
+      await axios.delete('/api/orders/bulk', {
+        data: { orderIds: Array.from(selectedOrders) }
+      });
+      
+      setOrders(orders.filter(order => !selectedOrders.has(order._id)));
+      setSelectedOrders(new Set());
+      toast.success(t('orders_deleted_success'));
+    } catch (error) {
+      console.error('Error deleting orders:', error);
+      toast.error(error.response?.data?.message || t('failed_delete_orders'));
+    } finally {
+      setDeleteLoading(false);
+      setShowBulkDeleteModal(false);
+    }
+  };
+
   return (
     <div>
       <BackToDashboard />
@@ -155,6 +197,14 @@ const OrderList = () => {
               <option value="paid">{t('paid_not_delivered')}</option>
               <option value="delivered">{t('delivered')}</option>
             </select>
+            {selectedOrders.size > 0 && (
+              <button
+                onClick={() => setShowBulkDeleteModal(true)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+              >
+                {t('delete_selected')} ({selectedOrders.size})
+              </button>
+            )}
           </div>
         </div>
         
@@ -171,6 +221,14 @@ const OrderList = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-primary focus:ring-primary"
+                      checked={selectedOrders.size === filteredOrders.length && filteredOrders.length > 0}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t('order_id')}
                   </th>
@@ -197,6 +255,14 @@ const OrderList = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredOrders.map((order) => (
                   <tr key={order._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300 text-primary focus:ring-primary"
+                        checked={selectedOrders.has(order._id)}
+                        onChange={() => handleSelectOrder(order._id)}
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {order._id.substring(order._id.length - 8)}
@@ -335,6 +401,48 @@ const OrderList = () => {
                     onClick={handleMarkDelivered}
                   >
                     {t('confirm')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Delete Confirmation Modal */}
+        {showBulkDeleteModal && (
+          <div className="fixed inset-0 overflow-y-auto z-50 flex items-center justify-center">
+            <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowBulkDeleteModal(false)}></div>
+            <div className="relative bg-white rounded-lg max-w-md w-full mx-4">
+              <div className="p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('confirm_bulk_delete')}</h3>
+                <p className="text-gray-600 mb-6">
+                  {t('confirm_bulk_delete_desc', { count: selectedOrders.size })}
+                </p>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
+                    onClick={() => setShowBulkDeleteModal(false)}
+                  >
+                    {t('cancel')}
+                  </button>
+                  <button
+                    type="button"
+                    className={`px-4 py-2 bg-red-600 text-white rounded-md shadow-sm hover:bg-red-700 ${
+                      deleteLoading ? 'opacity-75 cursor-not-allowed' : ''
+                    }`}
+                    onClick={handleBulkDelete}
+                    disabled={deleteLoading}
+                  >
+                    {deleteLoading ? (
+                      <div className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {t('deleting')}
+                      </div>
+                    ) : t('delete')}
                   </button>
                 </div>
               </div>
