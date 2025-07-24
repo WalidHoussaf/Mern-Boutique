@@ -90,7 +90,7 @@ const Hero = () => {
                 </h1>
                 
                 {/* Description Text */}
-                <p className="text-white/90 text-sm lg:text-base mb-8 max-w-md">
+                <p className="text-white/90 text-sm text-justify lg:text-base mb-8 max-w-md">
                   {t('heroDescription')}
                 </p>
                 

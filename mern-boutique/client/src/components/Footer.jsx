@@ -36,7 +36,7 @@ const Footer = () => {
           <div className="mb-8 md:mb-0">
             <div className="flex items-center mb-4">
               <img src={assets.logo} alt="Boutique Logo" className="h-8 mr-2" />
-              <span className="text-xl font-prata text-secondary">{t('boutique')}</span>
+              <span className="text-2xs font-prata text-primary">Vogue Vault Boutique</span>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed mb-4">
               {t('about_description')}
@@ -83,7 +83,7 @@ const Footer = () => {
 
           {/* Shop Categories */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4 pb-1 border-b border-gray-200">{t('categories')}</h3>
+            <h3 className="font-semibold text-primary mb-4 pb-1 border-b border-gray-200">{t('categories')}</h3>
             <ul className="space-y-2">
               <li><Link to="/collection?category=Women" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('women')}</Link></li>
               <li><Link to="/collection?category=Men" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('men')}</Link></li>
@@ -93,7 +93,7 @@ const Footer = () => {
 
           {/* Company & Policy */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4 pb-1 border-b border-gray-200">{t('company')}</h3>
+            <h3 className="font-semibold text-primary mb-4 pb-1 border-b border-gray-200">{t('company')}</h3>
             <ul className="space-y-2">
               <li><Link to="/about" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('about_us')}</Link></li>
               <li><Link to="/contact" className="text-gray-600 hover:text-primary transition-colors text-sm flex items-center"><span className="w-1 h-1 bg-gray-300 rounded-full mr-2"></span>{t('contact_us')}</Link></li>
@@ -105,7 +105,7 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4 pb-1 border-b border-gray-200">{t('contact')}</h3>
+            <h3 className="font-semibold text-primary mb-4 pb-1 border-b border-gray-200">{t('contact')}</h3>
             <ul className="space-y-3">
               <li className="text-gray-600 text-sm flex items-start">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -149,7 +149,7 @@ const Footer = () => {
         {/* Bottom Section with Copyright and Links */}
         <div className="mt-12 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-500 text-sm mb-4 md:mb-0">
-            &copy; {year} {t('copyright', year)}.
+            &copy; {year} {t('copyright', year)}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link to="/shipping" className="text-gray-500 hover:text-primary text-sm transition-colors">{t('shipping_policy')}</Link>

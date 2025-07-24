@@ -133,6 +133,7 @@ const translations = {
     subscribing: 'Subscribing...',
     thanksForSubscribing: 'Thanks for subscribing! Welcome to our fashion community.',
     privacyNotice: 'We respect your privacy. Unsubscribe at any time.',
+    invalidEmail: 'Please enter a valid email address',
     // Categories dropdown
     shop_by_category: 'Shop by Category',
     women: 'Women',
@@ -276,7 +277,6 @@ const translations = {
     our_promise: 'Our Promise',
     promise_description: 'When you shop with Vogue Vault Boutique, you\'re not just buying clothing – you\'re investing in pieces that are made to last, both in style and durability. We\'re committed to providing exceptional customer service and a shopping experience that makes you feel valued and understood.',
     satisfaction_guarantee: 'We stand behind every product we sell with our satisfaction guarantee. If you\'re not completely happy with your purchase, we\'ll make it right.',
-    join_community: 'Join Our Community',
     newsletter_description: 'Subscribe to receive updates on new collections, exclusive offers, and fashion inspiration.',
     email_placeholder: 'Your email address',
     subscribe_button: 'Subscribe',
@@ -344,10 +344,10 @@ const translations = {
     select_payment_method: 'Select Payment Method',
     place_order: 'Place Order',
     processing: 'Processing...',
-    we_accept: 'We Accept',
     free_shipping_progress: 'Free shipping progress',
     qualified_free_shipping: '✓ You\'ve qualified for free shipping!',
     add_more_free_shipping: 'Add {amount} more to your cart for free shipping!',
+    close: 'Close',
 
     // Product Details Sections
     shipping_info: 'Shipping Information',
@@ -399,11 +399,7 @@ const translations = {
 
     // Similar Products
     you_might_also_like: 'You Might Also Like',
-
-    // Save Percentage
     save: 'Save',
-
-    // Reviews
     reviews: 'reviews',
 
     // Shipping Options
@@ -411,7 +407,6 @@ const translations = {
     store_pickup_desc: 'Pick up your order at any of our stores',
     home_delivery: 'Home Delivery',
     home_delivery_desc: 'Get your order delivered to your doorstep',
-    free: 'Free',
 
     // Login/Register Page
     welcome_back: 'Welcome back, {name}!',
@@ -420,7 +415,6 @@ const translations = {
     sign_in_desc: 'Sign in to access your account and continue shopping',
     join_desc: 'Create an account to start your shopping journey',
     sign_in: 'Sign In',
-    create_account: 'Create Account',
     full_name: 'Full Name',
     email_address: 'Email Address',
     password: 'Password',
@@ -475,7 +469,6 @@ const translations = {
     expiration_date: 'Expiration Date',
     cvv: 'CVV',
     process_payment: 'Process Payment',
-    cancel: 'Cancel',
     no_orders: 'No orders found',
     no_orders_desc: 'You haven\'t placed any orders yet.',
     start_shopping: 'Start Shopping',
@@ -568,10 +561,7 @@ const translations = {
     size: 'Size',
     quantity: 'Qty',
     subtotal: 'Subtotal',
-    tax: 'Tax (5%)',
     shipping: 'Shipping',
-    free: 'Free',
-    total: 'Total',
     place_order: 'Place Order',
     processing: 'Processing...',
     secure_checkout: 'Secure checkout',
@@ -588,7 +578,6 @@ const translations = {
     phone_error: 'Please enter a valid phone number (XXX-XXX-XXXX)',
 
     // Admin Dashboard Page
-    admin_dashboard: 'Admin Dashboard',
     welcome_admin: 'Welcome, {name}',
     overview: 'Overview',
     orders: 'Orders',
@@ -598,7 +587,6 @@ const translations = {
 
     // Admin DashboardOverview Page
     revenue: 'Revenue',
-    total: 'total',
     view_revenue_details: 'View revenue details →',
     recent_orders: 'Recent Orders',
     no_orders_yet: 'No orders yet',
@@ -607,7 +595,6 @@ const translations = {
     top_products: 'Top Products',
     no_product_data: 'No product data available',
     stock: 'Stock',
-    units: 'units',
     edit: 'Edit →',
     view_all_products: 'View all products →',
     delivered: 'Delivered',
@@ -649,13 +636,9 @@ const translations = {
     order_summary: 'Order Summary',
     subtotal: 'Subtotal',
     shipping: 'Shipping',
-    tax: 'Tax',
-    total: 'Total',
     quantity: 'Quantity',
-    price: 'Price',
     confirm_delete_order: 'Are you sure you want to delete this order?',
     confirm_delete_order_desc: 'This action cannot be undone.',
-    cancel: 'Cancel',
     confirm: 'Confirm',
     confirm_mark_delivered: 'Are you sure you want to mark this order as delivered?',
     confirm_mark_delivered_desc: 'This will update the order status to delivered.',
@@ -697,8 +680,6 @@ const translations = {
     no_orders_found: 'No orders found. Try changing your search term or filter.',
     order_id: 'Order ID',
     customer: 'Customer',
-    date: 'Date',
-    total: 'Total',
     payment: 'Payment',
     delivery: 'Delivery',
     actions: 'Actions',
@@ -757,13 +738,11 @@ const translations = {
     user: 'User',
     joined: 'Joined',
     role: 'Role',
-    actions: 'Actions',
     admin: 'Admin',
     customer: 'Customer',
     view: 'View',
     revoke: 'Revoke',
     promote: 'Promote',
-    delete: 'Delete',
     confirm_user_deletion: 'Confirm User Deletion',
     confirm_user_deletion_desc: 'Are you sure you want to delete {userName}? This action cannot be undone.',
     delete_user: 'Delete User',
@@ -786,28 +765,18 @@ const translations = {
     search_products: 'Search products...',
     add_product: 'Add Product',
     product: 'Product',
-    price: 'Prix',
     category: 'Category',
     status: 'Status',
-    actions: 'Actions',
     edit: 'Edit',
-    delete: 'Delete',
     view: 'View',
     uncategorized: 'Uncategorized',
-    in_stock: 'In Stock',
-    out_of_stock: 'Out of stock',
     confirm_delete: 'Confirm Delete',
     confirm_delete_product_desc: 'Are you sure you want to delete {productName}? This action cannot be undone.',
-    cancel: 'Cancel',
     deleting: 'Deleting...',
     product_deleted: 'Product deleted successfully',
     failed_delete_product: 'Failed to delete product',
     failed_load_products: 'Failed to load products',
     
-    // Category translations
-    category_women: 'Women',
-    category_men: 'Men', 
-    category_kids: 'Kids',
 
     // Admin ProductForm Page
     edit_product: 'Edit Product',
@@ -828,7 +797,6 @@ const translations = {
     description: 'Description',
     enter_product_description: 'Enter product description',
     enter_product_description_fr: 'Entrez la description du produit',
-    price: 'Price',
     original_price: 'Original Price',
     stock_quantity: 'Stock Quantity',
     rating_0_5: 'Rating (0-5)',
@@ -873,10 +841,8 @@ const translations = {
 
     // Admin Messages Page
     contact_messages: 'Contact Messages',
-    unread: 'unread',
     no_messages_found: 'No messages found',
     mark_as_read: 'Mark as Read',
-    delete: 'Delete',
     subject: 'Subject',
     message: 'Message',
     received_on: 'Received on',
@@ -908,7 +874,6 @@ const translations = {
     failed_remove_wishlist: 'Failed to remove item from wishlist',
     wishlist_cleared: 'Wishlist cleared',
     failed_clear_wishlist: 'Failed to clear wishlist',
-    welcome_back: 'Welcome back, {name}!',
     auth_failed_no_token: 'Authentication failed: No token received',
     logged_out: 'You have been logged out',
     please_select_size: 'Please select a size',
@@ -923,10 +888,7 @@ const translations = {
     // Review section
     customer_reviews: 'Customer Reviews',
     out_of: 'out of',
-    reviews: 'reviews',
-    newest_first: 'Newest First',
     most_helpful: 'Most Helpful',
-    rating_high_to_low: 'Highest Rated',
     write_a_review: 'Write a Review',
     share_your_thoughts: 'Share your thoughts about this product...',
     add_images: 'Add Images',
@@ -941,8 +903,6 @@ const translations = {
     delete_review: 'Delete Review',
     edit_review: 'Edit Review',
     update_review: 'Update Review',
-    updating: 'Updating...',
-    cancel: 'Cancel',
     review_image: 'Review Image',
     helpful: 'Helpful',
     no_reviews_yet: 'No reviews yet. Be the first to review this product!',
@@ -961,15 +921,12 @@ const translations = {
     delete_review_confirmation_message: 'Are you sure you want to delete this review? This action cannot be undone.',
     review_deleted_success: 'Review deleted successfully',
     review_delete_error: 'Failed to delete review',
-    delete: 'Delete',
-    cancel: 'Cancel',
 
     // Notification translations
     mark_all_read: 'Mark all as read',
     clear_all: 'Clear all',
     no_notifications: 'No notifications',
     mark_read: 'Mark as read',
-    delete: 'Delete',
 
     // Payment Methods
     payment_method: 'Payment Method',
@@ -995,7 +952,6 @@ const translations = {
     each: 'each',
     welcome_back_name: 'Welcome back, {name}',
     error: 'Error',
-    tax: 'Taxe (5%)',
     pending: 'Pending',
   },
       fr: {
@@ -1009,7 +965,6 @@ const translations = {
     each: 'chacun',
     welcome_back_name: 'Bon retour, {name}',
     error: 'Erreur',
-    tax: 'Taxe (5%)',
     pending: 'en attente',
     unread: 'non lus',
     collection: 'Collection',
@@ -1146,8 +1101,9 @@ const translations = {
     subscribing: 'S\'abonner...',
     thanksForSubscribing: 'Merci pour votre abonnement ! Bienvenue dans notre communauté de mode.',
     privacyNotice: 'Nous respectons votre vie privée. Désabonnez-vous à tout moment.',
+    invalidEmail: 'Veuillez entrer une adresse email valide',
     // Categories dropdown
-    shop_by_category: 'Magasiner par catégorie',
+    shop_by_category: 'Acheter par catégorie',
     women: 'Femmes',
     men: 'Hommes',
     kids: 'Enfants',
@@ -1160,10 +1116,7 @@ const translations = {
     notification_time_hours: 'heures',
     notification_time_day: 'jour',
     notification_time_days: 'jours',
-    // Profile dropdown
-    my_profile: 'Mon profil',
-    my_orders: 'Mes commandes',
-    admin_dashboard: 'Tableau de bord',
+    admin_dashboard: 'Tableau de bord Admin',
     account_access: 'Accès au compte',
     or: 'ou',
     create_account: 'Créer un compte',
@@ -1289,7 +1242,6 @@ const translations = {
     our_promise: 'Notre Promesse',
     promise_description: 'Lorsque vous magasinez chez Vogue Vault Boutique, vous n\'achetez pas simplement des vêtements – vous investissez dans des pièces conçues pour durer, tant en style qu\'en durabilité. Nous nous engageons à fournir un service client exceptionnel et une expérience d\'achat qui vous fait sentir valorisé et compris.',
     satisfaction_guarantee: 'Nous garantissons chaque produit que nous vendons avec notre garantie de satisfaction. Si vous n\'êtes pas entièrement satisfait de votre achat, nous ferons le nécessaire pour y remédier.',
-    join_community: 'Rejoignez Notre Communauté',
     newsletter_description: 'Abonnez-vous pour recevoir des mises à jour sur les nouvelles collections, les offres exclusives et l\'inspiration mode.',
     email_placeholder: 'Votre adresse e-mail',
     subscribe_button: 'S\'abonner',
@@ -1339,7 +1291,6 @@ const translations = {
     product: 'Produit',
     price: 'Prix',
     total: 'Total',
-    remove: 'Supprimer',
     remove_item: 'Supprimer l\'article',
     remove_confirm: 'Supprimer l\'article du panier ?',
     remove_confirm_desc: 'Êtes-vous sûr de vouloir supprimer cet article de votre panier ?',
@@ -1358,7 +1309,6 @@ const translations = {
     select_payment_method: 'Sélectionner le Mode de Paiement',
     place_order: 'Passer la Commande',
     processing: 'Traitement...',
-    we_accept: 'Nous Acceptons',
     free_shipping_progress: 'Progression livraison gratuite',
     qualified_free_shipping: '✓ Vous bénéficiez de la livraison gratuite !',
     add_more_free_shipping: 'Ajoutez {amount} à votre panier pour la livraison gratuite !',
@@ -1413,11 +1363,7 @@ const translations = {
 
     // Similar Products
     you_might_also_like: 'Vous Aimerez Aussi',
-
-    // Save Percentage
     save: 'Économisez',
-
-    // Reviews
     reviews: 'avis',
 
     // Shipping Options
@@ -1425,7 +1371,6 @@ const translations = {
     store_pickup_desc: 'Retirez votre commande dans l\'un de nos magasins',
     home_delivery: 'Livraison à Domicile',
     home_delivery_desc: 'Faites-vous livrer votre commande à domicile',
-    free: 'Gratuit',
 
     // Login/Register Page
     welcome_back: 'Bon Retour, {name} !',
@@ -1434,7 +1379,6 @@ const translations = {
     sign_in_desc: 'Connectez-vous pour accéder à votre compte et continuer vos achats',
     join_desc: 'Créez un compte pour commencer votre expérience shopping',
     sign_in: 'Se Connecter',
-    create_account: 'Créer un Compte',
     full_name: 'Nom Complet',
     email_address: 'Adresse Email',
     password: 'Mot de Passe',
@@ -1489,7 +1433,6 @@ const translations = {
     expiration_date: 'Date d\'Expiration',
     cvv: 'CVV',
     process_payment: 'Traiter le Paiement',
-    cancel: 'Cancel',
     no_orders: 'Aucune commande trouvée',
     no_orders_desc: 'Vous n\'avez pas encore passé de commande.',
     start_shopping: 'Commencer les Achats',
@@ -1582,10 +1525,7 @@ const translations = {
     size: 'Size',
     quantity: 'Qty',
     subtotal: 'Sous-total',
-    tax: 'Tax (5%)',
     shipping: 'Shipping',
-    free: 'Free',
-    total: 'Total',
     place_order: 'Passer la Commande',
     processing: 'Traitement...',
     secure_checkout: 'Paiement sécurisé',
@@ -1602,7 +1542,6 @@ const translations = {
     phone_error: 'Veuillez entrer un numéro de téléphone valide (XXX-XXX-XXXX)',
 
     // Admin Dashboard Page
-    admin_dashboard: 'Tableau de Bord',
     welcome_admin: 'Bienvenue, {name}',
     overview: 'Aperçu',
     orders: 'Commandes',
@@ -1612,7 +1551,6 @@ const translations = {
 
     // Admin DashboardOverview Page
     revenue: 'Revenus',
-    total: 'total',
     view_revenue_details: 'Voir les détails des revenus →',
     recent_orders: 'Commandes Récentes',
     no_orders_yet: 'No orders yet',
@@ -1621,7 +1559,6 @@ const translations = {
     top_products: 'Produits Populaires',
     no_product_data: 'Aucune donnée de produit disponible',
     stock: 'Stock',
-    units: 'unités',
     edit: 'Modifier →',
     view_all_products: 'Voir tous les produits →',
     delivered: 'Livré',
@@ -1636,7 +1573,6 @@ const translations = {
     users: 'Utilisateurs',
     messages: 'Messages',
     pending: 'en attente',
-    unread: 'non lus',
     view_all_products: 'Voir tous les produits →',
     view_all_orders: 'Voir toutes les commandes →',
     view_all_users: 'Voir tous les utilisateurs →',
@@ -1663,13 +1599,9 @@ const translations = {
     order_summary: 'Résumé de la Commande',
     subtotal: 'Sous-total',
     shipping: 'Livraison',
-    tax: 'Taxe',
-    total: 'Total',
     quantity: 'Quantité',
-    price: 'Prix',
     confirm_delete_order: 'Êtes-vous sûr de vouloir supprimer cette commande ?',
     confirm_delete_order_desc: 'Cette action ne peut pas être annulée.',
-    cancel: 'Annuler',
     confirm: 'Confirmer',
     confirm_mark_delivered: 'Êtes-vous sûr de vouloir marquer cette commande comme livrée ?',
     confirm_mark_delivered_desc: 'Cela mettra à jour le statut de la commande à livrée.',
@@ -1711,8 +1643,6 @@ const translations = {
     no_orders_found: 'Aucune commande trouvée. Essayez de changer votre terme de recherche ou filtre.',
     order_id: 'ID de Commande',
     customer: 'Client',
-    date: 'Date',
-    total: 'Total',
     payment: 'Paiement',
     delivery: 'Livraison',
     actions: 'Actions',
@@ -1771,13 +1701,11 @@ const translations = {
     user: 'Utilisateur',
     joined: 'Inscrit le',
     role: 'Rôle',
-    actions: 'Actions',
     admin: 'Administrateur',
     customer: 'Client',
     view: 'Voir',
     revoke: 'Révoquer',
     promote: 'Promouvoir',
-    delete: 'Supprimer',
     confirm_user_deletion: 'Confirmer la Suppression d\'Utilisateur',
     confirm_user_deletion_desc: 'Êtes-vous sûr de vouloir supprimer {userName} ? Cette action ne peut pas être annulée.',
     delete_user: 'Supprimer l\'Utilisateur',
@@ -1800,29 +1728,18 @@ const translations = {
     search_products: 'Rechercher des produits...',
     add_product: 'Ajouter un Produit',
     product: 'Produit',
-    price: 'Prix',
     category: 'Catégorie',
     status: 'Statut',
-    actions: 'Actions',
     edit: 'Modifier',
-    delete: 'Supprimer',
     view: 'Voir',
     uncategorized: 'Non Catégorisé',
-    in_stock: '{count} en stock',
-    out_of_stock: 'Rupture de stock',
     confirm_delete: 'Confirmer la Suppression',
     confirm_delete_product_desc: 'Êtes-vous sûr de vouloir supprimer {productName} ? Cette action ne peut pas être annulée.',
-    cancel: 'Annuler',
     deleting: 'Suppression...',
     product_deleted: 'Produit supprimé avec succès',
     failed_delete_product: 'Échec de la suppression du produit',
     failed_load_products: 'Échec du chargement des produits',
     
-    // Category translations
-    category_women: 'Femmes',
-    category_men: 'Hommes',
-    category_kids: 'Enfants',
-
     // Admin ProductForm Page
     edit_product: 'Modifier le Produit',
     add_new_product: 'Ajouter un Nouveau Produit',
@@ -1842,7 +1759,6 @@ const translations = {
     description: 'Description',
     enter_product_description: 'Entrez la description du produit',
     enter_product_description_fr: 'Entrez la description du produit',
-    price: 'Prix',
     original_price: 'Prix Original',
     stock_quantity: 'Quantité en Stock',
     rating_0_5: 'Note (0-5)',
@@ -1887,10 +1803,8 @@ const translations = {
 
     // Admin Messages Page
     contact_messages: 'Messages de contact',
-    unread: 'non lus',
     no_messages_found: 'Aucun message trouvé',
     mark_as_read: 'Marquer comme lu',
-    delete: 'Supprimer',
     subject: 'Sujet',
     message: 'Message',
     received_on: 'Reçu le',
@@ -1922,7 +1836,6 @@ const translations = {
     failed_remove_wishlist: 'Échec de la suppression de l\'article de la liste de souhaits',
     wishlist_cleared: 'Liste de souhaits effacée',
     failed_clear_wishlist: 'Échec de l\'effacement de la liste de souhaits',
-    welcome_back: 'Bon retour, {name} !',
     auth_failed_no_token: 'Échec de l\'authentification : Aucun token reçu',
     logged_out: 'Vous avez été déconnecté',
     please_select_size: 'Veuillez sélectionner une taille',
@@ -1937,8 +1850,6 @@ const translations = {
     // Profile page
     my_profile: 'Mon Profil',
     my_orders: 'Mes Commandes',
-    admin_dashboard: 'Tableau de Bord Admin',
-    logout: 'Déconnexion',
     profession: 'Profession',
     location: 'Localisation',
 
@@ -1951,10 +1862,7 @@ const translations = {
     // Review section
     customer_reviews: 'Avis Clients',
     out_of: 'sur',
-    reviews: 'avis',
-    newest_first: 'Plus Récents',
     most_helpful: 'Plus Utiles',
-    rating_high_to_low: 'Mieux Notés',
     write_a_review: 'Écrire un Avis',
     share_your_thoughts: 'Partagez votre opinion sur ce produit...',
     add_images: 'Ajouter des Images',
@@ -1969,8 +1877,6 @@ const translations = {
     delete_review: 'Supprimer l\'Avis',
     edit_review: 'Modifier l\'Avis',
     update_review: 'Mettre à Jour l\'Avis',
-    updating: 'Mise à jour...',
-    cancel: 'Annuler',
     review_image: 'Image de l\'Avis',
     helpful: 'Utile',
     no_reviews_yet: 'Aucun avis pour le moment. Soyez le premier à donner votre avis sur ce produit !',
@@ -1982,8 +1888,7 @@ const translations = {
     delete_review_confirmation_message: 'Êtes-vous sûr de vouloir supprimer cet avis ? Cette action est irréversible.',
     review_deleted_success: 'Avis supprimé avec succès',
     review_delete_error: 'Échec de la suppression de l\'avis',
-    delete: 'Supprimer',
-    cancel: 'Annuler',
+    close: 'Fermer',
 
     // Payment Methods
     payment_method: 'Mode de Paiement',
@@ -2006,12 +1911,8 @@ const translations = {
     orders_found: 'commandes trouvées',
     oldest_first: 'Plus Anciennes',
     complete_payment: 'Finaliser le Paiement',
-    each: 'chacun',
     welcome_back_name: 'Bon retour, {name}',
-    error: 'Erreur',
-    tax: 'Taxe (5%)',
     pending: 'en attente',
-    unread: 'non lus',
   }
 };
 
