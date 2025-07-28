@@ -138,9 +138,9 @@ const Footer = () => {
               </li>
               <li className="flex space-x-2">
                 <img src="https://cdn-icons-png.flaticon.com/64/196/196578.png" alt="Visa" className="h-8 w-auto object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
-                <img src="https://cdn-icons-png.flaticon.com/64/196/196561.png" alt="MasterCard" className="h-8 w-auto object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
-                <img src="https://cdn-icons-png.flaticon.com/64/196/196565.png" alt="PayPal" className="h-8 w-auto object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
-                <img src="https://cdn-icons-png.flaticon.com/64/196/196539.png" alt="American Express" className="h-8 w-auto object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
+                <img src="/mastercard-svg.svg" alt="MasterCard" className="h-8 w-auto object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
+                <img src="/paypal-svg.svg" alt="PayPal" className="h-8 w-auto object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
+                <img src="/stripe-svg.svg" alt="Stripe" className="h-8 w-auto object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
               </li>
             </ul>
           </div>

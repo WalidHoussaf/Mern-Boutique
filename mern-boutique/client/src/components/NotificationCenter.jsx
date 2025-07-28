@@ -108,8 +108,8 @@ const NotificationCenter = ({ onClose }) => {
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
             <BellIcon className="w-5 h-5 text-primary animate-pulse" />
-            <h3 className="font-semibold text-primary">
-              {t('notifications')}
+            <h3 className="font-medium uppercase text-2xs flex items-center">
+              <span className="gold-gradient">{t('notifications')}</span>
               {unreadCount > 0 && (
                 <span className="ml-2 px-2 py-0.5 text-xs bg-primary text-white rounded-full animate-fade-in">
                   {unreadCount}

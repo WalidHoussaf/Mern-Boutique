@@ -273,10 +273,11 @@ const PlaceOrder = () => {
       
       const createdOrder = await createOrder(orderData);
 
-      if (paymentMethod === 'stripe') {
+      if (paymentMethod === 'stripe' || paymentMethod === 'visa' || paymentMethod === 'mastercard') {
         // Create Stripe checkout session
         const response = await axios.post('http://localhost:5000/api/stripe/create-checkout-session', {
-          orderId: createdOrder._id
+          orderId: createdOrder._id,
+          paymentMethod // Pass the selected payment method to backend
         }, {
           headers: {
             'Authorization': `Bearer ${user.token}`
@@ -291,7 +292,7 @@ const PlaceOrder = () => {
         return;
       }
       
-      // For non-Stripe payment methods, clear cart immediately
+      // For non-Stripe payment methods (like PayPal), clear cart immediately
       localStorage.removeItem('shippingInfo');
       clearCart();
       toast.success(t('order_placed_successfully'));
@@ -303,7 +304,9 @@ const PlaceOrder = () => {
       let errorMessage = t('failed_place_order');
       
       if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+        errorMessage = `${error.response.data.message}: ${error.response.data.error || ''}`;
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       
       toast.error(errorMessage);

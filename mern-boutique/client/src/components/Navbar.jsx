@@ -366,7 +366,7 @@ const Navbar = () => {
                 ) : (
                   <div className="flex flex-col w-60 overflow-hidden rounded-lg shadow-lg bg-white/95 backdrop-blur-sm border border-gray-100/80 transform origin-top-right animate-dropdown">
                     <div className="bg-gradient-to-r from-purple-500/10 to-primary/20 py-3 px-5">
-                      <h3 className="font-medium text-primary text-center text-sm uppercase tracking-wide gold-gradient">{t('account_access')}</h3>
+                      <h3 className="font-medium text-primary text-center text-2xs uppercase tracking-wide gold-gradient">{t('account_access')}</h3>
                     </div>
                     
                     <div className="p-4 flex flex-col gap-3">

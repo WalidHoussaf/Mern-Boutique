@@ -303,18 +303,51 @@ const ReviewSection = ({ productId }) => {
           <div className="py-6 border-b border-gray-200">
             <h3 className="text-xl font-semibold mb-4 text-gray-800">{t('write_a_review')}</h3>
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    className={`text-2xl transition-colors ${
-                      rating >= star ? 'text-yellow-400' : 'text-gray-300'
-                    } hover:text-yellow-500`}
-                  >
-                    <FaStar />
-                  </button>
-                ))}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const isHalfStar = rating > star - 1 && rating < star;
+                    const isFullStar = rating >= star;
+                    return (
+                      <button
+                        key={star}
+                        onClick={() => setRating(star)}
+                        onMouseMove={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const halfWidth = rect.width / 2;
+                          const isLeftHalf = e.clientX - rect.left < halfWidth;
+                          setRating(star - (isLeftHalf ? 0.5 : 0));
+                        }}
+                        className="text-2xl transition-colors relative"
+                      >
+                        {isHalfStar ? (
+                          <div className="relative">
+                            <FaStar className="text-gray-300" />
+                            <div className="absolute top-0 left-0 w-1/2 overflow-hidden">
+                              <FaStar className="text-yellow-400" />
+                            </div>
+                          </div>
+                        ) : (
+                          <FaStar className={isFullStar ? 'text-yellow-400' : 'text-gray-300'} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                <input
+                  type="number"
+                  value={rating}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    if (value >= 0 && value <= 5) {
+                      setRating(Math.round(value * 10) / 10);
+                    }
+                  }}
+                  step="0.1"
+                  min="0"
+                  max="5"
+                  className="w-20 px-2 py-1 border border-gray-300 rounded-md text-sm"
+                />
               </div>
               
               <textarea
@@ -428,18 +461,51 @@ const ReviewSection = ({ productId }) => {
               {editingReview === review._id ? (
                 // Edit form
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => setEditRating(star)}
-                        className={`text-2xl transition-colors ${
-                          editRating >= star ? 'text-yellow-400' : 'text-gray-300'
-                        } hover:text-yellow-500`}
-                      >
-                        <FaStar />
-                      </button>
-                    ))}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => {
+                        const isHalfStar = editRating > star - 1 && editRating < star;
+                        const isFullStar = editRating >= star;
+                        return (
+                          <button
+                            key={star}
+                            onClick={() => setEditRating(star)}
+                            onMouseMove={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const halfWidth = rect.width / 2;
+                              const isLeftHalf = e.clientX - rect.left < halfWidth;
+                              setEditRating(star - (isLeftHalf ? 0.5 : 0));
+                            }}
+                            className="text-2xl transition-colors relative"
+                          >
+                            {isHalfStar ? (
+                              <div className="relative">
+                                <FaStar className="text-gray-300" />
+                                <div className="absolute top-0 left-0 w-1/2 overflow-hidden">
+                                  <FaStar className="text-yellow-400" />
+                                </div>
+                              </div>
+                            ) : (
+                              <FaStar className={isFullStar ? 'text-yellow-400' : 'text-gray-300'} />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <input
+                      type="number"
+                      value={editRating}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (value >= 0 && value <= 5) {
+                          setEditRating(Math.round(value * 10) / 10);
+                        }
+                      }}
+                      step="0.1"
+                      min="0"
+                      max="5"
+                      className="w-20 px-2 py-1 border border-gray-300 rounded-md text-sm"
+                    />
                   </div>
                   
                   <textarea
@@ -489,14 +555,25 @@ const ReviewSection = ({ productId }) => {
                 // Review content
                 <>
                   <div className="flex items-center gap-1 mb-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <FaStar
-                        key={star}
-                        className={`${
-                          review.rating >= star ? 'text-yellow-400' : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
+                    {[1, 2, 3, 4, 5].map((star) => {
+                      const isHalfStar = review.rating > star - 1 && review.rating < star;
+                      const isFullStar = review.rating >= star;
+                      return (
+                        <div key={star} className="relative">
+                          {isHalfStar ? (
+                            <div className="relative">
+                              <FaStar className="text-gray-300" />
+                              <div className="absolute top-0 left-0 w-1/2 overflow-hidden">
+                                <FaStar className="text-yellow-400" />
+                              </div>
+                            </div>
+                          ) : (
+                            <FaStar className={isFullStar ? 'text-yellow-400' : 'text-gray-300'} />
+                          )}
+                        </div>
+                      );
+                    })}
+                    <span className="ml-2 text-sm text-gray-600">({review.rating.toFixed(1)})</span>
                   </div>
                   <p className="text-gray-700 mb-4 leading-relaxed">{review.comment}</p>
                   {review.images && review.images.length > 0 && (

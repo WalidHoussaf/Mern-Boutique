@@ -211,7 +211,7 @@ const Login = () => {
           
           <div className="px-8 py-10">
             {/* Form Title */}
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+            <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
               {isLogin ? t('sign_in') : t('create_account')}
             </h2>
             

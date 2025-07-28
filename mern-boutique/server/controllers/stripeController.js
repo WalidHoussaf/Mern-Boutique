@@ -9,7 +9,7 @@ import { updateProductStock } from '../utils/stockUtils.js';
 // @access  Private
 export const createCheckoutSession = asyncHandler(async (req, res) => {
   try {
-    const { orderId } = req.body;
+    const { orderId, paymentMethod } = req.body;
 
     // Get the order from database
     const order = await Order.findById(orderId);
@@ -41,9 +41,12 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
       };
     });
 
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+    // Configure payment method options based on selected method
+    const payment_method_types = ['card'];
+    
+    // Create Stripe checkout session configuration
+    const sessionConfig = {
+      payment_method_types,
       line_items: lineItems,
       mode: 'payment',
       customer_email: req.user.email,
@@ -53,16 +56,28 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
       metadata: {
         orderId: orderId,
         userId: req.user._id.toString(),
-      },
-    });
+        paymentMethod
+      }
+    };
+
+    // Create Stripe checkout session
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     res.json({ url: session.url });
   } catch (error) {
-    console.error('Error creating checkout session:', error);
-    res.status(500).json({ 
-      message: 'Error creating checkout session', 
-      error: error.message 
-    });
+    console.error('Error creating checkout session:', error.message);
+    // Check if it's a Stripe error
+    if (error.type === 'StripeError') {
+      res.status(400).json({
+        message: 'Payment processing error',
+        error: error.message
+      });
+    } else {
+      res.status(500).json({
+        message: 'Server error while creating checkout session',
+        error: error.message
+      });
+    }
   }
 });
 

@@ -68,6 +68,8 @@ const translations = {
     priceDrops: 'Price Drops',
     priceDropsDesc: 'Get alerts when items in your wishlist go on sale',
     notificationNote: 'Changes will apply to both email and in-app notifications.',
+    mute_notifications: 'Mute Notifications',
+    unmute_notifications: 'Unmute Notifications',
     
     // Privacy settings
     privacySettings: 'Privacy Settings',
@@ -182,6 +184,9 @@ const translations = {
     // Collection page
     our_collection: 'Our Collection',
     browse_collection_description: 'Browse our carefully curated collection of premium fashion items and accessories.',
+    category_women: 'Women',
+    category_men: 'Men',
+    category_kids: 'Kids',
     
     // Filter presets
     fresh_finds: 'Fresh Finds',
@@ -196,7 +201,7 @@ const translations = {
     rating_high_to_low: 'Rating: High to Low',
     name_a_to_z: 'Name: A-Z',
 
-    // Loading state
+
     loading_products: 'Loading products...',
     scroll_to_top: 'Scroll to top',
     style_navigator: 'Style Navigator',
@@ -213,6 +218,8 @@ const translations = {
     in: 'in',
     no_products_found_with_current_filters: 'No products found with the current filters.',
     view_all_collections: 'View All Collections',
+    left_in_stock: 'left in stock',
+    low_stock_warning: 'Low stock warning',
 
     // About page
     about_vogue_vault: 'About Vogue Vault Boutique',
@@ -669,6 +676,8 @@ const translations = {
     processing: 'Processing...',
     delete_order_confirm: 'Delete Order',
     deleting: 'Deleting...',
+    confirm_bulk_delete: 'Confirm Bulk Delete',
+    confirm_bulk_delete_desc: 'Are you sure you want to delete the selected orders?',
 
     // Admin OrderList Page
     orders: 'Orders',
@@ -759,6 +768,7 @@ const translations = {
     failed_load_users: 'Failed to load users',
     cannot_change_own_status: 'You cannot change your own admin status',
     cannot_delete_yourself: 'You cannot delete yourself',
+    order_deleted_success: 'Order deleted successfully',
 
     // Admin ProductList Page
     back_to_dashboard: 'Back to Dashboard',
@@ -776,6 +786,7 @@ const translations = {
     product_deleted: 'Product deleted successfully',
     failed_delete_product: 'Failed to delete product',
     failed_load_products: 'Failed to load products',
+    delete_selected: 'Delete the selection',
     
 
     // Admin ProductForm Page
@@ -1116,6 +1127,8 @@ const translations = {
     notification_time_hours: 'heures',
     notification_time_day: 'jour',
     notification_time_days: 'jours',
+    mute_notifications: 'Couper les notifications',
+    unmute_notifications: 'Réactiver les notifications',
     admin_dashboard: 'Tableau de bord Admin',
     account_access: 'Accès au compte',
     or: 'ou',
@@ -1147,7 +1160,9 @@ const translations = {
     // Collection page
     our_collection: 'Notre Collection',
     browse_collection_description: 'Parcourez notre collection soigneusement sélectionnée d\'articles de mode et d\'accessoires haut de gamme.',
-    
+    category_women: 'Femmes',
+    category_men: 'Hommes',
+    category_kids: 'Enfants',
     // Filter presets
     fresh_finds: 'Nouveautés',
     power_dressing: 'Tenue Professionnelle Affirmée',
@@ -1441,6 +1456,8 @@ const translations = {
     processing_payment: 'Traitement du paiement...',
     cash_on_delivery: 'Paiement à la Livraison',
     credit_card: 'Carte de Crédit',
+    left_in_stock: 'reste en stock',
+    low_stock_warning: 'Stock faible',
 
     // Profile Page
     profile_settings: 'Paramètres du Profil',
@@ -1739,6 +1756,7 @@ const translations = {
     product_deleted: 'Produit supprimé avec succès',
     failed_delete_product: 'Échec de la suppression du produit',
     failed_load_products: 'Échec du chargement des produits',
+    delete_selected: 'Supprimer la sélection',
     
     // Admin ProductForm Page
     edit_product: 'Modifier le Produit',
@@ -1800,6 +1818,9 @@ const translations = {
     images_uploaded: '{count} image(s) téléchargée(s) avec succès',
     image_upload_failed: 'Échec du téléchargement d\'image',
     failed_upload_images: 'Échec du téléchargement des images',
+    confirm_bulk_delete: 'Confirmer la suppression en masse',
+    confirm_bulk_delete_desc: 'Êtes-vous sûre de supprimer les commandes sélectionnées ?',
+    order_deleted_success: 'Commande supprimée avec succès',
 
     // Admin Messages Page
     contact_messages: 'Messages de contact',
