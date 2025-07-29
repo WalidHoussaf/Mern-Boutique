@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { useNotifications } from '../context/NotificationContext';
 import axios from 'axios';
-import { FaStar, FaThumbsUp, FaImage, FaCheck, FaTrash, FaTimes, FaEdit } from 'react-icons/fa';
+import { FaStar, FaThumbsUp, FaImage, FaTrash, FaTimes, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import useTranslation from '../utils/useTranslation';
 

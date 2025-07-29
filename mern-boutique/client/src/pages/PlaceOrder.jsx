@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import useTranslation from '../utils/useTranslation';
 import axios from 'axios'; 
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 
 // Update the PAYMENT_METHODS object at the top of the file
 const PAYMENT_METHODS = {
@@ -273,26 +274,34 @@ const PlaceOrder = () => {
       
       const createdOrder = await createOrder(orderData);
 
+      // Handle payment based on method
+      let response;
       if (paymentMethod === 'stripe' || paymentMethod === 'visa' || paymentMethod === 'mastercard') {
-        // Create Stripe checkout session
-        const response = await axios.post('http://localhost:5000/api/stripe/create-checkout-session', {
+        response = await axios.post('http://localhost:5000/api/stripe/create-checkout-session', {
           orderId: createdOrder._id,
-          paymentMethod // Pass the selected payment method to backend
+          paymentMethod
         }, {
           headers: {
             'Authorization': `Bearer ${user.token}`
           }
         });
-        
-        // Store order ID in localStorage to clear cart after successful payment
+      } else if (paymentMethod === 'paypal') {
+        response = await axios.post('http://localhost:5000/api/paypal/create-checkout-session', {
+          orderId: createdOrder._id
+        }, {
+          headers: {
+            'Authorization': `Bearer ${user.token}`
+          }
+        });
+      }
+
+      if (response?.data?.url) {
         localStorage.setItem('pendingOrderId', createdOrder._id);
-        
-        // Redirect to Stripe Checkout
         window.location.href = response.data.url;
         return;
       }
       
-      // For non-Stripe payment methods (like PayPal), clear cart immediately
+      // For other payment methods
       localStorage.removeItem('shippingInfo');
       clearCart();
       toast.success(t('order_placed_successfully'));

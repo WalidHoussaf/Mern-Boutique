@@ -11,6 +11,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import stripeRoutes from './routes/stripeRoutes.js';
+import paypalRoutes from './routes/paypalRoutes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -25,26 +26,49 @@ connectDB();
 // Initialize Express
 const app = express();
 
-// Stripe webhook endpoint must be before any other middleware
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  console.log('Webhook received at:', new Date().toISOString());
-  console.log('Headers:', req.headers);
+// Raw body parsing for webhooks must be before any other middleware
+const rawBodyMiddleware = express.raw({ type: 'application/json' });
+
+app.post('/api/stripe/webhook', rawBodyMiddleware, async (req, res) => {
+  console.log('Stripe webhook received');
   const { handleWebhook } = await import('./controllers/stripeController.js');
   return handleWebhook(req, res);
 });
 
-// Regular body parsing middleware - must be after the webhook endpoint
+app.post('/api/paypal/webhook', rawBodyMiddleware, async (req, res) => {
+  console.log('PayPal webhook received');
+  try {
+    // Convert raw body to string
+    req.body = req.body.toString('utf8');
+    const { handleWebhook } = await import('./controllers/paypalController.js');
+    return handleWebhook(req, res);
+  } catch (error) {
+    console.error('Error processing PayPal webhook:', error);
+    return res.status(400).json({ error: 'Webhook processing failed' });
+  }
+});
+
+// Regular body parsing middleware - must be after the webhook endpoints
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Configure CORS
+// Configure CORS with PayPal headers
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? process.env.CLIENT_URL 
     : ['http://localhost:5173', 'http://127.0.0.1:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Stripe-Signature']
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Stripe-Signature',
+    'Paypal-Auth-Algo',
+    'Paypal-Cert-Url',
+    'Paypal-Transmission-Id',
+    'Paypal-Transmission-Sig',
+    'Paypal-Transmission-Time'
+  ]
 }));
 
 // Logging in development mode
@@ -63,13 +87,11 @@ if (!fs.existsSync(uploadsDir)) {
   console.log('Uploads directory created');
 }
 
-// Serve static images from client/public/images
+// Serve static files
 app.use('/images', express.static(path.join(__dirname, '../client/public/images')));
-
-// Serve static uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// API Routes
+// API Routes (excluding webhook routes which are handled above)
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
@@ -78,11 +100,11 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/paypal', paypalRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/dist')));
-
   app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../client', 'dist', 'index.html'));
   });
