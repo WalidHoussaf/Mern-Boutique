@@ -80,8 +80,24 @@ const App = () => {
     prevPathRef.current = location.pathname;
   }, [location.pathname]);
 
+  const [showMobileSearch, setShowMobileSearch] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > lastScrollY.current && window.scrollY > 40) {
+        setShowMobileSearch(false); 
+      } else {
+        setShowMobileSearch(true);
+      }
+      lastScrollY.current = window.scrollY;
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className='min-w-[1024px] px-[9vw]'>
+    <div className='px-2 sm:px-4 md:px-[9vw]'>
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -104,7 +120,14 @@ const App = () => {
         preventDuplicates
       />
       <Navbar />
-      <SearchBar />
+      {/* Mobile: SearchBar below navbar */}
+      <div className={`block md:hidden sticky top-16 z-30 bg-white/90 backdrop-blur-md px-2 py-2 border-b border-gray-100 transition-transform duration-300 -mt-8 ${showMobileSearch ? 'translate-y-0' : '-translate-y-20'}`}>
+        <SearchBar />
+      </div>
+      {/* Desktop: SearchBar in original place */}
+      <div className="hidden md:block">
+        <SearchBar />
+      </div>
       <div 
         id="main-content" 
         style={{ transition: 'opacity 0.15s ease-in' }}

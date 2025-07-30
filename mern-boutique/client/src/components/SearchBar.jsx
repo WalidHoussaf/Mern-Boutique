@@ -1,6 +1,56 @@
 import { useContext, useState, useRef, useEffect } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import useTranslation from '../utils/useTranslation';
+
+const MobileSearchBar = () => {
+  const { navigate } = useContext(ShopContext);
+  const { t } = useTranslation();
+  const [query, setQuery] = useState('');
+  const [visible, setVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > lastScrollY.current && window.scrollY > 40) {
+        setVisible(false); // scrolling down
+      } else {
+        setVisible(true); // scrolling up
+      }
+      lastScrollY.current = window.scrollY;
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (query.trim()) {
+      navigate(`/collection?search=${encodeURIComponent(query)}`);
+      setQuery('');
+    }
+  };
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className={`block md:hidden w-full px-3 mt-2 transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-20'} sticky top-0 z-30`}
+    >
+      <div className="flex items-center w-full bg-white/70 border border-gray-300 rounded-xl shadow-sm px-3 py-1.5 focus-within:ring-1 focus-within:ring-primary transition-all">
+        <svg className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" strokeWidth="2" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" strokeWidth="2" />
+        </svg>
+        <input
+          type="text"
+          className="flex-1 bg-transparent border-none outline-none text-base placeholder:text-gray-500 py-0.5"
+          placeholder={t('search')}
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+      </div>
+    </form>
+  );
+};
 
 const SearchBar = () => {
   const { showSearch, setShowSearch, allProducts, navigate, currency } = useContext(ShopContext);
@@ -105,6 +155,10 @@ const SearchBar = () => {
       navigate(`/collection?search=${encodeURIComponent(query)}`);
     }
   };
+
+  if (typeof window !== 'undefined' && window.innerWidth < 768 && !showSearch) {
+    return <MobileSearchBar />;
+  }
 
   if (!showSearch) return null;
 

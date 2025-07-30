@@ -10,6 +10,7 @@ import pants_icon from './jeans.png';
 import jacket_icon from './jacket.png';
 import zoom_in_icon from './zoom-in.png';
 import zoom_out_icon from './zoom-out.png';
+import burger_menu from './burger_menu.png';
 
 // Import hero images
 import hero_img from './hero_img.png';
@@ -31,6 +32,7 @@ import people3 from './people3.png'
 // Import logo
 import logo from './logo.png';
 import logo2 from './logo2.png';
+import logo_mobile from './logo_mobile.png';
 
 
 export const assets = {
@@ -46,6 +48,7 @@ export const assets = {
   jacket_icon,
   zoom_in_icon,
   zoom_out_icon,
+  burger_menu,
   
   // Hero images
   hero_img,
@@ -65,5 +68,6 @@ export const assets = {
   
   // Logo
   logo,
-  logo2
+  logo2,
+  logo_mobile
 }; 

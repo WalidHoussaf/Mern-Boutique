@@ -154,13 +154,6 @@ export const handleWebhook = asyncHandler(async (req, res) => {
                 `Failed to update stock for order ${order._id}: ${stockError.message}`
               );
             }
-            
-            // Create payment success notification
-            await NotificationService.paymentProcessed(
-              session.metadata.userId,
-              session.metadata.orderId,
-              order.totalPrice
-            );
           }
           
           res.json({ received: true, type: event.type });

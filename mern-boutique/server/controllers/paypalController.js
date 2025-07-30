@@ -114,14 +114,9 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
 // @access  Public
 export const handleWebhook = asyncHandler(async (req, res) => {
   try {
-    console.log('\n=== PayPal Webhook Received ===');
-    console.log('Headers:', JSON.stringify(req.headers, null, 2));
-    console.log('Raw Body:', req.body);
-
     let event;
     try {
       event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-      console.log('Parsed Event:', JSON.stringify(event, null, 2));
     } catch (err) {
       console.error('Error parsing webhook body:', err);
       return res.status(400).json({ 
@@ -132,11 +127,9 @@ export const handleWebhook = asyncHandler(async (req, res) => {
     }
 
     const eventType = event.event_type;
-    console.log('Event Type:', eventType);
 
     switch (eventType) {
       case 'CHECKOUT.ORDER.APPROVED': {
-        console.log('Processing order approval...');
         const resource = event.resource;
         const orderId = resource.purchase_units[0].reference_id;
         const paypalOrderId = resource.id;
@@ -148,10 +141,7 @@ export const handleWebhook = asyncHandler(async (req, res) => {
           return res.status(404).json({ message: 'Order not found' });
         }
 
-        console.log('Found order in database:', order._id);
-
         // Capture the payment
-        console.log('Capturing payment for PayPal order:', paypalOrderId);
         const accessToken = await getAccessToken();
         
         const captureResponse = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders/${paypalOrderId}/capture`, {
@@ -163,7 +153,6 @@ export const handleWebhook = asyncHandler(async (req, res) => {
         });
 
         const captureData = await captureResponse.json();
-        console.log('Payment capture response:', JSON.stringify(captureData, null, 2));
 
         if (captureData.status === 'COMPLETED') {
           // Update order status
@@ -178,21 +167,16 @@ export const handleWebhook = asyncHandler(async (req, res) => {
           };
 
           await order.save();
-          console.log('Order updated successfully:', orderId);
 
           // Update stock and send notifications
           try {
-            console.log('Updating stock for order:', orderId);
             await updateProductStock(order.orderItems);
             
-            console.log('Sending payment notification');
             await NotificationService.paymentProcessed(
               order.user,
               orderId,
               order.totalPrice
             );
-            
-            console.log('Post-payment processing completed successfully');
           } catch (error) {
             console.error('Error in post-payment processing:', error);
           }
@@ -204,17 +188,13 @@ export const handleWebhook = asyncHandler(async (req, res) => {
         break;
       }
 
-      case 'PAYMENT.CAPTURE.COMPLETED': {
-        console.log('Payment capture confirmation received');
+      case 'PAYMENT.CAPTURE.COMPLETED':
         // We already handled this in the APPROVED event
         break;
-      }
 
       case 'PAYMENT.CAPTURE.DENIED':
       case 'PAYMENT.CAPTURE.DECLINED': {
-        console.log('Processing payment failure...');
         const orderId = event.resource.purchase_units[0].reference_id;
-        console.log('Payment failed for order:', orderId);
 
         const order = await Order.findById(orderId);
         if (order) {
@@ -224,18 +204,14 @@ export const handleWebhook = asyncHandler(async (req, res) => {
             error_message: event.resource.status_details?.reason || 'Payment failed'
           };
           await order.save();
-          console.log('Order marked as failed:', orderId);
-        } else {
-          console.log('Order not found for failed payment:', orderId);
         }
         break;
       }
 
       default:
-        console.log('Unhandled event type:', eventType);
+        // Unhandled event type
     }
 
-    console.log('Webhook processing completed successfully');
     res.json({ 
       received: true,
       event_type: eventType,

@@ -8,8 +8,6 @@ const protect = asyncHandler(async (req, res, next) => {
   
   // JWT Secret from environment or fallback
   const secret = process.env.JWT_SECRET || 'abc123';
-
-  console.log('Auth Middleware - Headers:', req.headers);
   
   // Check if token exists in Authorization header
   if (
@@ -19,27 +17,17 @@ const protect = asyncHandler(async (req, res, next) => {
     try {
       // Get token from header (Bearer token)
       token = req.headers.authorization.split(' ')[1];
-      console.log('Auth Middleware - Token found:', token.substring(0, 10) + '...');
 
       // Verify token
       const decoded = jwt.verify(token, secret);
-      console.log('Auth Middleware - Token decoded:', decoded);
 
       // Find user by id (without password)
       req.user = await User.findById(decoded.id).select('-password');
       
       if (!req.user) {
-        console.error('Auth Middleware - User not found for id:', decoded.id);
         res.status(401);
         throw new Error('User not found');
       }
-      
-      console.log('Auth Middleware - User found:', {
-        id: req.user._id,
-        name: req.user.name,
-        email: req.user.email,
-        isAdmin: req.user.isAdmin
-      });
 
       next();
     } catch (error) {

@@ -1,9 +1,8 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
-import { Link, useParams, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
+import { useParams, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import useTranslation from '../utils/useTranslation';
 import { useNotifications } from '../context/NotificationContext';
 
@@ -41,6 +40,10 @@ const Orders = () => {
   const [orderDetailsLoading, setOrderDetailsLoading] = useState(false);
   const { t } = useTranslation();
   const location = useLocation();
+  const notificationShownRef = useRef(false);
+  const isNavigatingRef = useRef(false);
+  const processingRef = useRef(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Add sorting options
   const [sortBy, setSortBy] = useState('latest');
@@ -164,48 +167,64 @@ const Orders = () => {
     const canceled = queryParams.get('canceled');
 
     const handlePaymentStatus = async () => {
-      // Remove the URL parameters first to prevent multiple triggers
-      if ((success || canceled) && orderIdParam) {
-        navigate(`/order/${orderIdParam}`, { replace: true });
-      }
+      // Only proceed if we have valid parameters and orderId
+      if (!success && !canceled) return;
+      if (!orderIdParam) return;
+      
+      // Prevent duplicate processing
+      if (processingRef.current) return;
+      processingRef.current = true;
 
-      if (success === 'true' && orderIdParam) {
-        try {
-          // Refresh order details
-          const updatedOrder = await getOrderById(orderIdParam);
-          setSelectedOrder(updatedOrder);
-          
-          // Check if this is the pending order and clear cart if it is
-          const pendingOrderId = localStorage.getItem('pendingOrderId');
-          if (pendingOrderId === orderIdParam) {
-            localStorage.removeItem('pendingOrderId');
-            localStorage.removeItem('shippingInfo');
-            clearCart();
-          }
-          
-          // Show success toast
-          toast.success(t('payment_success'));
-          
-          // Then refresh orders data
-          const updatedOrders = await fetchUserOrders();
-          if (updatedOrders) {
-            setOrders(updatedOrders);
-          }
-
-        } catch (error) {
-          console.error('Error refreshing order:', error);
+      try {
+        // Refresh order details first
+        const updatedOrder = await getOrderById(orderIdParam);
+        setSelectedOrder(updatedOrder);
+        
+        // If payment was successful, clear cart and local storage
+        if (success === 'true') {
+          localStorage.removeItem('pendingOrderId');
+          localStorage.removeItem('shippingInfo');
+          clearCart();
         }
-      } else if (canceled === 'true') {
-        // If payment was canceled, remove the pending order ID
-        localStorage.removeItem('pendingOrderId');
-        toast.error(t('payment_canceled'));
+
+        // Show PayPal processing message if needed
+        if (updatedOrder.paymentMethod === 'paypal' && !updatedOrder.isPaid) {
+          toast.info(t('paypal_processing_message'), {
+            toastId: `paypal-processing-${orderIdParam}`
+          });
+        }
+        
+        // Then refresh orders data
+        const updatedOrders = await fetchUserOrders();
+        if (updatedOrders) {
+          setOrders(updatedOrders);
+        }
+
+        // Navigate last, after showing notification
+        navigate(`/order/${orderIdParam}`, { replace: true });
+
+      } catch (error) {
+        console.error('Error in handlePaymentStatus:', error);
+        navigate(`/order/${orderIdParam}`, { replace: true });
+      } finally {
+        // Reset processing flag after a short delay to prevent duplicate processing
+        setTimeout(() => {
+          processingRef.current = false;
+        }, 1000);
       }
     };
 
-    if (success || canceled) {
+    // Only run if we have either success or canceled parameters
+    if ((success || canceled) && orderIdParam) {
       handlePaymentStatus();
     }
-  }, [location.search, orderIdParam, navigate, getOrderById, fetchUserOrders, t, clearCart]);
+
+    // Cleanup function
+    return () => {
+      processingRef.current = false;
+    };
+
+  }, [location.search]); 
 
   // Format date for display
   const formatDate = (dateString) => {

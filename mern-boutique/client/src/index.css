@@ -288,14 +288,8 @@ a.active hr {
   display: none;
 }
 
-/* Base styles */
-html {
-  min-width: 1024px;
-  overflow-x: auto;
-}
-
 body {
-  min-width: 1024px;
+  /* min-width removed for mobile responsiveness */
   font-family: 'Outfit', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

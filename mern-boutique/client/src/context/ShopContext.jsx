@@ -11,6 +11,10 @@ export const ShopContext = createContext(null);
 const createToastInterceptor = (addNotification) => {
   const originalToast = { ...toast };
   const types = ['success', 'error', 'info', 'warning'];
+  
+  // Keep track of recent notifications with a 5 second window
+  const recentNotifications = [];
+  const NOTIFICATION_WINDOW = 5000; // 5 seconds
 
   const toastConfig = {
     position: "bottom-right",
@@ -23,10 +27,42 @@ const createToastInterceptor = (addNotification) => {
     theme: "colored",
   };
 
+  // Function to clean up old notifications
+  const cleanupOldNotifications = (now) => {
+    while (recentNotifications.length > 0 && 
+           (now - recentNotifications[0].timestamp) > NOTIFICATION_WINDOW) {
+      recentNotifications.shift();
+    }
+  };
+
+  // Function to check for duplicate notifications
+  const isDuplicate = (message, type, now) => {
+    cleanupOldNotifications(now);
+    return recentNotifications.some(n => 
+      n.message === message && 
+      n.type === type
+    );
+  };
+
   types.forEach(type => {
     toast[type] = (message, options = {}) => {
+      const now = Date.now();
+      
+      // Check for duplicates
+      if (isDuplicate(message, type, now)) {
+        return null;
+      }
+
+      // Add to recent notifications
+      recentNotifications.push({
+        message,
+        type,
+        timestamp: now
+      });
+
       // Add to notification center
       addNotification(message, type);
+      
       // Call original toast with bottom position
       return originalToast[type](message, { ...toastConfig, ...options });
     };
@@ -155,24 +191,6 @@ export const ShopContextProvider = (props) => {
 
     initializeData();
   }, []);
-
-  // Load user data in a separate effect to avoid coupling with cart loading
-  // useEffect(() => {
-  //   const storedUser = localStorage.getItem('user');
-  //   if (storedUser) {
-  //     try {
-  //       const parsedUser = JSON.parse(storedUser);
-  //       if (parsedUser && parsedUser.token) {
-  //         setUser(parsedUser);
-  //         axios.defaults.headers.common['Authorization'] = `Bearer ${parsedUser.token}`;
-  //       }
-  //     } catch (error) {
-  //       console.error('Error parsing user from localStorage:', error);
-  //       localStorage.removeItem('user');
-  //       setUser(null);
-  //     }
-  //   }
-  // }, []); // Remove this duplicate effect
 
   // Create a function to refresh products
   const refreshProducts = async () => {

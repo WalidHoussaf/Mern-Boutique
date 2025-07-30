@@ -3,7 +3,6 @@ import axios from 'axios';
 import { playSound } from '../utils/soundManager';
 
 const NotificationContext = createContext(null);
-
 const MAX_NOTIFICATIONS = 50; 
 
 export const useNotifications = () => {
@@ -93,6 +92,19 @@ export const NotificationProvider = ({ children }) => {
     }
 
     setNotifications(prev => {
+      // Check for duplicate notifications within the last 2 seconds
+      const now = Date.now();
+      const recentDuplicate = prev.find(notif => 
+        notif.message === message && 
+        notif.type === type &&
+        (now - new Date(notif.timestamp).getTime()) < 2000
+      );
+
+      // If a duplicate notification exists, don't add a new one
+      if (recentDuplicate) {
+        return prev;
+      }
+
       // Generate a unique ID by combining timestamp with a random string
       const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       

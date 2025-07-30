@@ -538,11 +538,12 @@ const translations = {
     confirm_new_password: 'Confirm New Password',
     payment_success: 'Payment processed successfully',
     payment_update_success: 'Payment updated successfully',
-    payment_failed: 'Failed to process payment',
+    payment_failed: 'Payment processing failed',
     invalid_card_number: 'Invalid card number',
     invalid_expiration_date: 'Invalid expiration date',
     invalid_cvv: 'Invalid CVV',
     processing_payment: 'Processing payment...',
+    paypal_processing_message: 'PayPal payment is being processed. This may take a few moments. Please refresh the page to check the status.',
 
     // PlaceOrder Page
     checkout: 'Checkout',
@@ -633,7 +634,7 @@ const translations = {
     failed_load_order: 'Failed to load order details',
     order_marked_delivered: 'Order marked as delivered',
     failed_mark_delivered: 'Failed to mark order as delivered',
-    order_deleted_success: 'Order deleted successfully',
+    orders_deleted_success: 'Orders deleted successfully',
     failed_delete_order: 'Failed to delete order',
     not_available: 'Not available',
     customer_information: 'Customer Information',
@@ -768,7 +769,6 @@ const translations = {
     failed_load_users: 'Failed to load users',
     cannot_change_own_status: 'You cannot change your own admin status',
     cannot_delete_yourself: 'You cannot delete yourself',
-    order_deleted_success: 'Order deleted successfully',
 
     // Admin ProductList Page
     back_to_dashboard: 'Back to Dashboard',
@@ -1517,6 +1517,7 @@ const translations = {
     invalid_expiration_date: 'Date d\'expiration invalide',
     invalid_cvv: 'CVV invalide',
     processing_payment: 'Traitement du paiement...',
+    paypal_processing_message: 'Le paiement PayPal est en cours de traitement. Cela peut prendre quelques instants. Veuillez rafraîchir la page pour vérifier le statut.',
 
     // PlaceOrder Page
     checkout: 'Commande',
@@ -1606,7 +1607,7 @@ const translations = {
     failed_load_order: 'Échec du chargement des détails de la commande',
     order_marked_delivered: 'Commande marquée comme livrée',
     failed_mark_delivered: 'Échec du marquage de la commande comme livrée',
-    order_deleted_success: 'Commande supprimée avec succès',
+    orders_deleted_success: 'Commandes supprimées avec succès',
     failed_delete_order: 'Échec de la suppression de la commande',
     not_available: 'Non disponible',
     customer_information: 'Informations Client',
@@ -1820,7 +1821,6 @@ const translations = {
     failed_upload_images: 'Échec du téléchargement des images',
     confirm_bulk_delete: 'Confirmer la suppression en masse',
     confirm_bulk_delete_desc: 'Êtes-vous sûre de supprimer les commandes sélectionnées ?',
-    order_deleted_success: 'Commande supprimée avec succès',
 
     // Admin Messages Page
     contact_messages: 'Messages de contact',
