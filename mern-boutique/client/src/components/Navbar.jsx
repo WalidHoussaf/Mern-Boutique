@@ -60,6 +60,44 @@ const Navbar = () => {
   // Get wishlist count
   const wishlistCount = getWishlistCount();
 
+  // Handle keyboard events for closing menu
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (mobileMenuOpen && event.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mobileMenuOpen]);
+
+  // Disable body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      // Store the current scroll position
+      const scrollY = window.scrollY;
+      
+      // Add styles to prevent body scroll
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      
+      // Cleanup function to restore scroll
+      return () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [mobileMenuOpen]);
+
   return (
     <>
       {/* Add a spacer to account for the fixed navbar */}
@@ -89,7 +127,7 @@ const Navbar = () => {
         
         {/* Mobile: Hamburger, Logo, Profile, Cart */}
         <div className="relative flex items-center justify-between px-4 md:hidden w-full h-16 -mt-3">
-          {/* Hamburger menu (modern icon) */}
+          {/* Hamburger menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-primary/10 transition-colors mr-2 z-20 text-black"
@@ -102,6 +140,8 @@ const Navbar = () => {
               <path fillRule="evenodd" clipRule="evenodd" d="M20.75 17C20.75 17.4142 20.4142 17.75 20 17.75L4 17.75C3.58579 17.75 3.25 17.4142 3.25 17C3.25 16.5858 3.58579 16.25 4 16.25L20 16.25C20.4142 16.25 20.75 16.5858 20.75 17Z" fill="currentColor"/>
             </svg>
           </button>
+          
+
           {/* Centered Logo */}
           <div 
             onClick={() => handleNavigation('/')} 
@@ -468,203 +508,221 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-          ></div>
-          
-          {/* Mobile Menu */}
-          <div className="fixed top-0 right-0 h-full w-80 bg-white/95 backdrop-blur-md shadow-2xl z-50 md:hidden transform transition-transform duration-300 ease-in-out">
-            <div className="flex flex-col h-full">
-              {/* Mobile Menu Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-800">{t('menu')}</h3>
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Mobile Navigation Links */}
-              <div className="flex-1 overflow-y-auto py-6">
-                <nav className="space-y-2 px-6">
-                  <NavLink 
-                    to="/" 
-                    end 
-                    className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    {t('home')}
-                  </NavLink>
-                  
-                  <NavLink 
-                    to="/collection" 
-                    className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    {t('collection')}
-                  </NavLink>
-                  
-                  <NavLink 
-                    to="/about" 
-                    className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {t('about')}
-                  </NavLink>
-                  
-                  <NavLink 
-                    to="/contact" 
-                    className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    {t('contact')}
-                  </NavLink>
-                  
-                  <NavLink 
-                    to="/wishlist" 
-                    className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-50'}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.653 16.915l-.005-.003-.019-.01a20.759 20.759 0 01-1.162-.682 22.045 22.045 0 01-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 018-2.828A4.5 4.5 0 0118 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 01-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 01-.69.001l-.002-.001z" />
-                    </svg>
-                    <span className="flex-1">{t('wishlist')}</span>
-                    {wishlistCount > 0 && (
-                      <span className="bg-primary text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                        {wishlistCount}
-                      </span>
-                    )}
-                  </NavLink>
-                </nav>
-
-                {/* Mobile Categories Section */}
-                <div className="px-6 mt-8">
-                  <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-4">{t('categories')}</h4>
-                  <div className="grid grid-cols-1 gap-3">
-                    <NavLink 
-                      to="/collection?category=Women" 
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg bg-pink-50 hover:bg-pink-100 transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center">
-                        <img src={assets.woman_icon} alt="Women" className="w-5 h-5 object-contain woman-icon" />
-                      </div>
-                      {t('women')}
-                    </NavLink>
-                    
-                    <NavLink 
-                      to="/collection?category=Men" 
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <img src={assets.man_icon} alt="Men" className="w-5 h-5 object-contain man-icon" />
-                      </div>
-                      {t('men')}
-                    </NavLink>
-                    
-                    <NavLink 
-                      to="/collection?category=Kids" 
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                        <img src={assets.kids_icon} alt="Kids" className="w-5 h-5 object-contain kids-icon" />
-                      </div>
-                      {t('kids')}
-                    </NavLink>
-                  </div>
+      <div 
+        className={`fixed inset-0 z-40 md:hidden transition-all duration-500 ease-in-out ${
+          mobileMenuOpen 
+            ? 'opacity-100 pointer-events-auto' 
+            : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        {/* Backdrop */}
+        <div 
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-all duration-500 ease-in-out ${
+            mobileMenuOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={() => setMobileMenuOpen(false)}
+        />
+        
+        {/* Swipe to close indicator */}
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 md:hidden">
+          <div className="w-8 h-1 bg-white/30 rounded-full"></div>
+        </div>
+        
+        {/* Mobile Menu */}
+        <div 
+          className={`absolute top-0 left-0 h-full w-full bg-gradient-to-br from-white via-white/95 to-primary/5 backdrop-blur-xl shadow-2xl z-50 transform transition-all duration-500 ease-in-out ${
+            mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="flex flex-col h-full">
+            {/* Beautiful Header with Gradient */}
+            <div className="relative bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-primary/20">
+              <div className="flex items-center justify-center p-8">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full blur-xl"></div>
+                  <img src={assets.logo_mobile} className="relative w-32 h-auto object-contain" alt="Boutique Logo" />
                 </div>
               </div>
+            </div>
+            
+            {/* X button for closing menu */}
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="absolute top-5 left-4 flex items-center justify-center w-6 h-6 rounded-full hover:bg-primary/10 transition-colors mr-2 z-30 text-black"
+              aria-label="Close menu"
+            >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
 
-              {/* Mobile Menu Footer */}
-              <div className="border-t border-gray-200 p-6">
-                {user ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 px-4 py-2">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        {user.profileImage ? (
-                          <img 
-                            className="w-6 h-6 rounded-full object-cover"
-                            src={user.profileImage}
-                            alt={user.name || "User Profile"}
-                          />
-                        ) : (
-                          <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                          </svg>
-                        )}
+            {/* Enhanced Navigation Links */}
+            <div className="flex-1 overflow-y-auto py-8">
+              <nav className="space-y-3 px-6">
+                <NavLink 
+                  to="/" 
+                  end 
+                  className={({ isActive }) => `group flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-primary shadow-lg shadow-primary/20' 
+                      : 'text-gray-700 hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 hover:shadow-md'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className={`p-2 rounded-xl transition-all duration-300 ${
+                        isActive ? 'bg-primary/20' : 'bg-gray-100 group-hover:bg-primary/10'
+                      }`}>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
                       </div>
-                      <span className="font-medium text-gray-800">{user.name}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => handleNavigation('/profile')}
-                        className="flex items-center justify-center gap-2 px-4 py-2 text-sm bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <span className="font-medium text-lg">{t('home')}</span>
+                    </>
+                  )}
+                </NavLink>
+                
+                <NavLink 
+                  to="/collection" 
+                  className={({ isActive }) => `group flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-primary shadow-lg shadow-primary/20' 
+                      : 'text-gray-700 hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 hover:shadow-md'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className={`p-2 rounded-xl transition-all duration-300 ${
+                        isActive ? 'bg-primary/20' : 'bg-gray-100 group-hover:bg-primary/10'
+                      }`}>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
-                        {t('profile')}
-                      </button>
-                      <button
-                        onClick={logout}
-                        className="flex items-center justify-center gap-2 px-4 py-2 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </div>
+                      <span className="font-medium text-lg">{t('collection')}</span>
+                    </>
+                  )}
+                </NavLink>
+                
+                <NavLink 
+                  to="/about" 
+                  className={({ isActive }) => `group flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-primary shadow-lg shadow-primary/20' 
+                      : 'text-gray-700 hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 hover:shadow-md'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className={`p-2 rounded-xl transition-all duration-300 ${
+                        isActive ? 'bg-primary/20' : 'bg-gray-100 group-hover:bg-primary/10'
+                      }`}>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        {t('logout')}
-                      </button>
+                      </div>
+                      <span className="font-medium text-lg">{t('about')}</span>
+                    </>
+                  )}
+                </NavLink>
+                
+                <NavLink 
+                  to="/contact" 
+                  className={({ isActive }) => `group flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-primary shadow-lg shadow-primary/20' 
+                      : 'text-gray-700 hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 hover:shadow-md'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className={`p-2 rounded-xl transition-all duration-300 ${
+                        isActive ? 'bg-primary/20' : 'bg-gray-100 group-hover:bg-primary/10'
+                      }`}>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <span className="font-medium text-lg">{t('contact')}</span>
+                    </>
+                  )}
+                </NavLink>
+                
+                <NavLink 
+                  to="/wishlist" 
+                  className={({ isActive }) => `group flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-primary shadow-lg shadow-primary/20' 
+                      : 'text-gray-700 hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 hover:shadow-md'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className={`p-2 rounded-xl transition-all duration-300 ${
+                        isActive ? 'bg-primary/20' : 'bg-gray-100 group-hover:bg-primary/10'
+                      }`}>
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.653 16.915l-.005-.003-.019-.01a20.759 20.759 0 01-1.162-.682 22.045 22.045 0 01-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 018-2.828A4.5 4.5 0 0118 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 01-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 01-.69.001l-.002-.001z" />
+                        </svg>
+                      </div>
+                      <span className="font-medium text-lg flex-1">{t('wishlist')}</span>
+                      {wishlistCount > 0 && (
+                        <span className="bg-gradient-to-r from-primary to-primary/90 text-white text-xs font-bold rounded-full px-3 py-1.5 shadow-lg">
+                          {wishlistCount}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              </nav>
+
+              {/* Mobile Categories Section */}
+              <div className="px-6 mt-8">
+                <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-4">{t('categories')}</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <NavLink 
+                    to="/collection?category=Women" 
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-pink-50 hover:bg-pink-100 transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center">
+                      <img src={assets.woman_icon} alt="Women" className="w-5 h-5 object-contain woman-icon" />
                     </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => handleNavigation('/login')}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                      </svg>
-                      {t('login')}
-                    </button>
-                    <button
-                      onClick={handleRegister}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                      </svg>
-                      {t('create_account')}
-                    </button>
-                  </div>
-                )}
+                    {t('women')}
+                  </NavLink>
+                  
+                  <NavLink 
+                    to="/collection?category=Men" 
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                      <img src={assets.man_icon} alt="Men" className="w-5 h-5 object-contain man-icon" />
+                    </div>
+                    {t('men')}
+                  </NavLink>
+                  
+                  <NavLink 
+                    to="/collection?category=Kids" 
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                      <img src={assets.kids_icon} alt="Kids" className="w-5 h-5 object-contain kids-icon" />
+                    </div>
+                    {t('kids')}
+                  </NavLink>
+                </div>
               </div>
             </div>
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </>
   );
 };

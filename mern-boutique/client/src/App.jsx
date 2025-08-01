@@ -120,11 +120,13 @@ const App = () => {
         preventDuplicates
       />
       <Navbar />
-      {/* Mobile: SearchBar below navbar */}
-      <div className={`block md:hidden sticky top-16 z-30 bg-white/90 backdrop-blur-md px-2 py-2 border-b border-gray-100 transition-transform duration-300 -mt-8 ${showMobileSearch ? 'translate-y-0' : '-translate-y-20'}`}>
-        <SearchBar />
-      </div>
-      {/* Desktop: SearchBar in original place */}
+      {/* Mobile: SearchBar below navbar - only on collection page */}
+      {location.pathname === '/collection' && (
+        <div className={`block md:hidden sticky top-16 z-30 bg-white/90 backdrop-blur-md px-2 py-2 border-b border-gray-100 transition-transform duration-300 -mt-8 ${showMobileSearch ? 'translate-y-0' : '-translate-y-20'}`}>
+          <SearchBar />
+        </div>
+      )}
+      {/* Desktop: SearchBar */}
       <div className="hidden md:block">
         <SearchBar />
       </div>
